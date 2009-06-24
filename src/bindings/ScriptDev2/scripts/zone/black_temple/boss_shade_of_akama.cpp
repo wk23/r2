@@ -195,7 +195,7 @@ struct MANGOS_DLL_DECL mob_ashtongue_channelerAI : public ScriptedAI
        Ch = pInstance->GetData(DATA_AKAMACHAN);
        Ch--;
        pInstance->SetData(DATA_AKAMACHAN,Ch);
-error_log("ostalos sors-chans:  %u  ",Ch);
+//error_log("ostalos sors-chans:  %u  ",Ch);
        m_creature->RemoveCorpse();
     }
 
@@ -273,7 +273,7 @@ struct MANGOS_DLL_DECL mob_ashtongue_sorcererAI : public ScriptedAI
        Ch = pInstance->GetData(DATA_AKAMACHAN);
        Ch--;
        pInstance->SetData(DATA_AKAMACHAN,Ch);
-error_log("ostalos sors-chans:  %u ",Ch);
+//error_log("ostalos sors-chans:  %u ",Ch);
        m_creature->RemoveCorpse();
     }
 
@@ -615,9 +615,9 @@ struct MANGOS_DLL_DECL npc_akamaAI : public ScriptedAI
                            }
                         SpiritGUID[i] = Spirit->GetGUID();
                         Chans++;
-error_log("first summon Chans, i, guid:  %u, %u, %u",Chans,i,SpiritGUID[i]);
+//error_log("first summon Chans, i, guid:  %u, %u, %u",Chans,i,SpiritGUID[i]);
                         pInstance->SetData(DATA_AKAMACHAN, Chans);
-error_log("aftet setdata first summon Chans, i, guid:  %u, %u, %u",pInstance->GetData(DATA_AKAMACHAN),i,SpiritGUID[i]);
+//error_log("aftet setdata first summon Chans, i, guid:  %u, %u, %u",pInstance->GetData(DATA_AKAMACHAN),i,SpiritGUID[i]);
                     }
             }
         ChannelTimer = 0;
@@ -674,7 +674,7 @@ error_log("aftet setdata first summon Chans, i, guid:  %u, %u, %u",pInstance->Ge
                if (SpiritGUID[i])
                   {
                       Unit* Spirit = Unit::GetUnit((*m_creature), SpiritGUID[i]);
-error_log("begun ivent remove flags: %u, %u",SpiritGUID[i],i);
+//error_log("begun ivent remove flags: %u, %u",SpiritGUID[i],i);
                       if (Spirit && (Spirit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE)))
                          {
                               Spirit->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -789,7 +789,7 @@ error_log("begun ivent remove flags: %u, %u",SpiritGUID[i],i);
             Chans = pInstance->GetData(DATA_AKAMACHAN);
             if(Chans == 0)
                {
-error_log("EventBegun && StartChanneling - summonChans: %u, %b",Chans,StartChanneling);
+//error_log("EventBegun && StartChanneling - summonChans: %u, %b",Chans,StartChanneling);
                   StartChanneling = false;
                   if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
                      m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -802,7 +802,7 @@ error_log("EventBegun && StartChanneling - summonChans: %u, %b",Chans,StartChann
                          //Shade->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                          Shade->AddThreat(m_creature, 1000000.0f);
                          m_creature->AddThreat(Shade, 1000000.0f);
-error_log("EventBegun && StartChanneling - ShadeGUID chans: %u ",Chans);
+//error_log("EventBegun && StartChanneling - ShadeGUID chans: %u ",Chans);
                          Shade->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_NONE);
                          DoZoneInCombat(Shade);
                      }
@@ -840,7 +840,7 @@ error_log("EventBegun && StartChanneling - ShadeGUID chans: %u ",Chans);
                                            }
                                        SpiritGUID[i] = Spirit->GetGUID();
                                        Chans++;
-error_log("ChannelTimer < diff guid, i, chans: %u, %u, %u",SpiritGUID[i],i,Chans);
+//error_log("ChannelTimer < diff guid, i, chans: %u, %u, %u",SpiritGUID[i],i,Chans);
                                        pInstance->SetData(DATA_AKAMACHAN, Chans);
                                    }
                            }
