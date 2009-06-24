@@ -33,20 +33,20 @@ aclocal.m4
 autom4te.cache
 compile
 config.guess
-config.h.in
+#config.h.in
 config.log
 config.status
 config.sub
-configure
+#configure
 depcomp
-libtool
+#libtool
 install-sh
 ltmain.sh
 missing
 stamp-h1
 
-Makefile.in
-Makefile
+#Makefile.in
+#Makefile
 
 #
 # Editors / debuggers / other output files

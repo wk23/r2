@@ -27,8 +27,8 @@ INSTALL
 .libs
 *~
 .*.swp
-Makefile.in
-Makefile
+#Makefile.in
+#Makefile
 
 core
 core.*
