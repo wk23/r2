@@ -29,21 +29,21 @@ INSTALL
 #
 # Build generated files
 #
-aclocal.m4
-autom4te.cache
-compile
-config.guess
+#aclocal.m4
+#autom4te.cache
+#compile
+#config.guess
 #config.h.in
-config.log
-config.status
-config.sub
+#config.log
+#config.status
+#config.sub
 #configure
-depcomp
+#depcomp
 #libtool
-install-sh
-ltmain.sh
-missing
-stamp-h1
+#install-sh
+#ltmain.sh
+#missing
+#stamp-h1
 
 #Makefile.in
 #Makefile
@@ -71,4 +71,4 @@ bin/*
 #
 # Special exceptions
 #
-!dep/ACE_wrappers/ace/ace_message_table.bin
+#!dep/ACE_wrappers/ace/ace_message_table.bin

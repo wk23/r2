@@ -22,36 +22,36 @@ INSTALL
 *.laT
 *.so
 *.bak
-*.dist
-.deps
-.libs
+#*.dist
+#.deps
+#.libs
 *~
 .*.swp
 #Makefile.in
 #Makefile
 
-core
-core.*
-!core.h
-vgcore*
+#core
+#core.*
+#!core.h
+#vgcore*
 
 doc/html
 doc/Doxyfile
 doc/doxygen.log
 
-aclocal.m4
-autom4te.cache
-config.guess
-config.sub
-configure
-depcomp
-install-sh
-ltmain.sh
-missing
-config.log
-config.status
-libtool
-stamp-h1
+#aclocal.m4
+#autom4te.cache
+#config.guess
+#config.sub
+#configure
+#depcomp
+#install-sh
+#ltmain.sh
+#missing
+#config.log
+#config.status
+#libtool
+#stamp-h1
 
 callgrind.out.*
 
