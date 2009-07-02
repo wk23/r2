@@ -79,6 +79,14 @@ pkgdata_DATA = \
 	042_7938_01_realmd_account.sql \
 	043_7945_01_mangos_quest_template.sql \
 	044_7980_01_mangos_item_required_target.sql \
+	045_8098_01_characters_character_action.sql \
+	045_8098_02_mangos_playercreateinfo_action.sql \
+	045_8098_03_characters_character_pet.sql \
+	045_8098_04_characters_pet_spell.sql \
+	046_7349_01_mangos_spell_area.sql \
+	047_7376_01_mangos_spell_area.sql \
+	048_7382_01_mangos_creature_template.sql \
+        049_8104_01_characters.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -137,4 +145,12 @@ EXTRA_DIST = \
 	042_7938_01_realmd_account.sql \
 	043_7945_01_mangos_quest_template.sql \
 	044_7980_01_mangos_item_required_target.sql \
+	045_8098_01_characters_character_action.sql \
+	045_8098_02_mangos_playercreateinfo_action.sql \
+	045_8098_03_characters_character_pet.sql \
+	045_8098_04_characters_pet_spell.sql \
+	046_7349_01_mangos_spell_area.sql \
+	047_7376_01_mangos_spell_area.sql \
+	048_7382_01_mangos_creature_template.sql \
+        049_8104_01_characters.sql \
 	README

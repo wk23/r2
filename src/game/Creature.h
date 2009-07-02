@@ -213,6 +213,8 @@ struct CreatureInfo
     char const* AIName;
     uint32  MovementType;
     uint32  InhabitType;
+    float   unk16;
+    float   unk17;
     bool    RacialLeader;
     bool    RegenHealth;
     uint32  equipmentId;
@@ -280,7 +282,7 @@ struct CreatureData
 
 struct CreatureDataAddonAura
 {
-    uint16 spell_id;
+    uint32 spell_id;
     uint8 effect_idx;
 };
 
@@ -499,8 +501,17 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         bool AIM_Initialize();
 
-        void AI_SendMoveToPacket(float x, float y, float z, uint32 time, uint32 MovementFlags, uint8 type);
+        void AI_SendMoveToPacket(float x, float y, float z, uint32 time, MonsterMovementFlags MovementFlags, uint8 type);
         CreatureAI* AI() { return i_AI; }
+
+        void AddMonsterMoveFlag(MonsterMovementFlags f) { m_monsterMoveFlags = MonsterMovementFlags(m_monsterMoveFlags | f); }
+        void RemoveMonsterMoveFlag(MonsterMovementFlags f) { m_monsterMoveFlags = MonsterMovementFlags(m_monsterMoveFlags & ~f); }
+        bool HasMonsterMoveFlag(MonsterMovementFlags f) const { return m_monsterMoveFlags & f; }
+        MonsterMovementFlags GetMonsterMoveFlags() const { return m_monsterMoveFlags; }
+        void SetMonsterMoveFlags(MonsterMovementFlags f) { m_monsterMoveFlags = f; }
+
+        void SendMonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime = 0, Player* player = NULL);
+        void SendMonsterMoveWithSpeedToCurrentDestination(Player* player = NULL);
 
         uint32 GetShieldBlockValue() const                  //dunno mob block value
         {
@@ -644,10 +655,10 @@ class MANGOS_DLL_SPEC Creature : public Unit
         virtual uint8 GetPetAutoSpellSize() const { return CREATURE_MAX_SPELLS; }
         virtual uint32 GetPetAutoSpellOnPos(uint8 pos) const
         {
-            if (pos >= CREATURE_MAX_SPELLS || m_charmInfo->GetCharmSpell(pos)->active != ACT_ENABLED)
+            if (pos >= CREATURE_MAX_SPELLS || m_charmInfo->GetCharmSpell(pos)->GetType() != ACT_ENABLED)
                 return 0;
             else
-                return m_charmInfo->GetCharmSpell(pos)->spellId;
+                return m_charmInfo->GetCharmSpell(pos)->GetAction();
         }
 
         void SetCombatStartPosition(float x, float y, float z) { CombatStartX = x; CombatStartY = y; CombatStartZ = z; }
@@ -659,38 +670,13 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         bool isActiveObject() const { return m_isActiveObject; }
         void SetActiveObjectState(bool on);
-        
-        void IncrementReceivedDamage(Unit* pAttacker, uint32 unDamage) 
-        {
-		    if(!pAttacker || !unDamage)
-                return;
 
-		    if(pAttacker->GetCharmerOrOwnerPlayerOrPlayerItself())
-		    {
-                m_unPlayerDamageDone += unDamage;
-                return;
-		    }
-		    else if(pAttacker->GetTypeId() == TYPEID_UNIT)
-		    {
-                //some conditions can be placed here
-                m_unUnitDamageDone += unDamage;
-                return;
-		    }
-        }
-        bool AreLootAndRewardAllowed() { return (m_unPlayerDamageDone > m_unUnitDamageDone); }
-        void ResetObtainedDamage() 
-        {
-		    m_unPlayerDamageDone = 0;
-		    m_unUnitDamageDone = 0;
-        }
         // TODO this method is a hack, move all BattleGroundCreatures to database - or set home-point for BG-creatures
         void SetDBTableGuid(uint32 id) { m_DBTableGuid = id; }
     protected:
         bool CreateFromProto(uint32 guidlow,uint32 Entry,uint32 team, const CreatureData *data = NULL);
         bool InitEntry(uint32 entry, uint32 team=ALLIANCE, const CreatureData* data=NULL);
 
-        uint32 m_unPlayerDamageDone;
-        uint32 m_unUnitDamageDone;
         // vendor items
         VendorItemCounts m_vendorItemCounts;
 
@@ -737,6 +723,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         GridReference<Creature> m_gridRef;
         CreatureInfo const* m_creatureInfo;                 // in heroic mode can different from ObjMgr::GetCreatureTemplate(GetEntry())
         bool m_isActiveObject;
+        MonsterMovementFlags m_monsterMoveFlags;
 };
 
 class AssistDelayEvent : public BasicEvent

@@ -51,8 +51,6 @@ _logoutTime(0), m_inQueue(false), m_playerLoading(false), m_playerLogout(false),
     {
         m_Address = sock->GetRemoteAddress ();
         sock->AddReference ();
-        loginDatabase.PExecute("UPDATE account SET online = 1 WHERE id = %u;", GetAccountId());
-        CharacterDatabase.PExecute("UPDATE characters SET online = 0 WHERE account = %u AND online <> 0;", GetAccountId()); // really need this?
     }
 }
 
@@ -77,8 +75,6 @@ WorldSession::~WorldSession()
         WorldPacket *packet = _recvQueue.next ();
         delete packet;
     }
-    loginDatabase.PExecute("UPDATE account SET online = 0 WHERE id = %u;", GetAccountId());
-    CharacterDatabase.PExecute("UPDATE characters SET online = 0 WHERE account = %u;", GetAccountId());
 }
 
 void WorldSession::SizeError(WorldPacket const& packet, uint32 size) const
@@ -327,6 +323,11 @@ void WorldSession::LogoutPlayer(bool Save)
             }
         }
 
+        ///- Reset the online field in the account table
+        // no point resetting online in character table here as Player::SaveToDB() will set it to 1 since player has not been removed from world at this stage
+        //No SQL injection as AccountID is uint32
+        loginDatabase.PExecute("UPDATE account SET online = 0 WHERE id = '%u'", GetAccountId());
+
         ///- If the player is in a guild, update the guild roster and broadcast a logout message to other guild members
         Guild *guild = objmgr.GetGuildById(_player->GetGuildId());
         if(guild)
@@ -517,5 +518,53 @@ void WorldSession::SendAuthWaitQue(uint32 position)
         packet << uint8( AUTH_WAIT_QUEUE );
         packet << uint32 (position);
         SendPacket(&packet);
+    }
+}
+
+void WorldSession::ReadMovementInfo(WorldPacket &data, MovementInfo *mi)
+{
+    CHECK_PACKET_SIZE(data, 4+1+4+4+4+4+4);
+    data >> mi->flags;
+    data >> mi->unk1;
+    data >> mi->time;
+    data >> mi->x;
+    data >> mi->y;
+    data >> mi->z;
+    data >> mi->o;
+
+    if(mi->HasMovementFlag(MOVEMENTFLAG_ONTRANSPORT))
+    {
+        CHECK_PACKET_SIZE(data, data.rpos()+8+4+4+4+4+4);
+
+        data >> mi->t_guid;
+        data >> mi->t_x;
+        data >> mi->t_y;
+        data >> mi->t_z;
+        data >> mi->t_o;
+        data >> mi->t_time;
+    }
+
+    if(mi->HasMovementFlag(MovementFlags(MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING2)))
+    {
+        CHECK_PACKET_SIZE(data, data.rpos()+4);
+        data >> mi->s_pitch;
+    }
+
+    CHECK_PACKET_SIZE(data, data.rpos()+4);
+    data >> mi->fallTime;
+
+    if(mi->HasMovementFlag(MOVEMENTFLAG_JUMPING))
+    {
+        CHECK_PACKET_SIZE(data, data.rpos()+4+4+4+4);
+        data >> mi->j_unk;
+        data >> mi->j_sinAngle;
+        data >> mi->j_cosAngle;
+        data >> mi->j_xyspeed;
+    }
+
+    if(mi->HasMovementFlag(MOVEMENTFLAG_SPLINE))
+    {
+        CHECK_PACKET_SIZE(data, data.rpos()+4);
+        data >> mi->u_unk1;
     }
 }

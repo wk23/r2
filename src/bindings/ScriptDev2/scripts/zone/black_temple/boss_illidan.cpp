@@ -340,11 +340,11 @@ struct MANGOS_DLL_DECL demonfireAI : public ScriptedAI
         {
             if (!IllidanGUID && pInstance)
             {
-                IllidanGUID = pInstance->GetData64(DATA_ILLIDANSTORMRAGE);
-                if (IllidanGUID)
+                if (Creature* pIllidan = pInstance->instance->GetCreature(pInstance->GetData64(DATA_ILLIDANSTORMRAGE)))
                 {
-                    Unit* Illidan = Unit::GetUnit((*m_creature), IllidanGUID);
-                    if (Illidan && !Illidan->HasUnitMovementFlag(MOVEMENTFLAG_LEVITATING))
+                    IllidanGUID = pInstance->GetData64(DATA_ILLIDANSTORMRAGE);
+
+                    if (!pIllidan->HasMonsterMoveFlag(MONSTER_MOVE_LEVITATING))
                         m_creature->setDeathState(JUST_DIED);
                 }
             }
@@ -478,7 +478,7 @@ struct MANGOS_DLL_SPEC npc_akama_illidanAI : public ScriptedAI
         IsReturningToIllidan = true;
         WayPoint = WayPointList.begin();
         m_creature->SetSpeed(MOVE_RUN, 2.0f);
-        m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+        m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_WALK);
         IsWalking = true;
     }
 
@@ -663,7 +663,7 @@ struct MANGOS_DLL_SPEC npc_akama_illidanAI : public ScriptedAI
                                 IsWalking = true;
                                 WayPoint = WayPointList.begin();
                                 std::advance(WayPoint, 9);
-                                m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                                m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_WALK);
                                 break;
                         }
                     }else TalkTimer -= diff;
@@ -753,7 +753,7 @@ struct MANGOS_DLL_SPEC npc_akama_illidanAI : public ScriptedAI
                         }
 
                         WayPoint = WayPointList.begin();
-                        m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                        m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
                         m_creature->GetMotionMaster()->MovePoint(WayPoint->id, WayPoint->x, WayPoint->y, WayPoint->z);
                         IsWalking = true;
                         break;
@@ -976,7 +976,7 @@ struct MANGOS_DLL_SPEC boss_illidan_stormrageAI : public ScriptedAI
 
         m_creature->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_DISPLAY, 0);
         m_creature->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_DISPLAY+1, 0);
-        m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
+        m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
 
         IsTalking = false;
 
@@ -1277,7 +1277,7 @@ struct MANGOS_DLL_SPEC boss_illidan_stormrageAI : public ScriptedAI
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
         // We now hover!
-        m_creature->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
+        m_creature->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
 
         m_creature->GetMotionMaster()->MovePoint(0, CENTER_X, CENTER_Y, CENTER_Z);
         for(uint8 i = 0; i < 2; ++i)
@@ -1414,7 +1414,7 @@ struct MANGOS_DLL_SPEC boss_illidan_stormrageAI : public ScriptedAI
                 float dx = m_creature->GetPositionX() + (distance*cos(m_creature->GetOrientation()));
                 float dy = m_creature->GetPositionY() + (distance*sin(m_creature->GetOrientation()));
                 Maiev->Relocate(dx,dy,Maiev->GetPositionZ());
-                Maiev->SendMonsterMove(dx,dy,Maiev->GetPositionZ(), 0, 0, 0);
+                Maiev->SendMonsterMove(dx,dy,Maiev->GetPositionZ(), 0, MONSTER_MOVE_WALK, 0);
                 Maiev->CastSpell(Maiev, SPELL_TELEPORT_VISUAL, true);
                 Maiev->SetUInt64Value(UNIT_FIELD_TARGET, m_creature->GetGUID());
             }
@@ -1723,7 +1723,7 @@ struct MANGOS_DLL_SPEC boss_illidan_stormrageAI : public ScriptedAI
 
                         // anndddd touchdown!
                         m_creature->HandleEmoteCommand(EMOTE_ONESHOT_LAND);
-                        m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT + MOVEMENTFLAG_LEVITATING);
+                        m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
                         Phase = PHASE_NORMAL_2;
 
                         // We should let the raid fight us =)

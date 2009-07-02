@@ -190,7 +190,7 @@ struct MANGOS_DLL_DECL mob_enslaved_netherwing_drakeAI : public ScriptedAI
             m_creature->setFaction(FACTION_DEFAULT);
 
         FlyTimer = 10000;
-        m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT + MOVEMENTFLAG_LEVITATING);
+        m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
         m_creature->SetVisibility(VISIBILITY_ON);
     }
 
@@ -235,7 +235,7 @@ struct MANGOS_DLL_DECL mob_enslaved_netherwing_drakeAI : public ScriptedAI
                 PlayerGUID = 0;
             }
             m_creature->SetVisibility(VISIBILITY_OFF);
-            m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT + MOVEMENTFLAG_LEVITATING);
+            m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
             m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
             m_creature->RemoveCorpse();
         }
@@ -273,7 +273,7 @@ struct MANGOS_DLL_DECL mob_enslaved_netherwing_drakeAI : public ScriptedAI
                             dz += 25;
                         }
 
-                        m_creature->AddUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT + MOVEMENTFLAG_LEVITATING);
+                        m_creature->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
                         m_creature->GetMotionMaster()->MovePoint(1, dx, dy, dz);
                     }
                 }
@@ -325,7 +325,7 @@ struct MANGOS_DLL_DECL mob_dragonmaw_peonAI : public ScriptedAI
             float x, y, z;
             caster->GetClosePoint(x, y, z, m_creature->GetObjectSize());
 
-            m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+            m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_WALK);
             m_creature->GetMotionMaster()->MovePoint(1, x, y, z);
         }
     }

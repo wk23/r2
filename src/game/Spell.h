@@ -132,6 +132,7 @@ class SpellCastTargets
         Unit *getUnitTarget() const { return m_unitTarget; }
         void setUnitTarget(Unit *target);
         void setDestination(float x, float y, float z);
+        void setSource(float x, float y, float z);
 
         uint64 getGOTargetGUID() const { return m_GOTargetGUID; }
         GameObject *getGOTarget() const { return m_GOTarget; }
@@ -278,6 +279,7 @@ class Spell
         void EffectSelfResurrect(uint32 i);
         void EffectSkinning(uint32 i);
         void EffectCharge(uint32 i);
+        void EffectCharge2(uint32 i);
         void EffectProspecting(uint32 i);
         void EffectSendTaxi(uint32 i);
         void EffectSummonCritter(uint32 i);

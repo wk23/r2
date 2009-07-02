@@ -1194,6 +1194,9 @@ void World::SetInitialWorldSettings()
     sLog.outString( ">>> Quests Relations loaded" );
     sLog.outString();
 
+    sLog.outString( "Loading SpellArea Data..." );          // must be after quest load
+    spellmgr.LoadSpellAreas();
+
     sLog.outString( "Loading AreaTrigger definitions..." );
     objmgr.LoadAreaTriggerTeleports();                      // must be after item template load
 
@@ -1792,8 +1795,8 @@ void World::ScriptsProcess()
                     sLog.outError("SCRIPT_COMMAND_MOVE_TO call for non-creature (TypeId: %u), skipping.",source->GetTypeId());
                     break;
                 }
-                ((Unit *)source)->SendMonsterMoveWithSpeed(step.script->x, step.script->y, step.script->z, step.script->datalong2 );
-                ((Unit *)source)->GetMap()->CreatureRelocation(((Creature *)source), step.script->x, step.script->y, step.script->z, 0);
+                ((Creature*)source)->SendMonsterMoveWithSpeed(step.script->x, step.script->y, step.script->z, step.script->datalong2 );
+                ((Creature*)source)->GetMap()->CreatureRelocation(((Creature*)source), step.script->x, step.script->y, step.script->z, 0);
                 break;
             case SCRIPT_COMMAND_FLAG_SET:
                 if(!source)

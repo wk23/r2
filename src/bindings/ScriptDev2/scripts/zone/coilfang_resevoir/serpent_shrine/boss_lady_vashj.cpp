@@ -280,7 +280,7 @@ struct MANGOS_DLL_DECL boss_lady_vashjAI : public ScriptedAI
                     m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                     m_creature->GetMotionMaster()->Clear();
                     m_creature->Relocate(afMiddlePos[0], afMiddlePos[1], afMiddlePos[2]);
-                    m_creature->SendMonsterMove(afMiddlePos[0], afMiddlePos[1], afMiddlePos[2], 0, 0, NULL);
+                    m_creature->SendMonsterMove(afMiddlePos[0], afMiddlePos[1], afMiddlePos[2], 0, MONSTER_MOVE_NONE, NULL);
 
                     m_creature->RemoveAllAuras();
                                                             // This needs an entry in spell_script_target

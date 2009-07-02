@@ -205,7 +205,7 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectUnused,                                   //146 SPELL_EFFECT_146                      unused
     &Spell::EffectQuestFail,                                //147 SPELL_EFFECT_QUEST_FAIL               quest fail
     &Spell::EffectUnused,                                   //148 SPELL_EFFECT_148                      unused
-    &Spell::EffectNULL,                                     //149 SPELL_EFFECT_149                      swoop
+    &Spell::EffectCharge2,                                  //149 SPELL_EFFECT_CHARGE2                  swoop
     &Spell::EffectUnused,                                   //150 SPELL_EFFECT_150                      unused
     &Spell::EffectTriggerRitualOfSummoning,                 //151 SPELL_EFFECT_TRIGGER_SPELL_2
     &Spell::EffectNULL,                                     //152 SPELL_EFFECT_152                      summon Refer-a-Friend
@@ -356,6 +356,10 @@ void Spell::EffectSchoolDMG(uint32 effect_idx)
                 if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x20000000))
                 {
                     m_caster->CastSpell(m_caster, 36032, true);
+                }
+                else if (m_spellInfo->SchoolMask & SPELL_SCHOOL_MASK_ARCANE)
+                {
+                    m_caster->RemoveAurasDueToSpell(36032);
                 }
                 break;
             }
@@ -1099,32 +1103,25 @@ void Spell::EffectDummy(uint32 i)
                 {
                     if(!unitTarget || m_caster->GetTypeId() != TYPEID_PLAYER )
                         return;
-
-                    if(!unitTarget)
+                    // Spell has scriptable target but for sure.
+                    if (unitTarget->GetTypeId() != TYPEID_UNIT)
                         return;
 
-                    TemporarySummon* tempSummon = dynamic_cast<TemporarySummon*>(unitTarget);
-                    if(!tempSummon)
-                        return;
+                    uint32 health = unitTarget->GetHealth();
+                    float x, y, z, o;
 
-                    uint32 health = tempSummon->GetHealth();
+                    unitTarget->GetPosition(x, y, z);
+                    o = unitTarget->GetOrientation();
+                    ((Creature*)unitTarget)->ForcedDespawn();
 
-                    float x = tempSummon->GetPositionX();
-                    float y = tempSummon->GetPositionY();
-                    float z = tempSummon->GetPositionZ();
-                    float o = tempSummon->GetOrientation();
-                    tempSummon->UnSummon();
+                    if (Creature* summon = m_caster->SummonCreature(16992, x, y, z, o,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,180000))
+                    {
+                        summon->SetHealth(health);
+                        ((Player*)m_caster)->RewardPlayerAndGroupAtEvent(16992, summon);
 
-                    Creature* pCreature = m_caster->SummonCreature(16992, x, y, z, o,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,180000);
-                    if (!pCreature)
-                        return;
-
-                    pCreature->SetHealth(health);
-                    ((Player*)m_caster)->RewardPlayerAndGroupAtEvent(16992, pCreature);
-
-                    if (pCreature->AI())
-                        pCreature->AI()->AttackStart(m_caster);
-
+                        if (summon->AI())
+                            summon->AI()->AttackStart(m_caster);
+                    }
                     return;
                 }
                 case 44997:                                 // Converting Sentry
@@ -1957,47 +1954,41 @@ void Spell::EffectTeleportUnits(uint32 i)
             ((Player*)unitTarget)->TeleportTo(((Player*)unitTarget)->m_homebindMapId,((Player*)unitTarget)->m_homebindX,((Player*)unitTarget)->m_homebindY,((Player*)unitTarget)->m_homebindZ,unitTarget->GetOrientation(),unitTarget==m_caster ? TELE_TO_SPELL : 0);
             return;
         }
+        case TARGET_AREAEFFECT_INSTANT:                     // in all cases first TARGET_TABLE_X_Y_Z_COORDINATES
         case TARGET_TABLE_X_Y_Z_COORDINATES:
         {
-            // TODO: Only players can teleport?
-            if (unitTarget->GetTypeId() != TYPEID_PLAYER)
-                return;
             SpellTargetPosition const* st = spellmgr.GetSpellTargetPosition(m_spellInfo->Id);
             if(!st)
             {
                 sLog.outError( "Spell::EffectTeleportUnits - unknown Teleport coordinates for spell ID %u", m_spellInfo->Id );
                 return;
             }
-            ((Player*)unitTarget)->TeleportTo(st->target_mapId,st->target_X,st->target_Y,st->target_Z,st->target_Orientation,unitTarget==m_caster ? TELE_TO_SPELL : 0);
+
+            if(st->target_mapId==unitTarget->GetMapId())
+                unitTarget->NearTeleportTo(st->target_X,st->target_Y,st->target_Z,st->target_Orientation,unitTarget==m_caster);
+            else if(unitTarget->GetTypeId()==TYPEID_PLAYER)
+                ((Player*)unitTarget)->TeleportTo(st->target_mapId,st->target_X,st->target_Y,st->target_Z,st->target_Orientation,unitTarget==m_caster ? TELE_TO_SPELL : 0);
             break;
         }
         case TARGET_BEHIND_VICTIM:
         {
-            // Get selected target for player (or victim for units)
             Unit *pTarget = NULL;
-            if(m_caster->GetTypeId() == TYPEID_PLAYER)
-                pTarget = ObjectAccessor::GetUnit(*m_caster, ((Player*)m_caster)->GetSelection());
-            else
-                pTarget = m_caster->getVictim();
-            // No target present - return
-            if (!pTarget)
-                return;
+
+            // explicit cast data from client or server-side cast
+            // some spell at client send caster
+            if(m_targets.getUnitTarget() && m_targets.getUnitTarget()!=unitTarget)
+                pTarget = m_targets.getUnitTarget();
+            else if(unitTarget->getVictim())
+                pTarget = unitTarget->getVictim();
+            else if(unitTarget->GetTypeId() == TYPEID_PLAYER)
+                pTarget = ObjectAccessor::GetUnit(*unitTarget, ((Player*)unitTarget)->GetSelection());
+
             // Init dest coordinates
-            uint32 mapid = m_caster->GetMapId();
             float x = m_targets.m_destX;
             float y = m_targets.m_destY;
             float z = m_targets.m_destZ;
-            float orientation = pTarget->GetOrientation();
-            // Teleport
-            if(unitTarget->GetTypeId() == TYPEID_PLAYER)
-                ((Player*)unitTarget)->TeleportTo(mapid, x, y, z, orientation, TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (unitTarget==m_caster ? TELE_TO_SPELL : 0));
-            else
-            {
-                m_caster->GetMap()->CreatureRelocation((Creature*)unitTarget, x, y, z, orientation);
-                WorldPacket data;
-                unitTarget->BuildTeleportAckMsg(&data, x, y, z, orientation);
-                unitTarget->SendMessageToSet(&data, false);
-            }
+            float orientation = pTarget ? pTarget->GetOrientation() : unitTarget->GetOrientation();
+            unitTarget->NearTeleportTo(x,y,z,orientation,unitTarget==m_caster);
             return;
         }
         default:
@@ -2015,15 +2006,7 @@ void Spell::EffectTeleportUnits(uint32 i)
             float z = m_targets.m_destZ;
             float orientation = unitTarget->GetOrientation();
             // Teleport
-            if(unitTarget->GetTypeId() == TYPEID_PLAYER)
-                ((Player*)unitTarget)->TeleportTo(mapid, x, y, z, orientation, TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (unitTarget==m_caster ? TELE_TO_SPELL : 0));
-            else
-            {
-                m_caster->GetMap()->CreatureRelocation((Creature*)unitTarget, x, y, z, orientation);
-                WorldPacket data;
-                unitTarget->BuildTeleportAckMsg(&data, x, y, z, orientation);
-                unitTarget->SendMessageToSet(&data, false);
-            }
+            unitTarget->NearTeleportTo(x,y,z,orientation,unitTarget==m_caster);
             return;
         }
     }
@@ -2140,7 +2123,7 @@ void Spell::EffectApplyAura(uint32 i)
         (unitTarget->GetTypeId()!=TYPEID_PLAYER || !((Player*)unitTarget)->GetSession()->PlayerLoading()) )
         return;
 
-    Unit* caster = m_originalCasterGUID ? m_originalCaster : m_caster;
+    Unit* caster = m_originalCaster ? m_originalCaster : m_caster;
     if(!caster)
         return;
 
@@ -3649,16 +3632,12 @@ void Spell::EffectTeleUnitsFaceCaster(uint32 i)
     if(unitTarget->isInFlight())
         return;
 
-    uint32 mapid = m_caster->GetMapId();
     float dis = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
 
     float fx, fy, fz;
     m_caster->GetClosePoint(fx, fy, fz, unitTarget->GetObjectSize(), dis);
 
-    if(unitTarget->GetTypeId() == TYPEID_PLAYER)
-        ((Player*)unitTarget)->TeleportTo(mapid, fx, fy, fz, -m_caster->GetOrientation(), TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (unitTarget==m_caster ? TELE_TO_SPELL : 0));
-    else
-        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, fx, fy, fz, -m_caster->GetOrientation());
+    unitTarget->NearTeleportTo(fx,fy,fz,-m_caster->GetOrientation(),unitTarget==m_caster);
 }
 
 void Spell::EffectLearnSkill(uint32 i)
@@ -5460,62 +5439,24 @@ void Spell::EffectMomentMove(uint32 i)
 
     if( m_spellInfo->rangeIndex == 1)                       //self range
     {
-        uint32 mapid = m_caster->GetMapId();
         float dis = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
 
-            // Start Info //
-            float cx,cy,cz;
-            float dx,dy,dz;
-            float angle = unitTarget->GetOrientation();
-            unitTarget->GetPosition(cx,cy,cz);
-            
-            //Check use of vamps//
-            bool useVmap = false;
-            bool swapZone = true;
-            if( MapManager::Instance().GetMap(mapid, unitTarget)->GetHeight(cx, cy, cz, false) <  MapManager::Instance().GetMap(mapid, unitTarget)->GetHeight(cx, cy, cz, true) )
-                useVmap = true;
-            
-            //Going foward 0.5f until max distance
-            for(float i=0.5f; i<dis; i+=0.5f)
-            {
-                unitTarget->GetNearPoint2D(dx,dy,i,angle);
-                dz = MapManager::Instance().GetMap(mapid, unitTarget)->GetHeight(dx, dy, cz, useVmap);
-                
-                //Prevent climbing and go around object maybe 2.0f is to small? use 3.0f?
-                if( (dz-cz) < 2.0f && (dz-cz) > -2.0f && (unitTarget->IsWithinLOS(dx, dy, dz)))
-                {
-                    //No climb, the z differenze between this and prev step is ok. Store this destination for future use or check.
-                    cx = dx;
-                    cy = dy;
-                    cz = dz;
-                }
-                else
-                {
-                    //Something wrong with los or z differenze... maybe we are going from outer world inside a building or viceversa
-                    if(swapZone)
-                    {
-                        //so... change use of vamp and go back 1 step backward and recheck again.
-                        swapZone = false;
-                        useVmap = !useVmap;
-                        i-=0.5f;
-                    }
-                    else
-                    {
-                        //bad recheck result... so break this and use last good coord for teleport player...
-                        dz += 0.5f;
-                        break;
-                    }
-                }
-            }
-            
-            //Prevent Falling during swap building/outerspace
-            unitTarget->UpdateGroundPositionZ(cx, cy, cz);
-        
+        // before caster
+        float fx, fy, fz;
+        unitTarget->GetClosePoint(fx, fy, fz, unitTarget->GetObjectSize(), dis);
+        float ox, oy, oz;
+        unitTarget->GetPosition(ox, oy, oz);
 
-        if(unitTarget->GetTypeId() == TYPEID_PLAYER)
-            ((Player*)unitTarget)->TeleportTo(mapid, cx, cy, cz, unitTarget->GetOrientation(), TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (unitTarget==m_caster ? TELE_TO_SPELL : 0));
-        else
-            MapManager::Instance().GetMap(mapid, unitTarget)->CreatureRelocation((Creature*)unitTarget, cx, cy, cz, unitTarget->GetOrientation());
+        float fx2, fy2, fz2;                                // getObjectHitPos overwrite last args in any result case
+        if(VMAP::VMapFactory::createOrGetVMapManager()->getObjectHitPos(unitTarget->GetMapId(), ox,oy,oz+0.5, fx,fy,oz+0.5,fx2,fy2,fz2, -0.5))
+        {
+            fx = fx2;
+            fy = fy2;
+            fz = fz2;
+            unitTarget->UpdateGroundPositionZ(fx, fy, fz);
+        }
+
+        unitTarget->NearTeleportTo(fx, fy, fz, unitTarget->GetOrientation(),unitTarget==m_caster);
     }
 }
 
@@ -5613,7 +5554,7 @@ void Spell::EffectSkinning(uint32 /*i*/)
 
 void Spell::EffectCharge(uint32 /*i*/)
 {
-    if(!unitTarget || !m_caster)
+    if (!unitTarget)
         return;
 
     Unit *chargeTarget = m_targets.getUnitTarget();
@@ -5626,14 +5567,42 @@ void Spell::EffectCharge(uint32 /*i*/)
         ((Creature *)chargeTarget)->StopMoving();
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    m_caster->SendMonsterMove(x, y, z, 0, MOVEMENTFLAG_WALK_MODE, 1);
+    m_caster->SendMonsterMove(x, y, z, 0, m_caster->GetTypeId()==TYPEID_PLAYER ? MONSTER_MOVE_WALK : ((Creature*)m_caster)->GetMonsterMoveFlags(), 1);
 
-    if(m_caster->GetTypeId() != TYPEID_PLAYER)
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
         m_caster->GetMap()->CreatureRelocation((Creature*)m_caster,x,y,z,m_caster->GetOrientation());
 
     // not all charge effects used in negative spells
-    if ( !IsPositiveSpell(m_spellInfo->Id))
+    if (unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
         m_caster->Attack(chargeTarget,true);
+}
+
+void Spell::EffectCharge2(uint32 /*i*/)
+{
+    float x, y, z;
+    if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+    {
+        x = m_targets.m_destX;
+        y = m_targets.m_destY;
+        z = m_targets.m_destZ;
+
+        if (unitTarget->GetTypeId() != TYPEID_PLAYER)
+            ((Creature *)unitTarget)->StopMoving();
+    }
+    else if (unitTarget && unitTarget != m_caster)
+        unitTarget->GetContactPoint(m_caster, x, y, z);
+    else
+        return;
+
+    // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
+    m_caster->SendMonsterMove(x, y, z, 0, m_caster->GetTypeId()==TYPEID_PLAYER ? MONSTER_MOVE_WALK : ((Creature*)m_caster)->GetMonsterMoveFlags(), 1);
+
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster,x,y,z,m_caster->GetOrientation());
+
+    // not all charge effects used in negative spells
+    if (unitTarget && unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
+        m_caster->Attack(unitTarget,true);
 }
 
 void Spell::EffectSummonCritter(uint32 i)

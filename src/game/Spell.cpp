@@ -100,6 +100,14 @@ void SpellCastTargets::setDestination(float x, float y, float z)
     m_targetMask |= TARGET_FLAG_DEST_LOCATION;
 }
 
+void SpellCastTargets::setSource(float x, float y, float z)
+{
+    m_srcX = x;
+    m_srcY = y;
+    m_srcZ = z;
+    m_targetMask |= TARGET_FLAG_SOURCE_LOCATION;
+}
+
 void SpellCastTargets::setGOTarget(GameObject *target)
 {
     m_GOTarget = target;
@@ -436,17 +444,31 @@ void Spell::FillTargetMap()
         // but need it support in some know cases
         switch(m_spellInfo->EffectImplicitTargetA[i])
         {
-            case TARGET_ALL_AROUND_CASTER:
-                if( m_spellInfo->EffectImplicitTargetB[i]==TARGET_ALL_PARTY ||
-                    m_spellInfo->EffectImplicitTargetB[i]==TARGET_ALL_FRIENDLY_UNITS_AROUND_CASTER ||
-                    m_spellInfo->EffectImplicitTargetB[i]==TARGET_RANDOM_RAID_MEMBER )
+            case TARGET_SELF:
+                switch(m_spellInfo->EffectImplicitTargetB[i])
                 {
-                    SetTargetMap(i,m_spellInfo->EffectImplicitTargetB[i],tmpUnitMap);
+                    case 0:
+                        SetTargetMap(i,m_spellInfo->EffectImplicitTargetA[i],tmpUnitMap);
+                        break;
+                    case TARGET_AREAEFFECT_INSTANT:         // use B case that not dependent from from A in fact
+                        if((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)==0)
+                            m_targets.setDestination(m_caster->GetPositionX(),m_caster->GetPositionY(),m_caster->GetPositionZ());
+                        SetTargetMap(i,m_spellInfo->EffectImplicitTargetB[i],tmpUnitMap);
+                        break;
+                    case TARGET_BEHIND_VICTIM:              // use B case that not dependent from from A in fact
+                        SetTargetMap(i,m_spellInfo->EffectImplicitTargetB[i],tmpUnitMap);
+                        break;
+                    default:
+                        SetTargetMap(i,m_spellInfo->EffectImplicitTargetA[i],tmpUnitMap);
+                        SetTargetMap(i,m_spellInfo->EffectImplicitTargetB[i],tmpUnitMap);
+                        break;
                 }
+                break;
+            case TARGET_CASTER_COORDINATES:
                 // Note: this hack with search required until GO casting not implemented
                 // environment damage spells already have around enemies targeting but this not help in case not existed GO casting support
                 // currently each enemy selected explicitly and self cast damage
-                else if(m_spellInfo->EffectImplicitTargetB[i]==TARGET_ALL_ENEMY_IN_AREA && m_spellInfo->Effect[i]==SPELL_EFFECT_ENVIRONMENTAL_DAMAGE)
+                if(m_spellInfo->EffectImplicitTargetB[i]==TARGET_ALL_ENEMY_IN_AREA && m_spellInfo->Effect[i]==SPELL_EFFECT_ENVIRONMENTAL_DAMAGE)
                 {
                     if(m_targets.getUnitTarget())
                         tmpUnitMap.push_back(m_targets.getUnitTarget());
@@ -458,8 +480,25 @@ void Spell::FillTargetMap()
                 }
                 break;
             case TARGET_TABLE_X_Y_Z_COORDINATES:
-                // Only if target A, for target B (used in teleports) dest select in effect
-                SetTargetMap(i,m_spellInfo->EffectImplicitTargetA[i],tmpUnitMap);
+                switch(m_spellInfo->EffectImplicitTargetB[i])
+                {
+                    case 0:
+                        SetTargetMap(i, m_spellInfo->EffectImplicitTargetA[i], tmpUnitMap);
+
+                        // need some target for proccesing
+                        if(m_targets.getUnitTarget())
+                            tmpUnitMap.push_back(m_targets.getUnitTarget());
+                        else
+                            tmpUnitMap.push_back(m_caster);
+                        break;
+                    case TARGET_AREAEFFECT_INSTANT:         // All 17/7 pairs used for dest teleportation, A processed in effect code
+                        SetTargetMap(i, m_spellInfo->EffectImplicitTargetB[i], tmpUnitMap);
+                        break;
+                    default:
+                        SetTargetMap(i, m_spellInfo->EffectImplicitTargetA[i], tmpUnitMap);
+                        SetTargetMap(i, m_spellInfo->EffectImplicitTargetB[i], tmpUnitMap);
+                        break;
+                }
                 break;
             default:
                 switch(m_spellInfo->EffectImplicitTargetB[i])
@@ -1460,7 +1499,20 @@ void Spell::SetTargetMap(uint32 i,uint32 cur,UnitList& TagUnitMap)
         }break;
         case TARGET_ALL_ENEMY_IN_AREA:
         {
+            FillAreaTargets(TagUnitMap,m_targets.m_destX, m_targets.m_destY,radius,PUSH_DEST_CENTER,SPELL_TARGETS_AOE_DAMAGE);
             break;
+        }
+        case TARGET_AREAEFFECT_INSTANT:
+        {
+            SpellTargets targetB = SPELL_TARGETS_AOE_DAMAGE;
+            // Select friendly targets for positive effect
+            if (IsPositiveEffect(m_spellInfo->Id, i))
+                targetB = SPELL_TARGETS_FRIENDLY;
+
+            FillAreaTargets(TagUnitMap,m_caster->GetPositionX(), m_caster->GetPositionY(),radius, PUSH_DEST_CENTER, targetB);
+
+            // exclude caster
+            TagUnitMap.remove(m_caster);
         }
         case TARGET_ALL_ENEMY_IN_AREA_INSTANT:
         {
@@ -1503,9 +1555,17 @@ void Spell::SetTargetMap(uint32 i,uint32 cur,UnitList& TagUnitMap)
                 if( target->GetTypeId() == TYPEID_UNIT && ((Creature*)target)->isPet() && ((Pet*)target)->getPetType() == MINI_PET)
                     TagUnitMap.push_back(target);
         }break;
-        case TARGET_ALL_AROUND_CASTER:
-            FillAreaTargets(TagUnitMap,m_caster->GetPositionX(), m_caster->GetPositionY(),radius,PUSH_SELF_CENTER,SPELL_TARGETS_AOE_DAMAGE);
-            break;
+        case TARGET_CASTER_COORDINATES:
+        {
+            // Check original caster is GO - set its coordinates as dst cast
+            WorldObject *caster = NULL;
+            if (IS_GAMEOBJECT_GUID(m_originalCasterGUID))
+                caster = m_caster->GetMap()->GetGameObject(m_originalCasterGUID);
+            if (!caster)
+                caster = m_caster;
+            // Set dest for targets
+            m_targets.setDestination(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
+        }break;
         case TARGET_ALL_FRIENDLY_UNITS_AROUND_CASTER:
             FillAreaTargets(TagUnitMap,m_caster->GetPositionX(), m_caster->GetPositionY(),radius,PUSH_SELF_CENTER,SPELL_TARGETS_FRIENDLY);
             break;
@@ -1806,25 +1866,23 @@ void Spell::SetTargetMap(uint32 i,uint32 cur,UnitList& TagUnitMap)
             {
                 if (st->target_mapId == m_caster->GetMapId())
                     m_targets.setDestination(st->target_X, st->target_Y, st->target_Z);
-
-                // if B==TARGET_TABLE_X_Y_Z_COORDINATES then A already fill all required targets
-                if (m_spellInfo->EffectImplicitTargetB[i] && m_spellInfo->EffectImplicitTargetB[i]!=TARGET_TABLE_X_Y_Z_COORDINATES)
-                {
-                    SpellTargets targetB = SPELL_TARGETS_AOE_DAMAGE;
-                    // Select friendly targets for positive effect
-                    if (IsPositiveEffect(m_spellInfo->Id, i))
-                        targetB = SPELL_TARGETS_FRIENDLY;
-
-                    FillAreaTargets(TagUnitMap,m_caster->GetPositionX(), m_caster->GetPositionY(),radius, PUSH_DEST_CENTER, targetB);
-                }
+                else
+                    sLog.outError( "SPELL: wrong map (%u instead %u) target coordinates for spell ID %u", st->target_mapId, m_caster->GetMapId(), m_spellInfo->Id );
             }
             else
                 sLog.outError( "SPELL: unknown target coordinates for spell ID %u", m_spellInfo->Id );
         }break;
         case TARGET_BEHIND_VICTIM:
         {
-            Unit *pTarget = m_caster->getVictim();
-            if(!pTarget && m_caster->GetTypeId() == TYPEID_PLAYER)
+            Unit *pTarget = NULL;
+
+            // explicit cast data from client or server-side cast
+            // some spell at client send caster
+            if(m_targets.getUnitTarget() && m_targets.getUnitTarget()!=m_caster)
+                pTarget = m_targets.getUnitTarget();
+            else if(m_caster->getVictim())
+                pTarget = m_caster->getVictim();
+            else if(m_caster->GetTypeId() == TYPEID_PLAYER)
                 pTarget = ObjectAccessor::GetUnit(*m_caster, ((Player*)m_caster)->GetSelection());
 
             if(pTarget)
@@ -1832,8 +1890,18 @@ void Spell::SetTargetMap(uint32 i,uint32 cur,UnitList& TagUnitMap)
                 float _target_x, _target_y, _target_z;
                 pTarget->GetClosePoint(_target_x, _target_y, _target_z, m_caster->GetObjectSize(), CONTACT_DISTANCE, M_PI);
                 if(pTarget->IsWithinLOS(_target_x,_target_y,_target_z))
+                {
+                    TagUnitMap.push_back(m_caster);
                     m_targets.setDestination(_target_x, _target_y, _target_z);
+                }
             }
+            break;
+        }
+        case TARGET_DYNAMIC_OBJECT_COORDINATES:
+        {
+            // if parent spell create dynamic object extract area from it
+            if(DynamicObject* dynObj = m_caster->GetDynObject(m_triggeredByAuraSpell ? m_triggeredByAuraSpell->Id : m_spellInfo->Id))
+                m_targets.setDestination(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ());
         }break;
         default:
             break;
@@ -2271,7 +2339,7 @@ void Spell::update(uint32 difftime)
     // check if the player caster has moved before the spell finished
     if ((m_caster->GetTypeId() == TYPEID_PLAYER && m_timer != 0) &&
         (m_castPositionX != m_caster->GetPositionX() || m_castPositionY != m_caster->GetPositionY() || m_castPositionZ != m_caster->GetPositionZ()) &&
-        (m_spellInfo->Effect[0] != SPELL_EFFECT_STUCK || !m_caster->HasUnitMovementFlag(MOVEMENTFLAG_FALLING)))
+        (m_spellInfo->Effect[0] != SPELL_EFFECT_STUCK || !((Player*)m_caster)->m_movementInfo.HasMovementFlag(MOVEMENTFLAG_FALLING)))
     {
         // always cancel for channeled spells
         if( m_spellState == SPELL_STATE_CASTING )
@@ -2303,7 +2371,7 @@ void Spell::update(uint32 difftime)
                 if( m_caster->GetTypeId() == TYPEID_PLAYER )
                 {
                     // check if player has jumped before the channeling finished
-                    if(m_caster->HasUnitMovementFlag(MOVEMENTFLAG_JUMPING))
+                    if(((Player*)m_caster)->m_movementInfo.HasMovementFlag(MOVEMENTFLAG_JUMPING))
                         cancel();
 
                     // check for incapacitating player states
@@ -2590,6 +2658,7 @@ void Spell::SendSpellGo()
         castFlags |= CAST_FLAG_AMMO;                        // arrows/bullets visual
 
     WorldPacket data(SMSG_SPELL_GO, 50);                    // guess size
+
     if(m_CastItem)
         data.append(m_CastItem->GetPackGUID());
     else
@@ -3132,7 +3201,7 @@ SpellCastResult Spell::CheckCast(bool strict)
     if( m_caster->GetTypeId()==TYPEID_PLAYER && ((Player*)m_caster)->isMoving() )
     {
         // skip stuck spell to allow use it in falling case and apply spell limitations at movement
-        if( (!m_caster->HasUnitMovementFlag(MOVEMENTFLAG_FALLING) || m_spellInfo->Effect[0] != SPELL_EFFECT_STUCK) &&
+        if( (!((Player*)m_caster)->m_movementInfo.HasMovementFlag(MOVEMENTFLAG_FALLING) || m_spellInfo->Effect[0] != SPELL_EFFECT_STUCK) &&
             (IsAutoRepeat() || (m_spellInfo->AuraInterruptFlags & AURA_INTERRUPT_FLAG_NOT_SEATED) != 0) )
             return SPELL_FAILED_MOVING;
     }
@@ -3240,8 +3309,8 @@ SpellCastResult Spell::CheckCast(bool strict)
     uint32 zone, area;
     m_caster->GetZoneAndAreaId(zone, area);
 
-    SpellCastResult locRes = GetSpellAllowedInLocationError(m_spellInfo,m_caster->GetMapId(),zone,area,
-        m_caster->GetTypeId()==TYPEID_PLAYER ? ((Player*)m_caster)->GetBattleGroundId() : 0);
+    SpellCastResult locRes = spellmgr.GetSpellAllowedInLocationError(m_spellInfo,m_caster->GetMapId(),zone, area,
+        m_caster->GetTypeId()==TYPEID_PLAYER ? ((Player*)m_caster) : NULL);
     if(locRes != SPELL_CAST_OK)
         return locRes;
 
@@ -4119,7 +4188,7 @@ SpellCastResult Spell::CheckRange(bool strict)
 
         if(dist > max_range)
             return SPELL_FAILED_OUT_OF_RANGE;               //0x5A;
-        if(dist < min_range)
+        if(min_range && dist < min_range)
             return SPELL_FAILED_TOO_CLOSE;
         if( m_caster->GetTypeId() == TYPEID_PLAYER &&
             (m_spellInfo->FacingCasterFlags & SPELL_FACING_FLAG_INFRONT) && !m_caster->HasInArc( M_PI, target ) )
@@ -4130,7 +4199,7 @@ SpellCastResult Spell::CheckRange(bool strict)
     {
         if(!m_caster->IsWithinDist3d(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, max_range))
             return SPELL_FAILED_OUT_OF_RANGE;
-        if(m_caster->IsWithinDist3d(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, min_range))
+        if(min_range && m_caster->IsWithinDist3d(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, min_range))
             return SPELL_FAILED_TOO_CLOSE;
     }
 
@@ -4806,7 +4875,13 @@ bool Spell::CheckTarget( Unit* target, uint32 eff )
             // all ok by some way or another, skip normal check
             break;
         default:                                            // normal case
-            if(target!=m_caster && !target->IsWithinLOSInMap(m_caster))
+            // Get GO cast coordinates if original caster -> GO
+            WorldObject *caster = NULL;
+            if (m_originalCasterGUID)
+                caster = m_caster->GetMap()->GetGameObject(m_originalCasterGUID);
+            if (!caster)
+                caster = m_caster;
+            if(target!=m_caster && !target->IsWithinLOSInMap(caster))
                 return false;
             break;
     }

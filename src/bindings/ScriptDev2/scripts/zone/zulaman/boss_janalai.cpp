@@ -360,7 +360,7 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
             m_creature->AttackStop();
             m_creature->GetMotionMaster()->Clear();
             m_creature->Relocate(JanalainPos[0][0],JanalainPos[0][1],JanalainPos[0][2],0);
-            m_creature->SendMonsterMove(JanalainPos[0][0], JanalainPos[0][1],JanalainPos[0][2],0,0,0);
+            m_creature->SendMonsterMove(JanalainPos[0][0], JanalainPos[0][1],JanalainPos[0][2],0,MONSTER_MOVE_NONE,0);
             m_creature->StopMoving();
             m_creature->CastSpell(m_creature, SPELL_FIRE_BOMB_CHANNEL, false);
             //DoTeleportPlayer(m_creature, JanalainPos[0][0], JanalainPos[0][1],JanalainPos[0][2], 0);
@@ -393,7 +393,7 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
                 m_creature->AttackStop();
                 m_creature->GetMotionMaster()->Clear();
                 m_creature->Relocate(JanalainPos[0][0],JanalainPos[0][1],JanalainPos[0][2],0);
-                m_creature->SendMonsterMove(JanalainPos[0][0], JanalainPos[0][1],JanalainPos[0][2],0,0,0);
+                m_creature->SendMonsterMove(JanalainPos[0][0], JanalainPos[0][1],JanalainPos[0][2],0,MONSTER_MOVE_NONE,0);
                 m_creature->StopMoving();
                 m_creature->CastSpell(m_creature, SPELL_HATCH_ALL, false);
                 HatchAllEggs(2);
@@ -622,7 +622,7 @@ struct MANGOS_DLL_DECL mob_hatchlingAI : public ScriptedAI
         else
             m_creature->GetMotionMaster()->MovePoint(0,hatcherway[1][3][0]+rand()%4-2,1150+rand()%4-2,hatcherway[1][3][2]);
 
-        m_creature->SetUnitMovementFlags(MOVEMENTFLAG_LEVITATING);
+        //m_creature->SetMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
     }
 
     void Aggro(Unit *who) {DoZoneInCombat();}

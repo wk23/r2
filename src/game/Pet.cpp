@@ -475,8 +475,8 @@ void Pet::SavePetToDB(PetSaveMode mode)
         // save only spell slots from action bar
         for(uint32 i = ACTION_BAR_INDEX_PET_SPELL_START; i < ACTION_BAR_INDEX_PET_SPELL_END; ++i)
         {
-            ss << uint32(m_charmInfo->GetActionBarEntry(i)->Type) << " "
-               << uint32(m_charmInfo->GetActionBarEntry(i)->SpellOrAction) << " ";
+            ss << uint32(m_charmInfo->GetActionBarEntry(i)->GetType()) << " "
+               << uint32(m_charmInfo->GetActionBarEntry(i)->GetAction()) << " ";
         }
         ss << "', '";
 
@@ -535,12 +535,12 @@ void Pet::setDeathState(DeathState s)                       // overwrite virtual
             if(!mapEntry || (mapEntry->map_type != MAP_ARENA && mapEntry->map_type != MAP_BATTLEGROUND))
                 ModifyPower(POWER_HAPPINESS, -HAPPINESS_LEVEL_SIZE);
 
-            SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_ROTATE);
+            SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
         }
     }
     else if(getDeathState()==ALIVE)
     {
-        RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_ROTATE);
+        RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
         CastPetAuras(true);
     }
 }
@@ -879,7 +879,6 @@ void Pet::Remove(PetSaveMode mode, bool returnreagent)
             owner->SetPet(0);
     }
 
-    CleanupsBeforeDelete();
     AddObjectToRemoveList();
     m_removed = true;
 }
@@ -1308,7 +1307,7 @@ void Pet::_LoadSpells()
         {
             Field *fields = result->Fetch();
 
-            addSpell(fields[0].GetUInt32(), ActiveStates(fields[1].GetUInt16()), PETSPELL_UNCHANGED);
+            addSpell(fields[0].GetUInt32(), ActiveStates(fields[1].GetUInt8()), PETSPELL_UNCHANGED);
         }
         while( result->NextRow() );
 
@@ -1640,8 +1639,9 @@ void Pet::CleanupActionBar()
 {
     for(int i = 0; i < MAX_UNIT_ACTION_BAR_INDEX; ++i)
         if(UnitActionBarEntry const* ab = m_charmInfo->GetActionBarEntry(i))
-            if(ab->SpellOrAction && ab->IsActionBarForSpell() && !HasSpell(ab->SpellOrAction))
-                m_charmInfo->SetActionBar(i,0,ACT_DISABLED);
+            if(uint32 action = ab->GetAction())
+                if(ab->IsActionBarForSpell() && !HasSpell(action))
+                    m_charmInfo->SetActionBar(i,0,ACT_DISABLED);
 }
 
 void Pet::InitPetCreateSpells()
@@ -1887,7 +1887,7 @@ void Pet::CastPetAuras(bool current)
 
 void Pet::CastPetAura(PetAura const* aura)
 {
-    uint16 auraId = aura->GetAura(GetEntry());
+    uint32 auraId = aura->GetAura(GetEntry());
     if(!auraId)
         return;
 

@@ -81,7 +81,7 @@ struct MANGOS_DLL_DECL boss_warchief_kargath_bladefistAI : public ScriptedAI
         removeAdds();
 
         m_creature->SetSpeed(MOVE_RUN,2);
-        m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+        m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_WALK);
 
         summoned = 2;
         InBlade = false;

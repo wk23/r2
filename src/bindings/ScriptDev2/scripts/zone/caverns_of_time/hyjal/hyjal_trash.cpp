@@ -21,7 +21,7 @@ struct mob_giant_infernalAI : ScriptedAI
         go = false;    
         pos = 0;
         Reset();
-        pCreature->SetActiveObjectState(true);
+        //pCreature->SetActiveObjectState(true);
 
     }
     ScriptedInstance* pInstance;
@@ -65,7 +65,7 @@ struct mob_giant_infernalAI : ScriptedAI
             {
                 trigger->SetVisibility(VISIBILITY_OFF);
                 trigger->setFaction(m_creature->getFaction());
-                trigger->AddUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT + MOVEMENTFLAG_LEVITATING);
+                trigger->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
                 trigger->CastSpell(m_creature,SPELL_METEOR,true);
             }
             m_creature->GetMotionMaster()->Clear();
@@ -125,7 +125,7 @@ struct mob_abominationAI : public ScriptedAI
         go = false;    
         pos = 0;
         Reset();
-        pCreature->SetActiveObjectState(true);
+        //pCreature->SetActiveObjectState(true);
 
     }
     ScriptedInstance* pInstance;
@@ -196,7 +196,7 @@ struct mob_ghoulAI : public ScriptedAI
         go = false;    
         pos = 0;
         Reset();
-        pCreature->SetActiveObjectState(true);
+        //pCreature->SetActiveObjectState(true);
     }
     ScriptedInstance* pInstance;
     bool go;
@@ -270,7 +270,7 @@ struct mob_necromancerAI : public ScriptedAI
         go = false;    
         pos = 0;
         Reset();
-        pCreature->SetActiveObjectState(true);
+        //pCreature->SetActiveObjectState(true);
 
     }
     ScriptedInstance* pInstance;
@@ -373,7 +373,7 @@ struct mob_bansheeAI : public ScriptedAI
         go = false;    
         pos = 0;
         Reset();
-        pCreature->SetActiveObjectState(true);
+        //pCreature->SetActiveObjectState(true);
 
     }
     ScriptedInstance* pInstance;
@@ -457,7 +457,7 @@ struct mob_crypt_fiendAI : public ScriptedAI
         go = false;    
         pos = 0;
         Reset();
-        pCreature->SetActiveObjectState(true);
+        //pCreature->SetActiveObjectState(true);
 
     }
     ScriptedInstance* pInstance;
@@ -595,7 +595,7 @@ struct mob_frost_wyrmAI : public ScriptedAI
     {
         FrostBreathTimer = 5000;
         MoveTimer = 0;        
-        m_creature->AddUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT + MOVEMENTFLAG_LEVITATING);
+        m_creature->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
     }
 
     void JustDied(Unit *victim)
@@ -674,7 +674,7 @@ struct mob_gargoyleAI : public ScriptedAI
         Zpos = 10.0;
         StrikeTimer = 2000+rand()%5000;
         MoveTimer = 0;        
-        m_creature->AddUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT + MOVEMENTFLAG_LEVITATING);        
+        m_creature->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);        
     }
 
     void JustDied(Unit *victim)

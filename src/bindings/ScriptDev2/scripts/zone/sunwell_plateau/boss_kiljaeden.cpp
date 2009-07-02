@@ -545,7 +545,7 @@ DeceiverGUID[i] = Deceiver->GetGUID();
 Creature* Anveena = DoSpawnCreature(CREATURE_ANVEENA, 0, 0, 20, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
 if(Anveena)
 {
-Anveena->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
+Anveena->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
 Anveena->CastSpell(Anveena, SPELL_ANVEENA_PRISON, false);
 DoCast(m_creature, SPELL_ANVEENA_ENERGY_DRAIN);
 AnveenaGUID = Anveena->GetGUID();

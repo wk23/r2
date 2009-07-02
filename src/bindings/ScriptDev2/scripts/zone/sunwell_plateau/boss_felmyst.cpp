@@ -164,7 +164,7 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
         Timer[EVENT_BERSERK] = 600000;
         FlightCount = 0;
 
-        m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_LEVITATING + MOVEMENTFLAG_ONTRANSPORT);
+        m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
         m_creature->SetFloatValue(UNIT_FIELD_BOUNDINGRADIUS, 10);
         m_creature->SetFloatValue(UNIT_FIELD_COMBATREACH, 10);
 
@@ -291,7 +291,7 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
             m_creature->AttackStop();
             m_creature->GetMotionMaster()->Clear(false);
             m_creature->HandleEmoteCommand(EMOTE_ONESHOT_LIFTOFF);
-            m_creature->SetUnitMovementFlags(MOVEMENTFLAG_LEVITATING + MOVEMENTFLAG_ONTRANSPORT);
+            m_creature->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
             m_creature->StopMoving();
             DoYell(YELL_TAKEOFF, LANG_UNIVERSAL, NULL);
             DoPlaySoundToSet(m_creature, SOUND_TAKEOFF);
@@ -382,7 +382,7 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
             Timer[EVENT_FLIGHT_SEQUENCE] = 0;
             break;
         case 10:
-            m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_LEVITATING + MOVEMENTFLAG_ONTRANSPORT);
+            m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
             m_creature->StopMoving();
             m_creature->HandleEmoteCommand(EMOTE_ONESHOT_LAND);
             EnterPhase(PHASE_GROUND);

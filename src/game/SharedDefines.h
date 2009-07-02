@@ -958,6 +958,7 @@ enum Targets
     TARGET_RANDOM_ENEMY_CHAIN_IN_AREA  = 2,                 // only one spell has that, but regardless, it's a target type after all
     TARGET_PET                         = 5,
     TARGET_CHAIN_DAMAGE                = 6,
+    TARGET_AREAEFFECT_INSTANT          = 7,                 // targets around provided destination point
     TARGET_AREAEFFECT_CUSTOM           = 8,
     TARGET_INNKEEPER_COORDINATES       = 9,                 // uses in teleport to innkeeper spells
     TARGET_ALL_ENEMY_IN_AREA           = 15,
@@ -966,7 +967,7 @@ enum Targets
     TARGET_EFFECT_SELECT               = 18,                // highly depends on the spell effect
     TARGET_ALL_PARTY_AROUND_CASTER     = 20,
     TARGET_SINGLE_FRIEND               = 21,
-    TARGET_ALL_AROUND_CASTER           = 22,                // used only in TargetA, target selection dependent from TargetB
+    TARGET_CASTER_COORDINATES          = 22,                // used only in TargetA, target selection dependent from TargetB
     TARGET_GAMEOBJECT                  = 23,
     TARGET_IN_FRONT_OF_CASTER          = 24,
     TARGET_DUELVSPLAYER                = 25,
@@ -1002,6 +1003,7 @@ enum Targets
     TARGET_LOCATION_RANDOM_AROUND_CASTER    = 72,
     TARGET_LOCATION_RADIUS_AROUND_CASTER    = 73,
     TARGET_LOCATION_RANDOM_IN_AREA     = 74,
+    TARGET_DYNAMIC_OBJECT_COORDINATES  = 76,
     TARGET_SINGLE_ENEMY                = 77,
     TARGET_LOCATION_AROUND_DEST        = 86,
     TARGET_LOCATION_AT_DEST            = 87,

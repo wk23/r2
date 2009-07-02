@@ -391,7 +391,7 @@ struct MANGOS_DLL_DECL boss_shade_of_akamaAI : public ScriptedAI
                 Creature* Spawn = m_creature->SummonCreature(spawnEntries[i], X, Y, Z_SPAWN, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 25000);
                 if (Spawn)
                 {
-                    Spawn->RemoveUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                    Spawn->RemoveMonsterMoveFlag(MONSTER_MOVE_WALK);
                     Spawn->SetActiveObjectState(true);
                     //Spawn->GetMotionMaster()->MovePoint(0, AGGRO_X, AGGRO_Y, AGGRO_Z);
                     if(Unit *target = SelectUnit(SELECT_TARGET_RANDOM,0))
@@ -433,7 +433,7 @@ struct MANGOS_DLL_DECL boss_shade_of_akamaAI : public ScriptedAI
                 Creature* Defender = m_creature->SummonCreature(CREATURE_DEFENDER, SpawnLocations[ran].x, SpawnLocations[ran].y, Z_SPAWN, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 25000);
                 if (Defender)
                 {
-                    Defender->RemoveUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                    Defender->RemoveMonsterMoveFlag(MONSTER_MOVE_WALK);
                     Defender->SetActiveObjectState(true);
                     //Defender->GetMotionMaster()->MovePoint(0, AGGRO_X, AGGRO_Y, AGGRO_Z);
                     if(Unit *target = SelectUnit(SELECT_TARGET_RANDOM,0))
@@ -511,7 +511,6 @@ struct MANGOS_DLL_DECL npc_akamaAI : public ScriptedAI
         StartCombat = false;
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
         ShadeGUID = pInstance ? pInstance->GetData64(DATA_SHADEOFAKAMA) : 0;
-        Reset();
         SpellEntry *TempSpell1 = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_DESTRUCTIVE_POISON);
         if(TempSpell1)
             TempSpell1->EffectImplicitTargetA[0] =18;//TARGET_EFFECT_SELECT
@@ -651,7 +650,7 @@ struct MANGOS_DLL_DECL npc_akamaAI : public ScriptedAI
             return;
 
         WayPoint = WayPointList.begin();
-        m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+        m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
         m_creature->GetMotionMaster()->MovePoint(WayPoint->id, WayPoint->x, WayPoint->y, WayPoint->z);
         IsWalking = true;
         Walking = true;

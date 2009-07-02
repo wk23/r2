@@ -246,9 +246,9 @@ struct MANGOS_DLL_DECL boss_akilzonAI : public ScriptedAI
                     x = rand()%2 ? x + rand()%5 : x - rand()%5;
                     y = rand()%2 ? y + rand()%5 : y - rand()%5;
                     z = Cloud->GetPositionZ() + 2 - rand()%4; 
-                    if(Unit *trigger = m_creature->SummonCreature(MOB_TEMP_TRIGGER, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 2000))
+                    if(Creature *trigger = m_creature->SummonCreature(MOB_TEMP_TRIGGER, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 2000))
                     {
-                        trigger->SetUnitMovementFlags(MOVEMENTFLAG_LEVITATING);
+                        trigger->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
                         trigger->StopMoving();
                         trigger->CastSpell(trigger, 37248, true);
                         trigger->CastCustomSpell(*i, 43137, &bp0, NULL, NULL, true, 0, 0, m_creature->GetGUID());
@@ -264,16 +264,16 @@ struct MANGOS_DLL_DECL boss_akilzonAI : public ScriptedAI
                 x = rand()%2 ? x + rand()%10 : x - rand()%10;
                 y = rand()%2 ? y + rand()%10 : y - rand()%10;
                 z = z + 2 - rand()%4; 
-                if(Unit *trigger = m_creature->SummonCreature(MOB_TEMP_TRIGGER, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 2000))
+                if(Creature *trigger = m_creature->SummonCreature(MOB_TEMP_TRIGGER, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 2000))
                 {
-                    trigger->SetUnitMovementFlags(MOVEMENTFLAG_LEVITATING);
+                    trigger->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
                     trigger->StopMoving();
                     trigger->CastSpell(trigger, 37248, true);
                 }
                 Cloud->GetPosition(x, y, z);
                 x = rand()%2 ? x + 10 + rand()%10 : x - 10 - rand()%10;
                 y = rand()%2 ? y + 10 + rand()%10 : y - 10 - rand()%10;
-                if(Unit *trigger = m_creature->SummonCreature(MOB_TEMP_TRIGGER, x, y, m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 2000))
+                if(Creature *trigger = m_creature->SummonCreature(MOB_TEMP_TRIGGER, x, y, m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 2000))
                 {
                     trigger->SetMaxHealth(9999999);
                     trigger->SetHealth(9999999);
@@ -371,11 +371,11 @@ struct MANGOS_DLL_DECL boss_akilzonAI : public ScriptedAI
             if(!target) target = m_creature->getVictim();
             float x, y, z;
             target->GetPosition(x, y, z);
-            Unit *Cloud = m_creature->SummonCreature(MOB_TEMP_TRIGGER, x, y, m_creature->GetPositionZ() + 10, 0, TEMPSUMMON_TIMED_DESPAWN, 15000);
+            Creature *Cloud = m_creature->SummonCreature(MOB_TEMP_TRIGGER, x, y, m_creature->GetPositionZ() + 10, 0, TEMPSUMMON_TIMED_DESPAWN, 15000);
             if(Cloud)
             {
                 CloudGUID = Cloud->GetGUID();
-                Cloud->SetUnitMovementFlags(MOVEMENTFLAG_LEVITATING);
+                Cloud->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
                 Cloud->StopMoving();
                 Cloud->SetFloatValue(OBJECT_FIELD_SCALE_X, 3.0f);
                 Cloud->setFaction(35);
@@ -441,7 +441,7 @@ struct MANGOS_DLL_DECL mob_soaring_eagleAI : public ScriptedAI
         EagleSwoop_Timer = 5000 + rand()%5000;
         arrived = true;
         TargetGUID = 0;
-        m_creature->SetUnitMovementFlags(MOVEMENTFLAG_LEVITATING);
+        m_creature->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
     }
 
     void Aggro(Unit *who) {DoZoneInCombat();}
@@ -494,9 +494,9 @@ struct MANGOS_DLL_DECL mob_soaring_eagleAI : public ScriptedAI
                     m_creature->SetSpeed(MOVE_RUN, 5.0f);
                     TargetGUID = target->GetGUID();
                 }
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
                 m_creature->GetMotionMaster()->MovePoint(0, x, y, z);
-                m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
+                m_creature->RemoveMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
                 arrived = false;
             }
         }

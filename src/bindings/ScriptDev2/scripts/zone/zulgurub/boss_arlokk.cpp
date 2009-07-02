@@ -128,7 +128,7 @@ struct MANGOS_DLL_DECL boss_arlokkAI : public ScriptedAI
                     DoScriptText(SAY_FEAST_PANTHER, m_creature, markedTarget);
                     Panther ->AI()->AttackStart(markedTarget);
                 }
-                else
+                else if (target)
                     Panther ->AI()->AttackStart(target);
             }
 
@@ -138,7 +138,7 @@ struct MANGOS_DLL_DECL boss_arlokkAI : public ScriptedAI
             {
                 if (markedTarget)
                     Panther ->AI()->AttackStart(markedTarget);
-                else
+                else if (target)
                     Panther ->AI()->AttackStart(target);
             }
 

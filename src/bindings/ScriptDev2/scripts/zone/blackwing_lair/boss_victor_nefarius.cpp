@@ -303,7 +303,7 @@ struct MANGOS_DLL_DECL boss_victor_nefariusAI : public ScriptedAI
 
                     //Teleport self to a hiding spot (this causes errors in the mangos log but no real issues)
                     m_creature->Relocate(HIDE_X,HIDE_Y,HIDE_Z,0);
-                    m_creature->SendMonsterMove(HIDE_X,HIDE_Y,HIDE_Z,0,true,0);
+                    m_creature->SendMonsterMove(HIDE_X,HIDE_Y,HIDE_Z,0,MONSTER_MOVE_WALK,0);
                     m_creature->addUnitState(UNIT_STAT_FLEEING);
 
                     //Spawn nef and have him attack a random target

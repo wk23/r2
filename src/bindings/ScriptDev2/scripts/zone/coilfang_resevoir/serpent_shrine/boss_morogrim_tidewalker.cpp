@@ -74,7 +74,6 @@ struct MANGOS_DLL_DECL boss_morogrim_tidewalkerAI : public ScriptedAI
     boss_morogrim_tidewalkerAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        Reset();
         SpellEntry *TempSpell1 = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_SUMMON_MURLOC_A6);
         if(TempSpell1)
             TempSpell1->EffectImplicitTargetA[0] =18;//TARGET_EFFECT_SELECT
@@ -120,6 +119,7 @@ struct MANGOS_DLL_DECL boss_morogrim_tidewalkerAI : public ScriptedAI
         SpellEntry *TempSpell15 = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_SUMMON_GLOBULE_4);
         if(TempSpell15)
             TempSpell15->EffectImplicitTargetA[0] =18;//TARGET_EFFECT_SELECT
+        Reset();
     }
 
     ScriptedInstance* m_pInstance;                          // the instance

@@ -122,30 +122,30 @@ struct MANGOS_DLL_DECL npc_disciple_of_naralexAI : public npc_escortAI
         switch(i)
         {
             case 1://
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
                 break;
             case 7://two elite Deviate Ravagers: npc=3636
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
                 m_creature->SummonCreature(3636,-44.389, 271.394, -92.7563, 4.87418,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 m_creature->SummonCreature(3636,-44.389, 271.394, -92.7563, 4.87418,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 break;
             case 10://three elite among Deviate Viper: npc=5755 and Deviate Adder: npc=5048.
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
                 m_creature->SummonCreature(5755, 2.81626, 302.536, -87.2281, 2.5329,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 m_creature->SummonCreature(5755, 2.81626, 302.536, -87.2281, 2.5329,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 m_creature->SummonCreature(5755, 2.81626, 302.536, -87.2281, 2.5329,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 m_creature->SummonCreature(5048, 2.81626, 302.536, -87.2281, 2.5329,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
                 break;
             case 12://three elite Deviate Moccasin npc=5762
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
                 m_creature->SummonCreature(5762,61.8763, 204.702, -91.626, 2.41195,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 m_creature->SummonCreature(5762,61.8763, 204.702, -91.626, 2.41195,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 m_creature->SummonCreature(5762,61.8763, 204.702, -91.626, 2.41195,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
                 break;
             case 13://seven normal Nightmare Ectoplasm:npc=5763. 
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
                 m_creature->SummonCreature(5763, 92.1718, 227.981, -94.7002, 4.19245,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 m_creature->SummonCreature(5763, 92.1718, 227.981, -94.7002, 4.19245,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 m_creature->SummonCreature(5763, 92.1718, 227.981, -94.7002, 4.19245,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
@@ -153,10 +153,10 @@ struct MANGOS_DLL_DECL npc_disciple_of_naralexAI : public npc_escortAI
                 m_creature->SummonCreature(5763, 92.1718, 227.981, -94.7002, 4.19245,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 m_creature->SummonCreature(5763, 92.1718, 227.981, -94.7002, 4.19245,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
                 m_creature->SummonCreature(5763, 92.1718, 227.981, -94.7002, 4.19245,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,5000);
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
                 break;
             case 14:
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_WALK);
                 //Summon (Mutanus the Devourer)spell=24624
                 DoCast(m_creature,SPELL_SMD);
                 break;

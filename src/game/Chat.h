@@ -132,8 +132,9 @@ class ChatHandler
         bool HandleDebugGetLootRecipient(const char * args);
         bool HandleDebugGetValue(const char* args);
         bool HandleDebugMod32Value(const char* args);
-        bool HandleDebugSetValue(const char* args);
+        bool HandleDebugSetAuraStateCommand(const char * args);
         bool HandleDebugSetItemFlagCommand(const char * args);
+        bool HandleDebugSetValue(const char* args);
         bool HandleDebugUpdate(const char* args);
         bool HandleDebugUpdateWorldStateCommand(const char* args);
 
@@ -344,6 +345,7 @@ class ChatHandler
         bool HandleReloadSkillExtraItemTemplateCommand(const char* args);
         bool HandleReloadSkillFishingBaseLevelCommand(const char* args);
         bool HandleReloadSpellAffectCommand(const char* args);
+        bool HandleReloadSpellAreaCommand(const char* args);
         bool HandleReloadSpellChainCommand(const char* args);
         bool HandleReloadSpellElixirCommand(const char* args);
         bool HandleReloadSpellLearnSpellCommand(const char* args);

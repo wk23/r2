@@ -219,7 +219,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         {
             if (GuardiansOfIcecrown[i])
             {
-                Unit* pUnit = Unit::GetUnit((*m_creature), GuardiansOfIcecrown[i]);
+                Creature* pUnit = (Creature*)Unit::GetUnit(*m_creature, GuardiansOfIcecrown[i]);
                 if (!pUnit || !pUnit->isAlive())
                     continue;
 
@@ -359,7 +359,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
             {
                 //Summon a Guardian of Icecrown in a random alcove (Creature # 16441)
                 //uint32 TimeToWalk;
-                Unit* pUnit = NULL;
+                Creature* pUnit = NULL;
 
                 float Walk_Pos_X;
                 float Walk_Pos_Y;

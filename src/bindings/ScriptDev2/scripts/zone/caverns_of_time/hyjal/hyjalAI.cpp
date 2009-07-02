@@ -162,8 +162,8 @@ void hyjalAI::SummonCreature(uint32 entry, float Base[4][3])
         // Increment Enemy Count to be used in World States and instance script
         ++EnemyCount;
 
-        pCreature->RemoveUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
-        pCreature->GetMotionMaster()->MovePoint(0, AttackLoc[0],AttackLoc[1],AttackLoc[2]);
+        pCreature->RemoveMonsterMoveFlag(MONSTER_MOVE_WALK);
+        //pCreature->GetMotionMaster()->MovePoint(0, AttackLoc[0],AttackLoc[1],AttackLoc[2]);
         pCreature->AddThreat(m_creature, 0.0f);
         pCreature->SetActiveObjectState(true);
         DoZoneInCombat(pCreature);

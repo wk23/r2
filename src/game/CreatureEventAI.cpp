@@ -850,7 +850,6 @@ void CreatureEventAI::EnterEvadeMode()
         m_creature->GetMotionMaster()->MoveTargetedHome();
 
     m_creature->SetLootRecipient(NULL);
-    m_creature->ResetObtainedDamage();
 
     if (bEmptyList)
         return;

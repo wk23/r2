@@ -83,12 +83,12 @@ struct MANGOS_DLL_DECL npc_lady_sylvanas_windrunnerAI : public ScriptedAI
         {
             if (Unit* target = Unit::GetUnit(*summoned,targetGUID))
             {
-                target->SendMonsterMove(target->GetPositionX(),target->GetPositionY(),myZ+15.0,0,0,0);
+                target->SendMonsterMove(target->GetPositionX(),target->GetPositionY(),myZ+15.0,0,MONSTER_MOVE_NONE,0);
                 target->Relocate(target->GetPositionX(),target->GetPositionY(),myZ+15.0);
                 summoned->CastSpell(target,SPELL_RIBBON_OF_SOULS,false);
             }
 
-            summoned->AddUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
+            summoned->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
             targetGUID = summoned->GetGUID();
         }
     }
@@ -169,7 +169,7 @@ struct MANGOS_DLL_DECL npc_highborne_lamenterAI : public ScriptedAI
         {
             if (EventMove_Timer < diff)
             {
-                m_creature->AddUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT | MOVEMENTFLAG_LEVITATING);
+                m_creature->AddMonsterMoveFlag(MONSTER_MOVE_LEVITATING);
                 m_creature->SendMonsterMoveWithSpeed(m_creature->GetPositionX(),m_creature->GetPositionY(),HIGHBORNE_LOC_Y_NEW,5000);
                 m_creature->GetMap()->CreatureRelocation(m_creature,m_creature->GetPositionX(),m_creature->GetPositionY(),HIGHBORNE_LOC_Y_NEW,m_creature->GetOrientation());
                 EventMove = false;

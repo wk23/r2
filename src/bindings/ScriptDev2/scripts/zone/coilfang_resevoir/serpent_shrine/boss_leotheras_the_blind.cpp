@@ -46,7 +46,7 @@ enum
     AURA_DEMONIC_ALIGNMENT  = 37713,
     SPELL_SHADOWBOLT        = 39309,
     SPELL_SOUL_LINK         = 38007,
-    SPELL_CONSUMING_MADNESS = 37749, //not supported by core yet
+    SPELL_CONSUMING_MADNESS = 29546,//37749, //not supported by core yet
 
     //Talk
     SAY_AGGRO               = -1548009,

@@ -111,7 +111,7 @@ struct MANGOS_DLL_DECL boss_alarAI : public ScriptedAI
         m_creature->SetFloatValue(OBJECT_FIELD_SCALE_X, DefaultSize);
         m_creature->SetUInt32Value(UNIT_FIELD_DISPLAYID, DefaultModel);
         m_creature->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FIRE, true);
-        m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_WALK_MODE);
+        m_creature->RemoveMonsterMoveFlag(MOVEMENTFLAG_WALK_MODE);
 
         if(pInstance)
             pInstance->SetData(DATA_ALAREVENT, 0);
@@ -215,7 +215,7 @@ struct MANGOS_DLL_DECL boss_alarAI : public ScriptedAI
     {
         Moving = true;
         m_creature->GetMotionMaster()->Clear();
-        m_creature->AddUnitMovementFlag(MOVEMENTFLAG_FLYING2);
+        m_creature->AddMonsterMoveFlag(MOVEMENTFLAG_FLYING2);
         m_creature->GetMotionMaster()->MovePoint(id, X, Y, Z);
     }
 
@@ -235,7 +235,7 @@ struct MANGOS_DLL_DECL boss_alarAI : public ScriptedAI
         if (MovementInform_id >= 0)
         {
             Moving = false;
-            m_creature->RemoveUnitMovementFlag(MOVEMENTFLAG_FLYING2);
+            m_creature->RemoveMonsterMoveFlag(MOVEMENTFLAG_FLYING2);
             switch (MovementInform_id)
             {
                 case 0:

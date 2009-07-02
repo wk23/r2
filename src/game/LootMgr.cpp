@@ -320,7 +320,9 @@ LootItem::LootItem(LootStoreItem const& li)
     freeforall  = proto && (proto->Flags & ITEM_FLAGS_PARTY_LOOT);
 
     needs_quest = li.needs_quest;
-
+if(RATE_DROP_ITEM_POOR == 10)
+count       = urand(2, 10)*urand(li.mincountOrRef, li.maxcount); 
+else
     count       = urand(li.mincountOrRef, li.maxcount);     // constructor called for mincountOrRef > 0 only
     randomSuffix = GenerateEnchSuffixFactor(itemid);
     randomPropertyId = Item::GenerateItemRandomPropertyId(itemid);

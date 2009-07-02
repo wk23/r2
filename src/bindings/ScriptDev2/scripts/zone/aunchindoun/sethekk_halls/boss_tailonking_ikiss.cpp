@@ -191,7 +191,7 @@ struct MANGOS_DLL_DECL boss_talon_king_ikissAI : public ScriptedAI
                 float Z = target->GetPositionZ();
 
                 m_creature->Relocate(X,Y,Z);
-                m_creature->SendMonsterMove(X, Y, Z, 0, 0, 0);
+                m_creature->SendMonsterMove(X, Y, Z, 0, MONSTER_MOVE_WALK, 0);
 
                 DoCast(target,SPELL_BLINK_TELEPORT);
                 Blink = true;

@@ -445,9 +445,6 @@ Player::Player (WorldSession *session): Unit(), m_reputationMgr(this)
     m_summon_y = 0.0f;
     m_summon_z = 0.0f;
 
-    //Default movement to run mode
-    m_unit_movement_flags = 0;
-
     m_miniPet = 0;
     m_bgAfkReportedTimer = 0;
     m_contestedPvPTimer = 0;
@@ -642,21 +639,8 @@ bool Player::Create( uint32 guidlow, const std::string& name, uint8 race, uint8 
     learnDefaultSpells(true);
 
     // original action bar
-    std::list<uint16>::const_iterator action_itr[4];
-    for(int i=0; i<4; ++i)
-        action_itr[i] = info->action[i].begin();
-
-    for (; action_itr[0]!=info->action[0].end() && action_itr[1]!=info->action[1].end();)
-    {
-        uint16 taction[4];
-        for(int i=0; i<4 ;++i)
-            taction[i] = (*action_itr[i]);
-
-        addActionButton((uint8)taction[0], taction[1], (uint8)taction[2], (uint8)taction[3]);
-
-        for(int i=0; i<4 ;++i)
-            ++action_itr[i];
-    }
+    for (PlayerCreateInfoActions::const_iterator action_itr = info->action.begin(); action_itr != info->action.end(); ++action_itr)
+        addActionButton(action_itr->button,action_itr->action,action_itr->type);
 
     // original items
     CharStartOutfitEntry const* oEntry = NULL;
@@ -1605,7 +1589,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     }
 
     // reset movement flags at teleport, because player will continue move with these flags after teleport
-    SetUnitMovementFlags(0);
+    m_movementInfo.SetMovementFlags(MOVEMENTFLAG_NONE);
 
     if ((GetMapId() == mapid) && (!m_transport))
     {
@@ -2314,7 +2298,8 @@ void Player::InitTalentForLevel()
     }
     else
     {
-        uint32 talentPointsForLevel = uint32((level-9)*sWorld.getRate(RATE_TALENT));
+        uint32 talentPointsForLevel = CalculateTalentsPoints();
+
         // if used more that have then reset
         if(m_usedTalentCount > talentPointsForLevel)
         {
@@ -2449,7 +2434,7 @@ void Player::InitStatsForLevel(bool reapplyMods)
     RemoveFlag( UNIT_FIELD_FLAGS,
         UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_NOT_ATTACKABLE_1 |
         UNIT_FLAG_PET_IN_COMBAT  | UNIT_FLAG_SILENCED     | UNIT_FLAG_PACIFIED         |
-        UNIT_FLAG_DISABLE_ROTATE | UNIT_FLAG_IN_COMBAT    | UNIT_FLAG_DISARMED         |
+        UNIT_FLAG_STUNNED        | UNIT_FLAG_IN_COMBAT    | UNIT_FLAG_DISARMED         |
         UNIT_FLAG_CONFUSED       | UNIT_FLAG_FLEEING      | UNIT_FLAG_NOT_SELECTABLE   |
         UNIT_FLAG_SKINNABLE      | UNIT_FLAG_MOUNT        | UNIT_FLAG_TAXI_FLIGHT      );
     SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE );   // must be set
@@ -2482,7 +2467,7 @@ void Player::InitStatsForLevel(bool reapplyMods)
 void Player::SendInitialSpells()
 {
     time_t curTime = time(NULL);
-    time_t infTime = curTime + MONTH/2;
+    time_t infTime = curTime + infinityCooldownDelayCheck;
 
     uint16 spellCount = 0;
 
@@ -2516,18 +2501,21 @@ void Player::SendInitialSpells()
         if(!sEntry)
             continue;
 
-        // not send infinity cooldown
-        if(itr->second.end > infTime)
-            continue;
-
         data << uint16(itr->first);
-
-        time_t cooldown = 0;
-        if(itr->second.end > curTime)
-            cooldown = (itr->second.end-curTime)*IN_MILISECONDS;
 
         data << uint16(itr->second.itemid);                 // cast item id
         data << uint16(sEntry->Category);                   // spell category
+
+        // send infinity cooldown in special format
+        if(itr->second.end >= infTime)
+        {
+            data << uint32(1);                              // cooldown
+            data << uint32(0x80000000);                     // category cooldown
+            continue;
+        }
+
+        time_t cooldown = itr->second.end > curTime ? (itr->second.end-curTime)*IN_MILISECONDS : 0;
+
         if(sEntry->Category)                                // may be wrong, but anyway better than nothing...
         {
             data << uint32(0);                              // cooldown
@@ -3171,7 +3159,7 @@ void Player::_SaveSpellCooldowns()
     CharacterDatabase.PExecute("DELETE FROM character_spell_cooldown WHERE guid = '%u'", GetGUIDLow());
 
     time_t curTime = time(NULL);
-    time_t infTime = curTime + MONTH/2;
+    time_t infTime = curTime + infinityCooldownDelayCheck;
 
     // remove outdated and save active
     for(SpellCooldowns::iterator itr = m_spellCooldowns.begin();itr != m_spellCooldowns.end();)
@@ -3227,8 +3215,7 @@ bool Player::resetTalents(bool no_cost)
     if(HasAtLoginFlag(AT_LOGIN_RESET_TALENTS))
         RemoveAtLoginFlag(AT_LOGIN_RESET_TALENTS,true);
 
-    uint32 level = getLevel();
-    uint32 talentPointsForLevel = level < 10 ? 0 : uint32((level-9)*sWorld.getRate(RATE_TALENT));
+    uint32 talentPointsForLevel = CalculateTalentsPoints();
 
     if (m_usedTalentCount == 0)
     {
@@ -4244,6 +4231,8 @@ void Player::RepopAtGraveyard()
             GetSession()->SendPacket(&data);
         }
     }
+    else if(GetPositionZ() < -500.0f)
+        TeleportTo(m_homebindMapId, m_homebindX, m_homebindY, m_homebindZ, GetOrientation());
 }
 
 void Player::JoinedChannel(Channel *c)
@@ -5244,60 +5233,64 @@ void Player::SendInitialActionButtons() const
     {
         ActionButtonList::const_iterator itr = m_actionButtons.find(button);
         if(itr != m_actionButtons.end() && itr->second.uState != ACTIONBUTTON_DELETED)
-        {
-            data << uint16(itr->second.action);
-            data << uint8(itr->second.misc);
-            data << uint8(itr->second.type);
-        }
+            data << uint32(itr->second.packedData);
         else
-        {
             data << uint32(0);
-        }
     }
 
     GetSession()->SendPacket( &data );
     sLog.outDetail( "Action Buttons for '%u' Initialized", GetGUIDLow() );
 }
 
-bool Player::addActionButton(const uint8 button, const uint16 action, const uint8 type, const uint8 misc)
+ActionButton* Player::addActionButton(uint8 button, uint32 action, uint8 type)
 {
     if(button >= MAX_ACTION_BUTTONS)
     {
         sLog.outError( "Action %u not added into button %u for player %s: button must be < 132", action, button, GetName() );
-        return false;
+        return NULL;
     }
 
-    // check cheating with adding non-known spells to action bar
-    if(type==ACTION_BUTTON_SPELL)
+    if(action >= MAX_ACTION_BUTTON_ACTION_VALUE)
     {
-        if(!sSpellStore.LookupEntry(action))
-        {
-            sLog.outError( "Action %u not added into button %u for player %s: spell not exist", action, button, GetName() );
-            return false;
-        }
-
-        if(!HasSpell(action))
-        {
-            sLog.outError( "Action %u not added into button %u for player %s: player don't known this spell", action, button, GetName() );
-            return false;
-        }
+        sLog.outError( "Action %u not added into button %u for player %s: action must be < %u", action, button, GetName(), MAX_ACTION_BUTTON_ACTION_VALUE );
+        return NULL;
     }
 
-    ActionButtonList::iterator buttonItr = m_actionButtons.find(button);
+    switch(type)
+    {
+        case ACTION_BUTTON_SPELL:
+            if(!sSpellStore.LookupEntry(action))
+            {
+                sLog.outError( "Action %u not added into button %u for player %s: spell not exist", action, button, GetName() );
+                return NULL;
+            }
 
-    if (buttonItr==m_actionButtons.end())
-    {                                                       // just add new button
-        m_actionButtons[button] = ActionButton(action,type,misc);
+            if(!HasSpell(action))
+            {
+                sLog.outError( "Action %u not added into button %u for player %s: player don't known this spell", action, button, GetName() );
+                return NULL;
+            }
+            break;
+        case ACTION_BUTTON_ITEM:
+            if(!objmgr.GetItemPrototype(action))
+            {
+                sLog.outError( "Action %u not added into button %u for player %s: item not exist", action, button, GetName() );
+                return NULL;
+            }
+            break;
+        default:
+            break;                                          // pther cases not checked at this moment
     }
-    else
-    {                                                       // change state of current button
-        ActionButtonUpdateState uState = buttonItr->second.uState;
-        buttonItr->second = ActionButton(action,type,misc);
-        if (uState != ACTIONBUTTON_NEW) buttonItr->second.uState = ACTIONBUTTON_CHANGED;
-    };
 
-    sLog.outDetail( "Player '%u' Added Action '%u' to Button '%u'", GetGUIDLow(), action, button );
-    return true;
+
+    // it create new button (NEW state) if need or return existed 
+    ActionButton& ab = m_actionButtons[button];
+
+    // set data and update to CHANGED if not NEW
+    ab.SetActionAndType(action,ActionButtonType(type));
+
+    sLog.outDetail( "Player '%u' Added Action '%u' (type %u) to Button '%u'", GetGUIDLow(), action, uint32(type), button );
+    return &ab;
 }
 
 void Player::removeActionButton(uint8 button)
@@ -6078,7 +6071,7 @@ void Player::CheckDuelDistance(time_t currTime)
 
 bool Player::IsOutdoorPvPActive()
 {
-    return (isAlive() && !HasInvisibilityAura() && !HasStealthAura() && (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_IN_PVP) || sWorld.IsPvPRealm())  && !HasUnitMovementFlag(MOVEMENTFLAG_FLYING2) && !isInFlight());
+    return (isAlive() && !HasInvisibilityAura() && !HasStealthAura() && (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_IN_PVP) || sWorld.IsPvPRealm())  && !isInFlight());
 }
 
 void Player::DuelComplete(DuelCompleteType type)
@@ -8437,35 +8430,38 @@ uint8 Player::_CanStoreItem_InSpecificSlot( uint8 bag, uint8 slot, ItemPosCountV
     Item* pItem2 = GetItemByPos( bag, slot );
 
     // ignore move item (this slot will be empty at move)
-    if(pItem2==pSrcItem)
+    if (pItem2==pSrcItem)
         pItem2 = NULL;
 
     uint32 need_space;
 
     // empty specific slot - check item fit to slot
-    if( !pItem2 || swap )
+    if (!pItem2 || swap)
     {
-        if( bag == INVENTORY_SLOT_BAG_0 )
+        if (bag == INVENTORY_SLOT_BAG_0)
         {
             // keyring case
-            if(slot >= KEYRING_SLOT_START && slot < KEYRING_SLOT_START+GetMaxKeyringSize() && !(pProto->BagFamily & BAG_FAMILY_MASK_KEYS))
+            if (slot >= KEYRING_SLOT_START && slot < KEYRING_SLOT_START+GetMaxKeyringSize() && !(pProto->BagFamily & BAG_FAMILY_MASK_KEYS))
                 return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
 
             // prevent cheating
-            if(slot >= BUYBACK_SLOT_START && slot < BUYBACK_SLOT_END || slot >= PLAYER_SLOT_END)
+            if (slot >= BUYBACK_SLOT_START && slot < BUYBACK_SLOT_END || slot >= PLAYER_SLOT_END)
                 return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
         }
         else
         {
             Bag* pBag = (Bag*)GetItemByPos( INVENTORY_SLOT_BAG_0, bag );
-            if( !pBag )
+            if (!pBag)
                 return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
 
             ItemPrototype const* pBagProto = pBag->GetProto();
-            if( !pBagProto )
+            if (!pBagProto)
                 return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
 
-            if( !ItemCanGoIntoBag(pProto,pBagProto) )
+            if (slot >= pBagProto->ContainerSlots)
+                return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
+
+            if (!ItemCanGoIntoBag(pProto,pBagProto))
                 return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
         }
 
@@ -8476,21 +8472,21 @@ uint8 Player::_CanStoreItem_InSpecificSlot( uint8 bag, uint8 slot, ItemPosCountV
     else
     {
         // check item type
-        if(pItem2->GetEntry() != pProto->ItemId)
+        if (pItem2->GetEntry() != pProto->ItemId)
             return EQUIP_ERR_ITEM_CANT_STACK;
 
         // check free space
-        if(pItem2->GetCount() >= pProto->Stackable)
+        if (pItem2->GetCount() >= pProto->GetMaxStackSize())
             return EQUIP_ERR_ITEM_CANT_STACK;
 
         need_space = pProto->Stackable - pItem2->GetCount();
     }
 
-    if(need_space > count)
+    if (need_space > count)
         need_space = count;
 
     ItemPosCount newPosition = ItemPosCount((bag << 8) | slot, need_space);
-    if(!newPosition.isContainedIn(dest))
+    if (!newPosition.isContainedIn(dest))
     {
         dest.push_back(newPosition);
         count -= need_space;
@@ -8501,72 +8497,72 @@ uint8 Player::_CanStoreItem_InSpecificSlot( uint8 bag, uint8 slot, ItemPosCountV
 uint8 Player::_CanStoreItem_InBag( uint8 bag, ItemPosCountVec &dest, ItemPrototype const *pProto, uint32& count, bool merge, bool non_specialized, Item* pSrcItem, uint8 skip_bag, uint8 skip_slot ) const
 {
     // skip specific bag already processed in first called _CanStoreItem_InBag
-    if(bag==skip_bag)
+    if (bag==skip_bag)
         return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
 
     Bag* pBag = (Bag*)GetItemByPos( INVENTORY_SLOT_BAG_0, bag );
-    if( !pBag )
+    if (!pBag)
         return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
 
     ItemPrototype const* pBagProto = pBag->GetProto();
-    if( !pBagProto )
+    if (!pBagProto)
         return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
 
     // specialized bag mode or non-specilized
-    if( non_specialized != (pBagProto->Class == ITEM_CLASS_CONTAINER && pBagProto->SubClass == ITEM_SUBCLASS_CONTAINER) )
+    if (non_specialized != (pBagProto->Class == ITEM_CLASS_CONTAINER && pBagProto->SubClass == ITEM_SUBCLASS_CONTAINER))
         return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
 
-    if( !ItemCanGoIntoBag(pProto,pBagProto) )
+    if (!ItemCanGoIntoBag(pProto,pBagProto))
         return EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG;
 
     for(uint32 j = 0; j < pBag->GetBagSize(); ++j)
     {
         // skip specific slot already processed in first called _CanStoreItem_InSpecificSlot
-        if(j==skip_slot)
+        if (j==skip_slot)
             continue;
 
         Item* pItem2 = GetItemByPos( bag, j );
 
         // ignore move item (this slot will be empty at move)
-        if(pItem2==pSrcItem)
+        if (pItem2==pSrcItem)
             pItem2 = NULL;
 
         // if merge skip empty, if !merge skip non-empty
-        if((pItem2!=NULL)!=merge)
+        if ((pItem2!=NULL)!=merge)
             continue;
 
-        if( pItem2 )
+        if (pItem2)
         {
-            if(pItem2->GetEntry() == pProto->ItemId && pItem2->GetCount() < pProto->Stackable )
+            if (pItem2->GetEntry() == pProto->ItemId && pItem2->GetCount() < pProto->GetMaxStackSize())
             {
                 uint32 need_space = pProto->Stackable - pItem2->GetCount();
                 if(need_space > count)
                     need_space = count;
 
                 ItemPosCount newPosition = ItemPosCount((bag << 8) | j, need_space);
-                if(!newPosition.isContainedIn(dest))
+                if (!newPosition.isContainedIn(dest))
                 {
                     dest.push_back(newPosition);
                     count -= need_space;
 
-                    if(count==0)
+                    if (count==0)
                         return EQUIP_ERR_OK;
                 }
             }
         }
         else
         {
-            uint32 need_space = pProto->Stackable;
-            if(need_space > count)
+            uint32 need_space = pProto->GetMaxStackSize();
+            if (need_space > count)
                 need_space = count;
 
             ItemPosCount newPosition = ItemPosCount((bag << 8) | j, need_space);
-            if(!newPosition.isContainedIn(dest))
+            if (!newPosition.isContainedIn(dest))
             {
                 dest.push_back(newPosition);
                 count -= need_space;
 
-                if(count==0)
+                if (count==0)
                     return EQUIP_ERR_OK;
             }
         }
@@ -8579,50 +8575,50 @@ uint8 Player::_CanStoreItem_InInventorySlots( uint8 slot_begin, uint8 slot_end, 
     for(uint32 j = slot_begin; j < slot_end; ++j)
     {
         // skip specific slot already processed in first called _CanStoreItem_InSpecificSlot
-        if(INVENTORY_SLOT_BAG_0==skip_bag && j==skip_slot)
+        if (INVENTORY_SLOT_BAG_0==skip_bag && j==skip_slot)
             continue;
 
         Item* pItem2 = GetItemByPos( INVENTORY_SLOT_BAG_0, j );
 
         // ignore move item (this slot will be empty at move)
-        if(pItem2==pSrcItem)
+        if (pItem2==pSrcItem)
             pItem2 = NULL;
 
         // if merge skip empty, if !merge skip non-empty
-        if((pItem2!=NULL)!=merge)
+        if ((pItem2!=NULL)!=merge)
             continue;
 
-        if( pItem2 )
+        if (pItem2)
         {
-            if(pItem2->GetEntry() == pProto->ItemId && pItem2->GetCount() < pProto->Stackable )
+            if (pItem2->GetEntry() == pProto->ItemId && pItem2->GetCount() < pProto->GetMaxStackSize())
             {
-                uint32 need_space = pProto->Stackable - pItem2->GetCount();
-                if(need_space > count)
+                uint32 need_space = pProto->GetMaxStackSize() - pItem2->GetCount();
+                if (need_space > count)
                     need_space = count;
                 ItemPosCount newPosition = ItemPosCount((INVENTORY_SLOT_BAG_0 << 8) | j, need_space);
-                if(!newPosition.isContainedIn(dest))
+                if (!newPosition.isContainedIn(dest))
                 {
                     dest.push_back(newPosition);
                     count -= need_space;
 
-                    if(count==0)
+                    if (count==0)
                         return EQUIP_ERR_OK;
                 }
             }
         }
         else
         {
-            uint32 need_space = pProto->Stackable;
-            if(need_space > count)
+            uint32 need_space = pProto->GetMaxStackSize();
+            if (need_space > count)
                 need_space = count;
 
             ItemPosCount newPosition = ItemPosCount((INVENTORY_SLOT_BAG_0 << 8) | j, need_space);
-            if(!newPosition.isContainedIn(dest))
+            if (!newPosition.isContainedIn(dest))
             {
                 dest.push_back(newPosition);
                 count -= need_space;
 
-                if(count==0)
+                if (count==0)
                     return EQUIP_ERR_OK;
             }
         }
@@ -8635,16 +8631,16 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
     sLog.outDebug( "STORAGE: CanStoreItem bag = %u, slot = %u, item = %u, count = %u", bag, slot, entry, count);
 
     ItemPrototype const *pProto = objmgr.GetItemPrototype(entry);
-    if( !pProto )
+    if (!pProto)
     {
-        if(no_space_count)
+        if (no_space_count)
             *no_space_count = count;
         return swap ? EQUIP_ERR_ITEMS_CANT_BE_SWAPPED :EQUIP_ERR_ITEM_NOT_FOUND;
     }
 
-    if(pItem && pItem->IsBindedNotWith(this))
+    if (pItem && pItem->IsBindedNotWith(this))
     {
-        if(no_space_count)
+        if (no_space_count)
             *no_space_count = count;
         return EQUIP_ERR_DONT_OWN_THAT_ITEM;
     }
@@ -8652,11 +8648,11 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
     // check count of items (skip for auto move for same player from bank)
     uint32 no_similar_count = 0;                            // can't store this amount similar items
     uint8 res = _CanTakeMoreSimilarItems(entry,count,pItem,&no_similar_count);
-    if(res!=EQUIP_ERR_OK)
+    if (res!=EQUIP_ERR_OK)
     {
-        if(count==no_similar_count)
+        if (count==no_similar_count)
         {
-            if(no_space_count)
+            if (no_space_count)
                 *no_space_count = no_similar_count;
             return res;
         }
@@ -8664,22 +8660,22 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
     }
 
     // in specific slot
-    if( bag != NULL_BAG && slot != NULL_SLOT )
+    if (bag != NULL_BAG && slot != NULL_SLOT)
     {
         res = _CanStoreItem_InSpecificSlot(bag,slot,dest,pProto,count,swap,pItem);
-        if(res!=EQUIP_ERR_OK)
+        if (res!=EQUIP_ERR_OK)
         {
-            if(no_space_count)
+            if (no_space_count)
                 *no_space_count = count + no_similar_count;
             return res;
         }
 
-        if(count==0)
+        if (count==0)
         {
-            if(no_similar_count==0)
+            if (no_similar_count==0)
                 return EQUIP_ERR_OK;
 
-            if(no_space_count)
+            if (no_space_count)
                 *no_space_count = count + no_similar_count;
             return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
         }
@@ -8688,45 +8684,45 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
     // not specific slot or have space for partly store only in specific slot
 
     // in specific bag
-    if( bag != NULL_BAG )
+    if (bag != NULL_BAG)
     {
         // search stack in bag for merge to
         if( pProto->Stackable > 1 )
         {
-            if( bag == INVENTORY_SLOT_BAG_0 )               // inventory
+            if (bag == INVENTORY_SLOT_BAG_0)               // inventory
             {
                 res = _CanStoreItem_InInventorySlots(KEYRING_SLOT_START,KEYRING_SLOT_END,dest,pProto,count,true,pItem,bag,slot);
-                if(res!=EQUIP_ERR_OK)
+                if (res!=EQUIP_ERR_OK)
                 {
-                    if(no_space_count)
+                    if (no_space_count)
                         *no_space_count = count + no_similar_count;
                     return res;
                 }
 
-                if(count==0)
+                if (count==0)
                 {
-                    if(no_similar_count==0)
+                    if (no_similar_count==0)
                         return EQUIP_ERR_OK;
 
-                    if(no_space_count)
+                    if (no_space_count)
                         *no_space_count = count + no_similar_count;
                     return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
                 }
 
                 res = _CanStoreItem_InInventorySlots(INVENTORY_SLOT_ITEM_START,INVENTORY_SLOT_ITEM_END,dest,pProto,count,true,pItem,bag,slot);
-                if(res!=EQUIP_ERR_OK)
+                if (res!=EQUIP_ERR_OK)
                 {
-                    if(no_space_count)
+                    if (no_space_count)
                         *no_space_count = count + no_similar_count;
                     return res;
                 }
 
-                if(count==0)
+                if (count==0)
                 {
-                    if(no_similar_count==0)
+                    if (no_similar_count==0)
                         return EQUIP_ERR_OK;
 
-                    if(no_space_count)
+                    if (no_space_count)
                         *no_space_count = count + no_similar_count;
                     return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
                 }
@@ -8735,22 +8731,22 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
             {
                 // we need check 2 time (specialized/non_specialized), use NULL_BAG to prevent skipping bag
                 res = _CanStoreItem_InBag(bag,dest,pProto,count,true,false,pItem,NULL_BAG,slot);
-                if(res!=EQUIP_ERR_OK)
+                if (res!=EQUIP_ERR_OK)
                     res = _CanStoreItem_InBag(bag,dest,pProto,count,true,true,pItem,NULL_BAG,slot);
 
-                if(res!=EQUIP_ERR_OK)
+                if (res!=EQUIP_ERR_OK)
                 {
-                    if(no_space_count)
+                    if (no_space_count)
                         *no_space_count = count + no_similar_count;
                     return res;
                 }
 
-                if(count==0)
+                if (count==0)
                 {
-                    if(no_similar_count==0)
+                    if (no_similar_count==0)
                         return EQUIP_ERR_OK;
 
-                    if(no_space_count)
+                    if (no_space_count)
                         *no_space_count = count + no_similar_count;
                     return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
                 }
@@ -8758,45 +8754,45 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
         }
 
         // search free slot in bag for place to
-        if( bag == INVENTORY_SLOT_BAG_0 )                   // inventory
+        if(bag == INVENTORY_SLOT_BAG_0)                     // inventory
         {
             // search free slot - keyring case
-            if(pProto->BagFamily & BAG_FAMILY_MASK_KEYS)
+            if (pProto->BagFamily & BAG_FAMILY_MASK_KEYS)
             {
                 uint32 keyringSize = GetMaxKeyringSize();
                 res = _CanStoreItem_InInventorySlots(KEYRING_SLOT_START,KEYRING_SLOT_START+keyringSize,dest,pProto,count,false,pItem,bag,slot);
-                if(res!=EQUIP_ERR_OK)
+                if (res!=EQUIP_ERR_OK)
                 {
-                    if(no_space_count)
+                    if (no_space_count)
                         *no_space_count = count + no_similar_count;
                     return res;
                 }
 
-                if(count==0)
+                if (count==0)
                 {
-                    if(no_similar_count==0)
+                    if (no_similar_count==0)
                         return EQUIP_ERR_OK;
 
-                    if(no_space_count)
+                    if (no_space_count)
                         *no_space_count = count + no_similar_count;
                     return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
                 }
             }
 
             res = _CanStoreItem_InInventorySlots(INVENTORY_SLOT_ITEM_START,INVENTORY_SLOT_ITEM_END,dest,pProto,count,false,pItem,bag,slot);
-            if(res!=EQUIP_ERR_OK)
+            if (res!=EQUIP_ERR_OK)
             {
-                if(no_space_count)
+                if (no_space_count)
                     *no_space_count = count + no_similar_count;
                 return res;
             }
 
-            if(count==0)
+            if (count==0)
             {
-                if(no_similar_count==0)
+                if (no_similar_count==0)
                     return EQUIP_ERR_OK;
 
-                if(no_space_count)
+                if (no_space_count)
                     *no_space_count = count + no_similar_count;
                 return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
             }
@@ -8804,22 +8800,22 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
         else                                                // equipped bag
         {
             res = _CanStoreItem_InBag(bag,dest,pProto,count,false,false,pItem,NULL_BAG,slot);
-            if(res!=EQUIP_ERR_OK)
+            if (res!=EQUIP_ERR_OK)
                 res = _CanStoreItem_InBag(bag,dest,pProto,count,false,true,pItem,NULL_BAG,slot);
 
-            if(res!=EQUIP_ERR_OK)
+            if (res!=EQUIP_ERR_OK)
             {
-                if(no_space_count)
+                if (no_space_count)
                     *no_space_count = count + no_similar_count;
                 return res;
             }
 
-            if(count==0)
+            if (count==0)
             {
-                if(no_similar_count==0)
+                if (no_similar_count==0)
                     return EQUIP_ERR_OK;
 
-                if(no_space_count)
+                if (no_space_count)
                     *no_space_count = count + no_similar_count;
                 return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
             }
@@ -8832,55 +8828,55 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
     if( pProto->Stackable > 1 )
     {
         res = _CanStoreItem_InInventorySlots(KEYRING_SLOT_START,KEYRING_SLOT_END,dest,pProto,count,true,pItem,bag,slot);
-        if(res!=EQUIP_ERR_OK)
+        if (res!=EQUIP_ERR_OK)
         {
-            if(no_space_count)
+            if (no_space_count)
                 *no_space_count = count + no_similar_count;
             return res;
         }
 
-        if(count==0)
+        if (count==0)
         {
-            if(no_similar_count==0)
+            if (no_similar_count==0)
                 return EQUIP_ERR_OK;
 
-            if(no_space_count)
+            if (no_space_count)
                 *no_space_count = count + no_similar_count;
             return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
         }
 
         res = _CanStoreItem_InInventorySlots(INVENTORY_SLOT_ITEM_START,INVENTORY_SLOT_ITEM_END,dest,pProto,count,true,pItem,bag,slot);
-        if(res!=EQUIP_ERR_OK)
+        if (res!=EQUIP_ERR_OK)
         {
-            if(no_space_count)
+            if (no_space_count)
                 *no_space_count = count + no_similar_count;
             return res;
         }
 
-        if(count==0)
+        if (count==0)
         {
-            if(no_similar_count==0)
+            if (no_similar_count==0)
                 return EQUIP_ERR_OK;
 
-            if(no_space_count)
+            if (no_space_count)
                 *no_space_count = count + no_similar_count;
             return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
         }
 
-        if( pProto->BagFamily )
+        if (pProto->BagFamily)
         {
             for(int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
             {
                 res = _CanStoreItem_InBag(i,dest,pProto,count,true,false,pItem,bag,slot);
-                if(res!=EQUIP_ERR_OK)
+                if (res!=EQUIP_ERR_OK)
                     continue;
 
-                if(count==0)
+                if (count==0)
                 {
-                    if(no_similar_count==0)
+                    if (no_similar_count==0)
                         return EQUIP_ERR_OK;
 
-                    if(no_space_count)
+                    if (no_space_count)
                         *no_space_count = count + no_similar_count;
                     return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
                 }
@@ -8890,15 +8886,15 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
         for(int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
         {
             res = _CanStoreItem_InBag(i,dest,pProto,count,true,true,pItem,bag,slot);
-            if(res!=EQUIP_ERR_OK)
+            if (res!=EQUIP_ERR_OK)
                 continue;
 
-            if(count==0)
+            if (count==0)
             {
-                if(no_similar_count==0)
+                if (no_similar_count==0)
                     return EQUIP_ERR_OK;
 
-                if(no_space_count)
+                if (no_space_count)
                     *no_space_count = count + no_similar_count;
                 return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
             }
@@ -8906,25 +8902,25 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
     }
 
     // search free slot - special bag case
-    if( pProto->BagFamily )
+    if (pProto->BagFamily)
     {
-        if(pProto->BagFamily & BAG_FAMILY_MASK_KEYS)
+        if (pProto->BagFamily & BAG_FAMILY_MASK_KEYS)
         {
             uint32 keyringSize = GetMaxKeyringSize();
             res = _CanStoreItem_InInventorySlots(KEYRING_SLOT_START,KEYRING_SLOT_START+keyringSize,dest,pProto,count,false,pItem,bag,slot);
-            if(res!=EQUIP_ERR_OK)
+            if (res!=EQUIP_ERR_OK)
             {
-                if(no_space_count)
+                if (no_space_count)
                     *no_space_count = count + no_similar_count;
                 return res;
             }
 
-            if(count==0)
+            if (count==0)
             {
-                if(no_similar_count==0)
+                if (no_similar_count==0)
                     return EQUIP_ERR_OK;
 
-                if(no_space_count)
+                if (no_space_count)
                     *no_space_count = count + no_similar_count;
                 return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
             }
@@ -8933,15 +8929,15 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
         for(int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
         {
             res = _CanStoreItem_InBag(i,dest,pProto,count,false,false,pItem,bag,slot);
-            if(res!=EQUIP_ERR_OK)
+            if (res!=EQUIP_ERR_OK)
                 continue;
 
-            if(count==0)
+            if (count==0)
             {
-                if(no_similar_count==0)
+                if (no_similar_count==0)
                     return EQUIP_ERR_OK;
 
-                if(no_space_count)
+                if (no_space_count)
                     *no_space_count = count + no_similar_count;
                 return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
             }
@@ -8950,19 +8946,19 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
 
     // search free slot
     res = _CanStoreItem_InInventorySlots(INVENTORY_SLOT_ITEM_START,INVENTORY_SLOT_ITEM_END,dest,pProto,count,false,pItem,bag,slot);
-    if(res!=EQUIP_ERR_OK)
+    if (res!=EQUIP_ERR_OK)
     {
-        if(no_space_count)
+        if (no_space_count)
             *no_space_count = count + no_similar_count;
         return res;
     }
 
-    if(count==0)
+    if (count==0)
     {
-        if(no_similar_count==0)
+        if (no_similar_count==0)
             return EQUIP_ERR_OK;
 
-        if(no_space_count)
+        if (no_space_count)
             *no_space_count = count + no_similar_count;
         return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
     }
@@ -8970,21 +8966,21 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
     for(int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
     {
         res = _CanStoreItem_InBag(i,dest,pProto,count,false,true,pItem,bag,slot);
-        if(res!=EQUIP_ERR_OK)
+        if (res!=EQUIP_ERR_OK)
             continue;
 
-        if(count==0)
+        if (count==0)
         {
-            if(no_similar_count==0)
+            if (no_similar_count==0)
                 return EQUIP_ERR_OK;
 
-            if(no_space_count)
+            if (no_space_count)
                 *no_space_count = count + no_similar_count;
             return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
         }
     }
 
-    if(no_space_count)
+    if (no_space_count)
         *no_space_count = count + no_similar_count;
 
     return EQUIP_ERR_INVENTORY_FULL;
@@ -11944,6 +11940,19 @@ void Player::AddQuest( Quest const *pQuest, Object *questGiver )
     if(questGiver && pQuest->GetQuestStartScript()!=0)
         sWorld.ScriptsStart(sQuestStartScripts, pQuest->GetQuestStartScript(), questGiver, this);
 
+    // Some spells applied at quest activation
+    SpellAreaForQuestMapBounds saBounds = spellmgr.GetSpellAreaForQuestMapBounds(quest_id,true);
+    if(saBounds.first != saBounds.second)
+    {
+        uint32 zone, area;
+        GetZoneAndAreaId(zone,area);
+
+        for(SpellAreaForAreaMap::const_iterator itr = saBounds.first; itr != saBounds.second; ++itr)
+            if(itr->second->autocast && itr->second->IsFitToRequirements(this,zone,area))
+                if( !HasAura(itr->second->spellId,0) )
+                    CastSpell(this,itr->second->spellId,true);
+    }
+
     UpdateForQuestsGO();
 }
 
@@ -12123,6 +12132,33 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
         SendQuestReward( pQuest, XP, questGiver );
 
     if (q_status.uState != QUEST_NEW) q_status.uState = QUEST_CHANGED;
+
+    uint32 zone = 0;
+    uint32 area = 0;
+
+    // remove auras from spells with quest reward state limitations
+    SpellAreaForQuestMapBounds saEndBounds = spellmgr.GetSpellAreaForQuestEndMapBounds(quest_id);
+    if(saEndBounds.first != saEndBounds.second)
+    {
+        GetZoneAndAreaId(zone,area);
+
+        for(SpellAreaForAreaMap::const_iterator itr = saEndBounds.first; itr != saEndBounds.second; ++itr)
+            if(!itr->second->IsFitToRequirements(this,zone,area))
+                RemoveAurasDueToSpell(itr->second->spellId);
+    }
+
+    // Some spells applied at quest reward
+    SpellAreaForQuestMapBounds saBounds = spellmgr.GetSpellAreaForQuestMapBounds(quest_id,false);
+    if(saBounds.first != saBounds.second)
+    {
+        if(!zone || !area)
+            GetZoneAndAreaId(zone,area);
+
+        for(SpellAreaForAreaMap::const_iterator itr = saBounds.first; itr != saBounds.second; ++itr)
+            if(itr->second->autocast && itr->second->IsFitToRequirements(this,zone,area))
+                if( !HasAura(itr->second->spellId,0) )
+                    CastSpell(this,itr->second->spellId,true);
+    }
 }
 
 void Player::FailQuest( uint32 quest_id )
@@ -13641,7 +13677,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
     //speed collect rest bonus in offline, in logout, in tavern, city (section/in hour)
     float bubble1 = 0.125;
 
-    if((int32)fields[16].GetUInt32() > 0)
+    if(time_diff > 0)
     {
         float bubble = fields[17].GetUInt32() > 0
             ? bubble1*sWorld.getRate(RATE_REST_OFFLINE_IN_TAVERN_OR_CITY)
@@ -13911,9 +13947,6 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
 
 bool Player::isAllowedToLoot(Creature* creature)
 {
-    if(creature && creature->isDead() && !creature->AreLootAndRewardAllowed())
-        return false;
-
     if(Player* recipient = creature->GetLootRecipient())
     {
         if (recipient == this)
@@ -13936,7 +13969,7 @@ void Player::_LoadActions(QueryResult *result)
 {
     m_actionButtons.clear();
 
-    //QueryResult *result = CharacterDatabase.PQuery("SELECT button,action,type,misc FROM character_action WHERE guid = '%u' ORDER BY button",GetGUIDLow());
+    //QueryResult *result = CharacterDatabase.PQuery("SELECT button,action,type FROM character_action WHERE guid = '%u' ORDER BY button",GetGUIDLow());
 
     if(result)
     {
@@ -13945,9 +13978,11 @@ void Player::_LoadActions(QueryResult *result)
             Field *fields = result->Fetch();
 
             uint8 button = fields[0].GetUInt8();
+            uint32 action = fields[1].GetUInt32();
+            uint8 type = fields[2].GetUInt8();
 
-            if(addActionButton(button, fields[1].GetUInt16(), fields[2].GetUInt8(), fields[3].GetUInt8()))
-                m_actionButtons[button].uState = ACTIONBUTTON_UNCHANGED;
+            if(ActionButton* ab = addActionButton(button, action, type))
+                ab->uState = ACTIONBUTTON_UNCHANGED;
             else
             {
                 sLog.outError( "  ...at loading, and will deleted in DB also");
@@ -14173,7 +14208,7 @@ void Player::_LoadInventory(QueryResult *result, uint32 timediff)
                 item->SetSlot(NULL_SLOT);
                 // the item is in a bag, find the bag
                 std::map<uint64, Bag*>::const_iterator itr = bagMap.find(bag_guid);
-                if(itr != bagMap.end())
+                if(itr != bagMap.end() && slot < itr->second->GetBagSize())
                     itr->second->StoreItem(slot, item, true );
                 else
                     success = false;
@@ -14497,7 +14532,7 @@ void Player::_LoadSpells(QueryResult *result)
         {
             Field *fields = result->Fetch();
 
-            addSpell(fields[0].GetUInt16(), fields[1].GetBool(), false, true, fields[2].GetBool());
+            addSpell(fields[0].GetUInt32(), fields[1].GetBool(), false, true, fields[2].GetBool());
         }
         while( result->NextRow() );
 
@@ -14846,7 +14881,7 @@ void Player::SaveToDB()
     RemoveStandFlags(UNIT_STAND_FLAGS_ALL);                 // stand flags?
     SetByteValue(UNIT_FIELD_BYTES_2, 3, 0);                 // shapeshift
     SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);                 // stand flags?
-    RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_ROTATE);
+    RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
     SetDisplayId(GetNativeDisplayId());
 
     bool inworld = IsInWorld();
@@ -15008,14 +15043,14 @@ void Player::_SaveActions()
         switch (itr->second.uState)
         {
             case ACTIONBUTTON_NEW:
-                CharacterDatabase.PExecute("INSERT INTO character_action (guid,button,action,type,misc) VALUES ('%u', '%u', '%u', '%u', '%u')",
-                    GetGUIDLow(), (uint32)itr->first, (uint32)itr->second.action, (uint32)itr->second.type, (uint32)itr->second.misc );
+                CharacterDatabase.PExecute("INSERT INTO character_action (guid,button,action,type) VALUES ('%u', '%u', '%u', '%u')",
+                    GetGUIDLow(), (uint32)itr->first, (uint32)itr->second.GetAction(), (uint32)itr->second.GetType() );
                 itr->second.uState = ACTIONBUTTON_UNCHANGED;
                 ++itr;
                 break;
             case ACTIONBUTTON_CHANGED:
-                CharacterDatabase.PExecute("UPDATE character_action  SET action = '%u', type = '%u', misc= '%u' WHERE guid= '%u' AND button= '%u' ",
-                    (uint32)itr->second.action, (uint32)itr->second.type, (uint32)itr->second.misc, GetGUIDLow(), (uint32)itr->first );
+                CharacterDatabase.PExecute("UPDATE character_action  SET action = '%u', type = '%u' WHERE guid= '%u' AND button= '%u' ",
+                    (uint32)itr->second.GetAction(), (uint32)itr->second.GetType(), GetGUIDLow(), (uint32)itr->first );
                 itr->second.uState = ACTIONBUTTON_UNCHANGED;
                 ++itr;
                 break;
@@ -15026,7 +15061,7 @@ void Player::_SaveActions()
             default:
                 ++itr;
                 break;
-        };
+        }
     }
 }
 
@@ -15678,7 +15713,6 @@ void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
 
     pet->SavePetToDB(mode);
 
-    pet->CleanupsBeforeDelete();
     pet->AddObjectToRemoveList();
     pet->m_removed = true;
 
@@ -15825,8 +15859,7 @@ void Player::PetSpellInitialize()
             if(itr->second.state == PETSPELL_REMOVED)
                 continue;
 
-            data << uint16(itr->first);
-            data << uint16(itr->second.active);             // pet spell active state isn't boolean
+            data << uint32(MAKE_UNIT_ACTION_BUTTON(itr->first,itr->second.active));
             ++addlist;
         }
     }
@@ -15913,7 +15946,7 @@ void Player::CharmSpellInitialize()
         {
             for(uint32 i = 0; i < CREATURE_MAX_SPELLS; ++i)
             {
-                if(charmInfo->GetCharmSpell(i)->spellId)
+                if(charmInfo->GetCharmSpell(i)->GetAction())
                     ++addlist;
             }
         }
@@ -15938,11 +15971,8 @@ void Player::CharmSpellInitialize()
         for(uint32 i = 0; i < CREATURE_MAX_SPELLS; ++i)
         {
             CharmSpellEntry *cspell = charmInfo->GetCharmSpell(i);
-            if(cspell->spellId)
-            {
-                data << uint16(cspell->spellId);
-                data << uint16(cspell->active);
-            }
+            if(cspell->GetAction())
+                data << uint32(cspell->packedData);
         }
     }
 
@@ -16844,8 +16874,8 @@ void Player::AddSpellAndCategoryCooldowns(SpellEntry const* spellInfo, uint32 it
     {
         // use +MONTH as infinity mark for spell cooldown (will checked as MONTH/2 at save ans skipped)
         // but not allow ignore until reset or re-login
-        catrecTime = catrec > 0 ? curTime+MONTH : 0;
-        recTime    = rec    > 0 ? curTime+MONTH : catrecTime;
+        catrecTime = catrec > 0 ? curTime+infinityCooldownDelay : 0;
+        recTime    = rec    > 0 ? curTime+infinityCooldownDelay : catrecTime;
     }
     else
     {
@@ -17405,7 +17435,7 @@ void Player::SendInitialPacketsBeforeAddToMap()
 
     // set fly flag if in fly form or taxi flight to prevent visually drop at ground in showup moment
     if(HasAuraType(SPELL_AURA_MOD_INCREASE_FLIGHT_SPEED) || isInFlight())
-        AddUnitMovementFlag(MOVEMENTFLAG_FLYING2);
+        m_movementInfo.AddMovementFlag(MOVEMENTFLAG_FLYING2);
 }
 
 void Player::SendInitialPacketsAfterAddToMap()
@@ -17538,10 +17568,10 @@ void Player::learnDefaultSpells(bool loading)
 {
     // learn default race/class spells
     PlayerInfo const *info = objmgr.GetPlayerInfo(getRace(),getClass());
-    std::list<CreateSpellPair>::const_iterator spell_itr;
+    PlayerCreateInfoSpells::const_iterator spell_itr;
     for (spell_itr = info->spell.begin(); spell_itr!=info->spell.end(); ++spell_itr)
     {
-        uint16 tspell = spell_itr->first;
+        uint32 tspell = spell_itr->first;
         if (tspell)
         {
             sLog.outDebug("PLAYER: Adding initial spell, id = %u",tspell);
@@ -18270,22 +18300,12 @@ void Player::UpdateZoneDependentAuras( uint32 newZone )
         RemoveSpellsCausingAura(SPELL_AURA_FLY);
     }
 
-    // Some spells applied at enter into zone (with subzones)
-    // Human Illusion
-    // NOTE: these are removed by RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_CHANGE_MAP);
-    if ( newZone == 2367 )                                  // Old Hillsbrad Foothills
-    {
-        uint32 spellid = 0;
-        // all horde races
-        if( GetTeam() == HORDE )
-            spellid = getGender() == GENDER_FEMALE ? 35481 : 35480;
-        // and some alliance races
-        else if( getRace() == RACE_NIGHTELF || getRace() == RACE_DRAENEI )
-            spellid = getGender() == GENDER_FEMALE ? 35483 : 35482;
-
-        if(spellid && !HasAura(spellid,0) )
-            CastSpell(this,spellid,true);
-    }
+    // Some spells applied at enter into zone (with subzones), aura removed in UpdateAreaDependentAuras that called always at zone->area update
+    SpellAreaForAreaMapBounds saBounds = spellmgr.GetSpellAreaForAreaMapBounds(newZone);
+    for(SpellAreaForAreaMap::const_iterator itr = saBounds.first; itr != saBounds.second; ++itr)
+        if(itr->second->autocast && itr->second->IsFitToRequirements(this,newZone,0))
+            if( !HasAura(itr->second->spellId,0) )
+                CastSpell(this,itr->second->spellId,true);
 }
 
 void Player::UpdateAreaDependentAuras( uint32 newArea )
@@ -18294,29 +18314,18 @@ void Player::UpdateAreaDependentAuras( uint32 newArea )
     for(AuraMap::iterator iter = m_Auras.begin(); iter != m_Auras.end();)
     {
         // use m_zoneUpdateId for speed: UpdateArea called from UpdateZone or instead UpdateZone in both cases m_zoneUpdateId up-to-date
-        if(GetSpellAllowedInLocationError(iter->second->GetSpellProto(),GetMapId(),m_zoneUpdateId,newArea,GetBattleGroundId()) != SPELL_CAST_OK)
+        if(spellmgr.GetSpellAllowedInLocationError(iter->second->GetSpellProto(),GetMapId(),m_zoneUpdateId,newArea,this) != SPELL_CAST_OK)
             RemoveAura(iter);
         else
             ++iter;
     }
 
     // some auras applied at subzone enter
-    switch(newArea)
-    {
-        // unmount if enter in this subzone
-        case 35:
-            RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
-            break;
-        // Dragonmaw Illusion
-        case 3759:                                          // Netherwing Ledge
-        case 3939:                                          // Dragonmaw Fortress
-        case 3966:                                          // Dragonmaw Base Camp
-                if( !HasAura(40216,0) )
-                    CastSpell(this,40216,true);
-                if( !HasAura(42016,0) )
-                    CastSpell(this,42016,true);
-            break;
-    }
+    SpellAreaForAreaMapBounds saBounds = spellmgr.GetSpellAreaForAreaMapBounds(newArea);
+    for(SpellAreaForAreaMap::const_iterator itr = saBounds.first; itr != saBounds.second; ++itr)
+        if(itr->second->autocast && itr->second->IsFitToRequirements(this,m_zoneUpdateId,newArea))
+            if( !HasAura(itr->second->spellId,0) )
+                CastSpell(this,itr->second->spellId,true);
 }
 
 uint32 Player::GetCorpseReclaimDelay(bool pvp) const
@@ -18626,6 +18635,12 @@ void Player::UnsummonPetTemporaryIfAny()
     RemovePet(pet, PET_SAVE_AS_CURRENT);
 }
 
+uint32 Player::CalculateTalentsPoints() const
+{
+    uint32 talentPointsForLevel = getLevel() < 10 ? 0 : getLevel()-9;
+    return uint32(talentPointsForLevel * sWorld.getRate(RATE_TALENT));
+}
+
 void Player::ResummonPetTemporaryUnSummonedIfAny()
 {
     if(!m_temporaryUnsummonedPetNumber)
@@ -18819,4 +18834,24 @@ void Player::RemoveAtLoginFlag( AtLoginFlags f, bool in_db_also /*= false*/ )
 
     if(in_db_also)
         CharacterDatabase.PExecute("UPDATE characters set at_login = at_login & ~ %u WHERE guid ='%u'", uint32(f), GetGUIDLow());
+}
+
+void Player::BuildTeleportAckMsg( WorldPacket *data, float x, float y, float z, float ang ) const
+{
+    data->Initialize(MSG_MOVE_TELEPORT_ACK, 41);
+    data->append(GetPackGUID());
+    *data << uint32(0);                                     // this value increments every time
+    *data << uint32(m_movementInfo.GetMovementFlags());     // movement flags
+    *data << uint8(0);                                      // 2.3.0
+    *data << uint32(getMSTime());                           // time
+    *data << x;
+    *data << y;
+    *data << z;
+    *data << ang;
+    *data << uint32(0);
+}
+
+bool Player::HasMovementFlag( MovementFlags f ) const
+{
+    return m_movementInfo.HasMovementFlag(f);
 }
