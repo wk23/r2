@@ -305,8 +305,8 @@ struct MANGOS_DLL_DECL boss_shade_of_akamaAI : public ScriptedAI
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
         AkamaGUID = pInstance ? pInstance->GetData64(DATA_AKAMA_SHADE) : 0;
-        Reset();
         OpenMotherDoor();
+        Reset();
     }
 
     ScriptedInstance* pInstance;
@@ -323,7 +323,7 @@ struct MANGOS_DLL_DECL boss_shade_of_akamaAI : public ScriptedAI
 
     void Reset()
     {
-        if (Unit* Akama = Unit::GetUnit(*m_creature, AkamaGUID))
+/*        if (Unit* Akama = Unit::GetUnit(*m_creature, AkamaGUID))
            {
                Akama->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                //Akama-AI()->EnterEvadeMode();
@@ -350,6 +350,7 @@ struct MANGOS_DLL_DECL boss_shade_of_akamaAI : public ScriptedAI
                 pInstance->SetData(DATA_SHADEOFAKAMAEVENT, NOT_STARTED);
             } else OpenMotherDoor();
         }
+*/
     }
 
     void JustSummoned(Creature* summon)
@@ -584,7 +585,7 @@ struct MANGOS_DLL_DECL npc_akamaAI : public ScriptedAI
         PlayerGUID  = 0;
         ChannelGUID = 0;
         Chans = 0;
-        m_creature->RemoveAllAuras();
+/*        m_creature->RemoveAllAuras();
         m_creature->DeleteThreatList();
         m_creature->CombatStop(true);
         StartChanneling = false;
@@ -635,6 +636,7 @@ struct MANGOS_DLL_DECL npc_akamaAI : public ScriptedAI
         m_creature->SetUInt32Value(UNIT_NPC_FLAGS, 0);
         m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
         m_creature->SetVisibility(VISIBILITY_ON);
+*/
     }
 
     void JustSummoned(Creature* summon)
