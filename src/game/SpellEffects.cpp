@@ -186,7 +186,7 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectProspecting,                              //127 SPELL_EFFECT_PROSPECTING              Prospecting spell
     &Spell::EffectApplyAreaAura,                            //128 SPELL_EFFECT_APPLY_AREA_AURA_FRIEND
     &Spell::EffectApplyAreaAura,                            //129 SPELL_EFFECT_APPLY_AREA_AURA_ENEMY
-    &Spell::EffectNULL,                                     //130 SPELL_EFFECT_REDIRECT_THREAT
+    &Spell::EffectRedirectThreat,                           //130 SPELL_EFFECT_REDIRECT_THREAT
     &Spell::EffectUnused,                                   //131 SPELL_EFFECT_131                      used in some test spells
     &Spell::EffectNULL,                                     //132 SPELL_EFFECT_PLAY_MUSIC               sound id in misc value
     &Spell::EffectUnlearnSpecialization,                    //133 SPELL_EFFECT_UNLEARN_SPECIALIZATION   unlearn profession specialization
@@ -566,61 +566,7 @@ void Spell::EffectSchoolDMG(uint32 effect_idx)
         }
 
         if(damage >= 0)
-        {
-            uint32 finalDamage;
-            if(m_originalCaster)                            // m_caster only passive source of cast
-                finalDamage = m_originalCaster->SpellNonMeleeDamageLog(unitTarget, m_spellInfo->Id, damage, m_IsTriggeredSpell, true);
-            else
-                finalDamage = m_caster->SpellNonMeleeDamageLog(unitTarget, m_spellInfo->Id, damage, m_IsTriggeredSpell, true);
-
-            // post effects
-            switch(m_spellInfo->SpellFamilyName)
-            {
-                case SPELLFAMILY_WARRIOR:
-                {
-                    // Bloodthirst
-                    if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x40000000000))
-                    {
-                        uint32 BTAura = 0;
-                        switch(m_spellInfo->Id)
-                        {
-                            case 23881: BTAura = 23885; break;
-                            case 23892: BTAura = 23886; break;
-                            case 23893: BTAura = 23887; break;
-                            case 23894: BTAura = 23888; break;
-                            case 25251: BTAura = 25252; break;
-                            case 30335: BTAura = 30339; break;
-                            default:
-                                sLog.outError("Spell::EffectSchoolDMG: Spell %u not handled in BTAura",m_spellInfo->Id);
-                                break;
-                        }
-
-                        if (BTAura)
-                            m_caster->CastSpell(m_caster,BTAura,true);
-                    }
-                    break;
-                }
-                case SPELLFAMILY_PRIEST:
-                {
-                    // Shadow Word: Death
-                    if(finalDamage > 0 && (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000200000000)) && unitTarget->isAlive())
-                        // deals damage equal to damage done to caster if victim is not killed
-                        m_caster->SpellNonMeleeDamageLog( m_caster, m_spellInfo->Id, finalDamage, m_IsTriggeredSpell, false);
-
-                    break;
-                }
-                case SPELLFAMILY_PALADIN:
-                {
-                    // Judgement of Blood
-                    if(finalDamage > 0 && (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000800000000)) && m_spellInfo->SpellIconID==153)
-                    {
-                        int32 damagePoint  = finalDamage * 33 / 100;
-                        m_caster->CastCustomSpell(m_caster, 32220, &damagePoint, NULL, NULL, true);
-                    }
-                    break;
-                }
-            }
-        }
+            m_damage+= damage;
     }
 }
 
@@ -930,16 +876,12 @@ void Spell::EffectDummy(uint32 i)
                 }
                 case 28730:                                 // Arcane Torrent (Mana)
                 {
-                    int32 count = 0;
-                    Unit::AuraList const& m_dummyAuras = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
-                    for(Unit::AuraList::const_iterator i = m_dummyAuras.begin(); i != m_dummyAuras.end(); ++i)
-                        if ((*i)->GetId() == 28734)
-                            ++count;
-                    if (count)
-                    {
-                        m_caster->RemoveAurasDueToSpell(28734);
-                        int32 bp = damage * count;
+                    Aura * dummy = m_caster->GetDummyAura(28734);
+                    if (dummy)
+                    {                        
+                        int32 bp = damage * dummy->m_stackAmount;
                         m_caster->CastCustomSpell(m_caster, 28733, &bp, NULL, NULL, true);
+                        m_caster->RemoveAurasDueToSpell(28734);
                     }
                     return;
                 }
@@ -1204,21 +1146,19 @@ void Spell::EffectDummy(uint32 i)
                         return;
 
                     // immediately finishes the cooldown on Frost spells
-                    const PlayerSpellMap& sp_list = ((Player *)m_caster)->GetSpellMap();
-                    for (PlayerSpellMap::const_iterator itr = sp_list.begin(); itr != sp_list.end(); ++itr)
+                    const SpellCooldowns& cm = ((Player *)m_caster)->GetSpellCooldownMap();
+                    for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
                     {
-                        if (itr->second->state == PLAYERSPELL_REMOVED)
-                            continue;
-
-                        uint32 classspell = itr->first;
-                        SpellEntry const *spellInfo = sSpellStore.LookupEntry(classspell);
+                        SpellEntry const *spellInfo = sSpellStore.LookupEntry(itr->first);
 
                         if( spellInfo->SpellFamilyName == SPELLFAMILY_MAGE &&
                             (GetSpellSchoolMask(spellInfo) & SPELL_SCHOOL_MASK_FROST) &&
                             spellInfo->Id != 11958 && GetSpellRecoveryTime(spellInfo) > 0 )
                         {
-                            ((Player*)m_caster)->RemoveSpellCooldown(classspell, true);
+                            ((Player*)m_caster)->RemoveSpellCooldown((itr++)->first, true);
                         }
+                        else
+                            ++itr;
                     }
                     return;
                 }
@@ -1406,7 +1346,7 @@ void Spell::EffectDummy(uint32 i)
                 }
 
                 if(found)
-                    m_caster->SpellNonMeleeDamageLog(unitTarget, m_spellInfo->Id, damage, m_IsTriggeredSpell, true);
+                    m_damage+= damage;
                 return;
             }
             // Kill command
@@ -1462,14 +1402,15 @@ void Spell::EffectDummy(uint32 i)
                         return;
 
                     //immediately finishes the cooldown for hunter abilities
-                    const PlayerSpellMap& sp_list = ((Player *)m_caster)->GetSpellMap();
-                    for (PlayerSpellMap::const_iterator itr = sp_list.begin(); itr != sp_list.end(); ++itr)
+                    const SpellCooldowns& cm = ((Player*)m_caster)->GetSpellCooldownMap();
+                    for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
                     {
-                        uint32 classspell = itr->first;
-                        SpellEntry const *spellInfo = sSpellStore.LookupEntry(classspell);
+                        SpellEntry const *spellInfo = sSpellStore.LookupEntry(itr->first);
 
                         if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && spellInfo->Id != 23989 && GetSpellRecoveryTime(spellInfo) > 0 )
-                            ((Player*)m_caster)->RemoveSpellCooldown(classspell,true);
+                            ((Player*)m_caster)->RemoveSpellCooldown((itr++)->first,true);
+                        else
+                            ++itr;
                     }
                     return;
                 }
@@ -2346,7 +2287,7 @@ void Spell::EffectPowerBurn(uint32 i)
         modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_MULTIPLE_VALUE, multiplier);
 
     new_damage = int32(new_damage * multiplier);
-    m_caster->SpellNonMeleeDamageLog(unitTarget, m_spellInfo->Id, new_damage, m_IsTriggeredSpell, true);
+    m_damage+=new_damage;
 }
 
 void Spell::EffectHeal( uint32 /*i*/ )
@@ -2370,7 +2311,7 @@ void Spell::EffectHeal( uint32 /*i*/ )
             Unit::AuraList const& mDummyAuras = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
             for(Unit::AuraList::const_iterator i = mDummyAuras.begin(); i != mDummyAuras.end(); ++i)
                 if((*i)->GetId() == 45062)
-                    damageAmount+=(*i)->GetModifier()->m_amount;
+                    damageAmount+=(*i)->GetModifier()->m_amount * (*i)->m_stackAmount;
             if (damageAmount)
                 m_caster->RemoveAurasDueToSpell(45062);
 
@@ -2414,22 +2355,7 @@ void Spell::EffectHeal( uint32 /*i*/ )
         else
             addhealth = caster->SpellHealingBonus(m_spellInfo, addhealth,HEAL, unitTarget);
 
-        bool crit = caster->isSpellCrit(unitTarget, m_spellInfo, m_spellSchoolMask, m_attackType);
-        if (crit)
-            addhealth = caster->SpellCriticalBonus(m_spellInfo, addhealth, unitTarget);
-
-        int32 gain = caster->DealHeal(unitTarget, addhealth, m_spellInfo, crit);
-        unitTarget->getHostilRefManager().threatAssist(m_caster, float(gain) * 0.5f, m_spellInfo);
-
-        // ignore item heals
-        if(m_CastItem)
-            return;
-
-        uint32 procHealer = PROC_FLAG_HEAL;
-        if (crit)
-            procHealer |= PROC_FLAG_CRIT_HEAL;
-
-        m_caster->ProcDamageAndSpell(unitTarget,procHealer,PROC_FLAG_HEALED,addhealth,SPELL_SCHOOL_MASK_NONE,m_spellInfo,m_IsTriggeredSpell);
+        m_healing+=addhealth;
     }
 }
 
@@ -2495,6 +2421,8 @@ void Spell::EffectHealthLeech(uint32 i)
         new_damage = m_caster->SpellHealingBonus(m_spellInfo, new_damage, HEAL, m_caster);
         m_caster->DealHeal(m_caster, uint32(new_damage), m_spellInfo);
     }
+//    m_healthLeech+=tmpvalue;
+//    m_damage+=new_damage;
 }
 
 void Spell::DoCreateItem(uint32 i, uint32 itemtype)
@@ -3072,6 +3000,30 @@ void Spell::EffectApplyAreaAura(uint32 i)
     unitTarget->AddAura(Aur);
 }
 
+void Spell::EffectRedirectThreat(uint32 i)
+{
+    if(!unitTarget)
+        return;
+    if(!unitTarget->isAlive())
+        return;
+
+    Unit* redirectFrom = 0; Unit* redirectTo = 0;
+    // Check by ID is sufficient as such spells have no ranks
+    switch (m_spellInfo->Id)
+    {
+        // Misdirection
+        case 34477:
+            redirectFrom = m_caster;
+            redirectTo = unitTarget;
+            break;
+        // No need to continue
+        default:
+            return;
+    }
+
+    redirectFrom->AddRedirectThreatEntry(redirectTo,m_spellInfo->Id,float(damage)/100.0f);
+}
+
 void Spell::EffectSummonType(uint32 i)
 {
     switch(m_spellInfo->EffectMiscValueB[i])
@@ -3185,7 +3137,7 @@ void Spell::EffectSummon(uint32 i)
     spawnCreature->SetCreatorGUID(m_caster->GetGUID());
     spawnCreature->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
 
-    spawnCreature->InitStatsForLevel(level);
+    spawnCreature->InitStatsForLevel(level, m_caster);
 
     spawnCreature->GetCharmInfo()->SetPetNumber(pet_number, false);
 
@@ -3613,7 +3565,7 @@ void Spell::EffectSummonGuardian(uint32 i)
         spawnCreature->SetCreatorGUID(m_caster->GetGUID());
         spawnCreature->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
 
-        spawnCreature->InitStatsForLevel(level);
+        spawnCreature->InitStatsForLevel(level, m_caster);
         spawnCreature->GetCharmInfo()->SetPetNumber(pet_number, false);
 
         spawnCreature->AIM_Initialize();
@@ -4028,7 +3980,7 @@ void Spell::EffectSummonPet(uint32 i)
     if(m_caster->IsPvP())
         NewSummon->SetPvP(true);
 
-    NewSummon->InitStatsForLevel(petlevel);
+    NewSummon->InitStatsForLevel(petlevel, m_caster);
     NewSummon->InitPetCreateSpells();
 
     if(NewSummon->getPetType()==SUMMON_PET)
@@ -4302,35 +4254,9 @@ void Spell::EffectWeaponDmg(uint32 i)
     // prevent negative damage
     uint32 eff_damage = uint32(bonus > 0 ? bonus : 0);
 
-    const uint32 nohitMask = HITINFO_ABSORB | HITINFO_RESIST | HITINFO_MISS;
-
-    uint32 hitInfo = 0;
-    VictimState victimState = VICTIMSTATE_NORMAL;
-    uint32 blocked_dmg = 0;
-    uint32 absorbed_dmg = 0;
-    uint32 resisted_dmg = 0;
-    CleanDamage cleanDamage =  CleanDamage(0, BASE_ATTACK, MELEE_HIT_NORMAL );
-
-    m_caster->DoAttackDamage(unitTarget, &eff_damage, &cleanDamage, &blocked_dmg, m_spellSchoolMask, &hitInfo, &victimState, &absorbed_dmg, &resisted_dmg, m_attackType, m_spellInfo, m_IsTriggeredSpell);
-
-    if ((hitInfo & nohitMask) && m_attackType != RANGED_ATTACK)  // not send ranged miss/etc
-        m_caster->SendAttackStateUpdate(hitInfo & nohitMask, unitTarget, 1, m_spellSchoolMask, eff_damage, absorbed_dmg, resisted_dmg, VICTIMSTATE_NORMAL, blocked_dmg);
-
-    bool criticalhit = (hitInfo & HITINFO_CRITICALHIT);
-    m_caster->SendSpellNonMeleeDamageLog(unitTarget, m_spellInfo->Id, eff_damage, m_spellSchoolMask, absorbed_dmg, resisted_dmg, false, blocked_dmg, criticalhit);
-
-    if (eff_damage > (absorbed_dmg + resisted_dmg + blocked_dmg))
-    {
-        eff_damage -= (absorbed_dmg + resisted_dmg + blocked_dmg);
-    }
-    else
-    {
-        cleanDamage.damage += eff_damage;
-        eff_damage = 0;
-    }
-
-    // SPELL_SCHOOL_NORMAL use for weapon-like threat and rage calculation
-    m_caster->DealDamage(unitTarget, eff_damage, &cleanDamage, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, true);
+    // Add melee damage bonuses (also check for negative)
+    m_caster->MeleeDamageBonus(unitTarget, &eff_damage, m_attackType, m_spellInfo);
+    m_damage+= eff_damage;
 
     // Hemorrhage
     if (m_spellInfo->SpellFamilyName==SPELLFAMILY_ROGUE && (m_spellInfo->SpellFamilyFlags & UI64LIT(0x2000000)))
@@ -4398,8 +4324,7 @@ void Spell::EffectHealMaxHealth(uint32 /*i*/)
 
     uint32 heal = m_caster->GetMaxHealth();
 
-    int32 gain = m_caster->DealHeal(unitTarget, heal, m_spellInfo);
-    unitTarget->getHostilRefManager().threatAssist(m_caster, float(gain) * 0.5f, m_spellInfo);
+    m_healing+=heal;
 }
 
 void Spell::EffectInterruptCast(uint32 /*i*/)
@@ -5437,26 +5362,110 @@ void Spell::EffectMomentMove(uint32 i)
     if(unitTarget->isInFlight())
         return;
 
-    if( m_spellInfo->rangeIndex == 1)                       //self range
+    if(m_spellInfo->rangeIndex == 1)                        //self range
     {
-        float dis = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
+        const float lenght2d = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
 
-        // before caster
-        float fx, fy, fz;
-        unitTarget->GetClosePoint(fx, fy, fz, unitTarget->GetObjectSize(), dis);
-        float ox, oy, oz;
-        unitTarget->GetPosition(ox, oy, oz);
+        const float losH  = 1.2f;			// LoS height
+        const float dl_2d = 0.7f;
+        int   n_itrs = int(lenght2d/dl_2d);
+        if(n_itrs == 0)
+            return;
 
-        float fx2, fy2, fz2;                                // getObjectHitPos overwrite last args in any result case
-        if(VMAP::VMapFactory::createOrGetVMapManager()->getObjectHitPos(unitTarget->GetMapId(), ox,oy,oz+0.5, fx,fy,oz+0.5,fx2,fy2,fz2, -0.5))
+        float cx,cy,cz;
+        unitTarget->GetPosition(cx,cy,cz);
+        const float  angle = unitTarget->GetOrientation();
+        const uint32 mapId = unitTarget->GetMapId();
+
+        const float dx = dl_2d*cos(angle);
+        const float dy = dl_2d*sin(angle);
+
+        std::vector<float> mapData;
+        mapData.resize(n_itrs);
+        float x_i = cx, y_i = cy, z_i = cz;
+
+        bool isFallorFly = false;
+        if (unitTarget->GetTypeId() == TYPEID_PLAYER && ((Player*)unitTarget)->HasMovementFlag(MovementFlags(MOVEMENTFLAG_FALLING |
+            MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING2 | MOVEMENTFLAG_WATERWALKING)))
+            isFallorFly = true;
+
+        Map const* map = unitTarget->GetBaseMap();
+        bool above_map = cz+losH >= map->GetHeight(cx,cy,MAX_HEIGHT,false) ? true : false;
+
+        for(int itr = 0; itr < n_itrs; ++itr)
         {
-            fx = fx2;
-            fy = fy2;
-            fz = fz2;
-            unitTarget->UpdateGroundPositionZ(fx, fy, fz);
+            x_i += dx;
+            y_i += dy;
+            float mapHeight = map->GetHeight(x_i,y_i,MAX_HEIGHT,false);
+            if ((above_map && z_i+losH < mapHeight) || (!above_map && z_i+losH > mapHeight))
+            {
+                x_i -= dx;
+                y_i -= dy;
+                break;
+            }
+            if(!isFallorFly)
+              mapData[itr] = mapHeight;
         }
 
-        unitTarget->NearTeleportTo(fx, fy, fz, unitTarget->GetOrientation(),unitTarget==m_caster);
+        float v_x, v_y, v_z;
+        VMAP::IVMapManager *vmgr = VMAP::VMapFactory::createOrGetVMapManager();
+        if(vmgr->getObjectHitPos(mapId, cx,cy,cz+losH, x_i,y_i,z_i+losH, v_x,v_y,v_z,0))
+        {
+            float objSize = unitTarget->GetObjectSize()/dl_2d;
+            v_x -= dx*objSize, v_y -= dy*objSize;
+            if(!isFallorFly)
+                n_itrs = int( sqrtf((v_x-cx)*(v_x-cx)+(v_y-cy)*(v_y-cy))/dl_2d );
+        }
+
+        if(isFallorFly)
+        {
+            float mapH   = map->GetHeight(v_x,v_y,v_z,false);
+            float vmapH  = vmgr->getHeight(unitTarget->GetMapId(),v_x,v_y,v_z);
+            float ground = vmapH > mapH ? vmapH : mapH;
+
+            if( ((Player*)unitTarget)->HasMovementFlag(MovementFlags(MOVEMENTFLAG_FALLING)) )
+            {
+                Player *pl = (Player*)unitTarget;
+                SafePosition lpos = pl->m_safeposition;
+                uint32 fallTime = pl->m_movementInfo.fallTime;
+                if(lpos.z - ground > 14.0f)
+                {
+                    if(fallTime < 2500)		//when near the last safe pos
+                        v_x = lpos.x,v_y = lpos.y,v_z = lpos.z;
+                    else
+                        v_z = cz;		//normal falling
+                }else
+                    if(fallTime > 2500)
+                        v_z = ground;
+            }else
+                v_z = cz > ground ? cz : ground;
+        }
+        else
+        {
+            int i = 0;
+            x_i = cx, y_i = cy, v_z = cz;
+            for(std::vector<float>::const_iterator j = mapData.begin(); i < n_itrs && j != mapData.end(); ++j)
+            {
+                x_i += dx;
+                y_i += dy;
+                float ray = v_z > *j ? v_z + 2.0f - *j : 10.0f;
+                float height = vmgr->getHeight(mapId,x_i,y_i,v_z+2.0f,ray > 10.0f ? 10.0f:ray);
+
+                if( !(height > INVALID_HEIGHT && (height > *j || fabs(*j-cz+losH) > fabs(height-cz+losH))) )
+                    height = *j;
+
+                if(fabs(v_z - height)/dl_2d > 2.7475f)		// >tan(70)
+                {
+                    float objSize = unitTarget->GetObjectSize()/dl_2d;
+                    v_x = x_i-dx*objSize, v_y = y_i-dy*objSize;
+                    break;
+                }
+                v_z = height;
+                ++i;
+            }
+        }
+
+        unitTarget->NearTeleportTo(v_x, v_y, v_z, angle,unitTarget==m_caster);
     }
 }
 

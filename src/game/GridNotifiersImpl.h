@@ -34,8 +34,10 @@ MaNGOS::VisibleNotifier::Visit(GridRefManager<T> &m)
 {
     for(typename GridRefManager<T>::iterator iter = m.begin(); iter != m.end(); ++iter)
     {
-        i_player.UpdateVisibilityOf(iter->getSource(),i_data,i_data_updates,i_visibleNow);
-        i_clientGUIDs.erase(iter->getSource()->GetGUID());
+        if(!iter->getSource()->isNotified(NOTIFY_VISIBILITY))
+            i_player.UpdateVisibleObj(iter->getSource(),i_data,i_visibleNow);
+
+        vis_guids.erase(iter->getSource()->GetGUID());
     }
 }
 
@@ -67,9 +69,6 @@ MaNGOS::PlayerRelocationNotifier::Visit(PlayerMapType &m)
 
 inline void PlayerCreatureRelocationWorker(Player* pl, Creature* c)
 {
-    // update creature visibility at player/creature move
-    pl->UpdateVisibilityOf(c);
-
     // Creature AI reaction
     if(!c->hasUnitState(UNIT_STAT_SEARCHING | UNIT_STAT_FLEEING))
     {
@@ -100,8 +99,11 @@ MaNGOS::PlayerRelocationNotifier::Visit(CreatureMapType &m)
         return;
 
     for(CreatureMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
-        if( iter->getSource()->isAlive())
-            PlayerCreatureRelocationWorker(&i_player,iter->getSource());
+    {
+        Creature * c = iter->getSource();
+        if(c->isAlive() && !c->isNotified(NOTIFY_RELOCATION))
+            PlayerCreatureRelocationWorker(&i_player, c);
+    }
 }
 
 template<>
@@ -112,8 +114,11 @@ MaNGOS::CreatureRelocationNotifier::Visit(PlayerMapType &m)
         return;
 
     for(PlayerMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
-        if( iter->getSource()->isAlive() && !iter->getSource()->isInFlight())
-            PlayerCreatureRelocationWorker(iter->getSource(), &i_creature);
+    {
+        Player * pl = iter->getSource();
+        if( pl->isAlive() && !pl->isInFlight() && !pl->isNotified(NOTIFY_RELOCATION))
+            PlayerCreatureRelocationWorker(pl, &i_creature);
+    }
 }
 
 template<>
@@ -126,9 +131,57 @@ MaNGOS::CreatureRelocationNotifier::Visit(CreatureMapType &m)
     for(CreatureMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
         Creature* c = iter->getSource();
-        if( c != &i_creature && c->isAlive())
+        if( c != &i_creature && c->isAlive() && !c->isNotified(NOTIFY_RELOCATION))
             CreatureCreatureRelocationWorker(c, &i_creature);
     }
+}
+
+inline void
+MaNGOS::DelayedCreatureRelocation::Visit(CreatureMapType &m)
+{
+    for(CreatureMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
+    {
+        Creature * i_creature = iter->getSource();
+        if(!i_creature->isAlive() || !i_creature->isNeedNotify(NOTIFY_RELOCATION) || i_creature->isNotified(NOTIFY_RELOCATION))
+            continue;
+
+        CreatureRelocationNotifier relocate(*i_creature);
+        TypeContainerVisitor<MaNGOS::CreatureRelocationNotifier, WorldTypeMapContainer > c2world_relocation(relocate);
+        TypeContainerVisitor<MaNGOS::CreatureRelocationNotifier, GridTypeMapContainer >  c2grid_relocation(relocate);
+
+        i_lock->Visit(i_lock, c2world_relocation, i_map, *i_creature, i_radius);
+        i_lock->Visit(i_lock, c2grid_relocation, i_map, *i_creature, i_radius);
+
+        i_creature->SetNotified(NOTIFY_RELOCATION);
+        i_creature->RemoveFromNotify(NOTIFY_RELOCATION);
+    }
+}
+
+template<class T>
+inline void		// i_object data to all nearby players
+MaNGOS::ObjectVisibilityUpdater::Visit(GridRefManager<T> &m)
+{
+    for(typename GridRefManager<T>::iterator iter = m.begin(); iter != m.end(); ++iter)
+    {
+        T * obj = iter->getSource();
+        if(!obj->isNeedNotify(NOTIFY_VISIBILITY) || obj->isNotified(NOTIFY_VISIBILITY))
+            continue;
+
+        VisibleChangesNotifier notify(*obj);
+
+        TypeContainerVisitor<VisibleChangesNotifier, WorldTypeMapContainer > world_notifier(notify);
+        i_lock->Visit(i_lock, world_notifier, i_map, *obj, i_radius);
+
+        obj->SetNotified(NOTIFY_VISIBILITY);
+        obj->RemoveFromNotify(NOTIFY_VISIBILITY);
+    }
+}
+
+inline void
+MaNGOS::ResetNotifier::Visit(CreatureMapType &m)
+{
+    for(CreatureMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
+        iter->getSource()->ResetAllNotifiesbyMask(reset_mask);
 }
 
 inline void MaNGOS::DynamicObjectUpdater::VisitHelper(Unit* target)
@@ -183,6 +236,9 @@ template<>
 inline void
 MaNGOS::DynamicObjectUpdater::Visit(CreatureMapType  &m)
 {
+    if(i_dynobject.GetRadius() == 0.0f)
+        return;
+
     for(CreatureMapType::iterator itr=m.begin(); itr != m.end(); ++itr)
         VisitHelper(itr->getSource());
 }
@@ -191,6 +247,9 @@ template<>
 inline void
 MaNGOS::DynamicObjectUpdater::Visit(PlayerMapType  &m)
 {
+    if(i_dynobject.GetRadius() == 0.0f)
+        return;
+
     for(PlayerMapType::iterator itr=m.begin(); itr != m.end(); ++itr)
         VisitHelper(itr->getSource());
 }

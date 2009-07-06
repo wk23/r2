@@ -101,6 +101,9 @@ enum PetTalk
 
 enum PetNameInvalidReason
 {
+    // custom, not send
+    PET_NAME_SUCCESS                                        = 0,
+
     PET_NAME_INVALID                                        = 1,
     PET_NAME_NO_NAME                                        = 2,
     PET_NAME_TOO_SHORT                                      = 3,
@@ -181,7 +184,7 @@ class Pet : public Creature
         void GivePetXP(uint32 xp);
         void GivePetLevel(uint32 level);
         void SynchronizeLevelWithOwner();
-        bool InitStatsForLevel(uint32 level);
+        bool InitStatsForLevel(uint32 level, Unit* owner = NULL);
         bool HaveInDiet(ItemPrototype const* item) const;
         uint32 GetCurrentFoodBenefitLevel(uint32 itemlevel);
         void SetDuration(int32 dur) { m_duration = dur; }
@@ -238,6 +241,8 @@ class Pet : public Creature
         uint32  m_resetTalentsCost;
         time_t  m_resetTalentsTime;
 
+        RedirectThreatMap* getRedirectThreatMap() { return &m_redirectMap; }
+
         const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
         void SetAuraUpdateMask(uint8 slot) { m_auraUpdateMask |= (uint64(1) << slot); }
         void ResetAuraUpdateMask() { m_auraUpdateMask = 0; }
@@ -269,5 +274,8 @@ class Pet : public Creature
         {
             assert(false);
         }
+
+        // Map used to control threat redirection effects
+        RedirectThreatMap m_redirectMap;
 };
 #endif

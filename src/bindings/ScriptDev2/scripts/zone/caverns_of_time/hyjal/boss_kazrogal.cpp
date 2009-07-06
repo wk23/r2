@@ -4,7 +4,7 @@
 
 #define SPELL_CLEAVE 31436
 #define SPELL_WARSTOMP 31480
-#define SPELL_MARK 31448
+#define SPELL_MARK 31447
 
 #define SOUND_ONDEATH 11018
 
@@ -36,6 +36,7 @@ struct MANGOS_DLL_DECL boss_kazrogalAI : public ScriptedAI
             TempSpell->EffectImplicitTargetA[0] = 1;
             TempSpell->EffectImplicitTargetB[0] = 0;
         }
+        Reset();
     }
 
     uint32 CleaveTimer;

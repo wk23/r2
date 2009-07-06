@@ -48,6 +48,7 @@ struct MANGOS_DLL_DECL boss_anetheronAI : public ScriptedAI
             TempSpell->EffectImplicitTargetA[0] = 1;
             TempSpell->EffectImplicitTargetB[0] = 0;
         }
+        Reset();
     }
 
     uint32 SwarmTimer;

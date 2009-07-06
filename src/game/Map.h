@@ -119,6 +119,7 @@ typedef UNORDERED_MAP<Creature*, CreatureMover> CreatureMoveList;
 #define MAX_HEIGHT            100000.0f                     // can be use for find ground height at surface
 #define INVALID_HEIGHT       -100000.0f                     // for check, must be equal to VMAP_INVALID_HEIGHT, real value for unknown height is VMAP_INVALID_HEIGHT_VALUE
 #define MIN_UNLOAD_DELAY      1                             // immediate unload
+#define MAP_NOTIFY_DELAY      600                          // lets update player/mob relocation and visibility every 1000 msec
 
 class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::ObjectLevelLockable<Map, ACE_Thread_Mutex>
 {
@@ -250,6 +251,9 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         void UpdatePlayerVisibility(Player* player, Cell cell, CellPair cellpair);
         void UpdateObjectsVisibilityFor(Player* player, Cell cell, CellPair cellpair);
 
+        void PlayerRelocationNotify(Player* player, Cell cell, CellPair cellpair);
+        void CreatureRelocationNotify(Creature *creature, Cell newcell, CellPair newval);
+
         void resetMarkedCells() { marked_cells.reset(); }
         bool isCellMarked(uint32 pCellId) { return marked_cells.test(pCellId); }
         void markCell(uint32 pCellId) { marked_cells.set(pCellId); }
@@ -283,6 +287,13 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         void LoadVMap(int gx, int gy);
         void LoadMap(int gx, int gy, bool reload = false);
 
+        //these functions used to process player/mob aggro reactions and
+        //visibility calculations. Highly optimized for massive calculations
+        void ProcessVisibilityNotifies();
+        void ProcessSelfVisibility();
+        void ProcessRelocationNotifies();
+        void ResetNotifies(uint16 notify_mask);
+
         void SetTimer(uint32 t) { i_gridExpiry = t < MIN_GRID_DELAY ? MIN_GRID_DELAY : t; }
         //uint64 CalculateGridMask(const uint32 &y) const;
 
@@ -290,9 +301,6 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         void SendInitTransports( Player * player );
         void SendRemoveTransports( Player * player );
-
-        void PlayerRelocationNotify(Player* player, Cell cell, CellPair cellpair);
-        void CreatureRelocationNotify(Creature *creature, Cell newcell, CellPair newval);
 
         bool CreatureCellRelocation(Creature *creature, Cell new_cell);
 
@@ -324,11 +332,14 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         typedef MaNGOS::ObjectLevelLockable<Map, ACE_Thread_Mutex>::Lock Guard;
 
-        MapEntry const* i_mapEntry;
+        MapEntry const* i_mapEntry;  
         uint8 i_spawnMode;
         uint32 i_id;
         uint32 i_InstanceId;
         uint32 m_unloadTimer;
+		PeriodicTimer m_VisibilityNotifyTimer;
+		PeriodicTimer m_SelfVisibilityNotifyTimer;
+		PeriodicTimer m_RelocationNotifyTimer;
 
         MapRefManager m_mapRefManager;
         MapRefManager::iterator m_mapRefIter;

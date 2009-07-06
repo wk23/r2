@@ -170,6 +170,9 @@ void WorldSession::HandleMoveWorldportAckOpcode()
 
     // resummon pet
     GetPlayer()->ResummonPetTemporaryUnSummonedIfAny();
+
+    //lets process all delayed operations on successful teleport
+    GetPlayer()->ProcessDelayedOperations();
 }
 
 void WorldSession::HandleMoveTeleportAck(WorldPacket& recv_data)
@@ -215,6 +218,9 @@ void WorldSession::HandleMoveTeleportAck(WorldPacket& recv_data)
 
     // resummon pet
     GetPlayer()->ResummonPetTemporaryUnSummonedIfAny();
+
+    //lets process all delayed operations on successful teleport
+    GetPlayer()->ProcessDelayedOperations();
 }
 
 void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
@@ -555,8 +561,9 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
         data.append(recv_data.contents(), recv_data.size());
         GetPlayer()->SendMessageToSet(&data, false);
 
-    GetPlayer()->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.o);
     GetPlayer()->m_movementInfo = movementInfo;
+
+   GetPlayer()->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.o);
 
     GetPlayer()->UpdateFallInformationIfNeed(movementInfo,recv_data.GetOpcode());
 

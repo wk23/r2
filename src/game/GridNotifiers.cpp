@@ -28,19 +28,6 @@
 using namespace MaNGOS;
 
 void
-MaNGOS::PlayerNotifier::Visit(PlayerMapType &m)
-{
-    for(PlayerMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
-    {
-        if( iter->getSource() == &i_player )
-            continue;
-
-        iter->getSource()->UpdateVisibilityOf(&i_player);
-        i_player.UpdateVisibilityOf(iter->getSource());
-    }
-}
-
-void
 VisibleChangesNotifier::Visit(PlayerMapType &m)
 {
     for(PlayerMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
@@ -48,7 +35,7 @@ VisibleChangesNotifier::Visit(PlayerMapType &m)
         if(iter->getSource() == &i_object)
             continue;
 
-        iter->getSource()->UpdateVisibilityOf(&i_object);
+        iter->getSource()->UpdateVisibleObj(&i_object);
     }
 }
 
@@ -57,89 +44,51 @@ VisibleNotifier::Visit(PlayerMapType &m)
 {
     for(PlayerMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
-        if( iter->getSource() == &i_player )
+        if(iter->getSource() == &i_player)
             continue;
 
-        iter->getSource()->UpdateVisibilityOf(&i_player);
-        i_player.UpdateVisibilityOf(iter->getSource(),i_data,i_data_updates,i_visibleNow);
-        i_clientGUIDs.erase(iter->getSource()->GetGUID());
+        if(!iter->getSource()->isNotified(NOTIFY_VISIBILITY))
+            i_player.UpdateVisibleObj(iter->getSource(),i_data,i_visibleNow);
+
+        vis_guids.erase(iter->getSource()->GetGUID());
     }
 }
 
 void
-VisibleNotifier::Notify()
+VisibleNotifier::SendToSelf()
 {
     // at this moment i_clientGUIDs have guids that not iterate at grid level checks
     // but exist one case when this possible and object not out of range: transports
-    if(Transport* transport = i_player.GetTransport())
+    if(Transport* transport = i_player.GetTransport())	// ONTRANSPORT_VISIBILITY
     {
         for(Transport::PlayerSet::const_iterator itr = transport->GetPassengers().begin();itr!=transport->GetPassengers().end();++itr)
         {
-            if(i_clientGUIDs.find((*itr)->GetGUID())!=i_clientGUIDs.end())
+            if(vis_guids.find((*itr)->GetGUID()) != vis_guids.end())
             {
-                (*itr)->UpdateVisibilityOf(&i_player);
-                i_player.UpdateVisibilityOf((*itr),i_data,i_data_updates,i_visibleNow);
-                i_clientGUIDs.erase((*itr)->GetGUID());
+                if(!i_player.isNotified(NOTIFY_VISIBILITY))
+                    (*itr)->UpdateVisibleObj(&i_player);
+
+                if(!(*itr)->isNotified(NOTIFY_VISIBILITY))
+                    i_player.UpdateVisibleObj((*itr), i_data, i_visibleNow);
+
+                vis_guids.erase((*itr)->GetGUID());
             }
         }
     }
 
-    // generate outOfRange for not iterate objects
-    i_data.AddOutOfRangeGUID(i_clientGUIDs);
-    for(Player::ClientGUIDs::iterator itr = i_clientGUIDs.begin();itr!=i_clientGUIDs.end();++itr)
-    {
-        i_player.m_clientGUIDs.erase(*itr);
+    i_data.AddOutOfRangeGUID(vis_guids);
+    for(Player::ClientGUIDs::const_iterator it = vis_guids.begin();it != vis_guids.end(); ++it)
+        i_player.m_clientGUIDs.erase(*it);
 
-        #ifdef MANGOS_DEBUG
-        if((sLog.getLogFilter() & LOG_FILTER_VISIBILITY_CHANGES)==0)
-            sLog.outDebug("Object %u (Type: %u) is out of range (no in active cells set) now for player %u",GUID_LOPART(*itr),GuidHigh2TypeId(GUID_HIPART(*itr)),i_player.GetGUIDLow());
-        #endif
-    }
+    if(!i_data.HasData())
+        return;
 
-    // send update to other players (except player updates that already sent using SendUpdateToPlayer)
-    for(UpdateDataMapType::iterator iter = i_data_updates.begin(); iter != i_data_updates.end(); ++iter)
-    {
-        if(iter->first==&i_player)
-            continue;
+    WorldPacket packet;
+    i_data.BuildPacket(&packet);
+    i_player.GetSession()->SendPacket(&packet);
 
-        WorldPacket packet;
-        iter->second.BuildPacket(&packet);
-        iter->first->GetSession()->SendPacket(&packet);
-    }
-
-    if( i_data.HasData() )
-    {
-        // send create/outofrange packet to player (except player create updates that already sent using SendUpdateToPlayer)
-        WorldPacket packet;
-        i_data.BuildPacket(&packet);
-        i_player.GetSession()->SendPacket(&packet);
-
-        // send out of range to other players if need
-        std::set<uint64> const& oor = i_data.GetOutOfRangeGUIDs();
-        for(std::set<uint64>::const_iterator iter = oor.begin(); iter != oor.end(); ++iter)
-        {
-            if(!IS_PLAYER_GUID(*iter))
-                continue;
-
-            Player* plr = ObjectAccessor::GetPlayer(i_player,*iter);
-            if(plr)
-                plr->UpdateVisibilityOf(&i_player);
-        }
-    }
-
-    // Now do operations that required done at object visibility change to visible
-
-    // send data at target visibility change (adding to client)
-    for(std::set<WorldObject*>::const_iterator vItr = i_visibleNow.begin(); vItr != i_visibleNow.end(); ++vItr)
-    {
-        // target aura duration for caster show only if target exist at caster client
-        if((*vItr)!=&i_player && (*vItr)->isType(TYPEMASK_UNIT))
-            i_player.SendAuraDurationsForTarget((Unit*)(*vItr));
-
-        // non finished movements show to player
-        if((*vItr)->GetTypeId()==TYPEID_UNIT && ((Creature*)(*vItr))->isAlive())
-            ((Creature*)(*vItr))->SendMonsterMoveWithSpeedToCurrentDestination(&i_player);
-    }
+    for(std::set<Unit*>::const_iterator it = i_visibleNow.begin(); it != i_visibleNow.end(); ++it)
+        i_player.SendInitialVisiblePackets(*it);
 }
 
 void

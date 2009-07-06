@@ -42,7 +42,7 @@ struct MANGOS_DLL_DECL boss_azgalorAI : public ScriptedAI
             TempSpell1->EffectImplicitTargetA[0] = 1;
             TempSpell1->EffectImplicitTargetB[0] = 0;
         }
-
+        Reset();
     }
 
     uint32 RainTimer;

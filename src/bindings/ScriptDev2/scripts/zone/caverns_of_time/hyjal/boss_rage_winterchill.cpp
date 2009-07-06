@@ -36,6 +36,7 @@ struct MANGOS_DLL_DECL boss_rage_winterchillAI : public ScriptedAI
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
         go = false;    
         pos = 0;
+        Reset();
     }
 
     uint32 FrostArmorTimer;

@@ -669,6 +669,16 @@ struct MovementInfo
     void SetMovementFlags(MovementFlags f) { flags = f; }
 };
 
+ //here stored last safe player's position
+struct SafePosition
+{
+    float x, y, z;
+    SafePosition()
+    {
+        x = y = z = 0.0f;
+    }
+};
+
 // flags that use in movement check for example at spell casting
 MovementFlags const movementFlagsMask = MovementFlags(
     MOVEMENTFLAG_FORWARD |MOVEMENTFLAG_BACKWARD  |MOVEMENTFLAG_STRAFE_LEFT|MOVEMENTFLAG_STRAFE_RIGHT|
@@ -741,6 +751,14 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOADARENAINFO            = 18,
 
     MAX_PLAYER_LOGIN_QUERY
+};
+
+enum PlayerDelayedOperations
+{
+    DELAYED_SAVE_PLAYER = 1,
+    DELAYED_RESURRECT_PLAYER = 2,
+    DELAYED_SPELL_CAST_DESERTER = 4,
+    DELAYED_END
 };
 
 // Player summoning auto-decline time (in secs)
@@ -1055,7 +1073,7 @@ class MANGOS_DLL_SPEC Player : public Unit
             return !IsInFeralForm() && (!mainhand || !HasFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_DISARMED) );
         }
         void SendNewItem( Item *item, uint32 count, bool received, bool created, bool broadcast = false );
-        bool BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint64 bagguid, uint8 slot);
+        bool BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint8 bag, uint8 slot);
 
         float GetReputationPriceDiscount( Creature const* pCreature ) const;
         Player* GetTrader() const { return pTrader; }
@@ -1351,6 +1369,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         PlayerSpellMap const& GetSpellMap() const { return m_spells; }
         PlayerSpellMap      & GetSpellMap()       { return m_spells; }
 
+        SpellCooldowns const& GetSpellCooldownMap() const { return m_spellCooldowns; }
+
         void AddSpellMod(SpellModifier* mod, bool apply);
         int32 GetTotalFlatMods(uint32 spellId, SpellModOp op);
         int32 GetTotalPctMods(uint32 spellId, SpellModOp op);
@@ -1376,6 +1396,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendCooldownEvent(SpellEntry const *spellInfo, uint32 itemId = 0, Spell* spell = NULL);
         void ProhibitSpellScholl(SpellSchoolMask idSchoolMask, uint32 unTimeMs );
         void RemoveSpellCooldown(uint32 spell_id, bool update = false);
+        void RemoveSpellCategoryCooldown(uint32 cat, bool update = false);
         void SendClearCooldown( uint32 spell_id, Unit* target );
 
         void RemoveArenaSpellCooldowns();
@@ -1614,6 +1635,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool IsBeingTeleportedFar() const { return mSemaphoreTeleport_Far; }
         void SetSemaphoreTeleportNear(bool semphsetting) { mSemaphoreTeleport_Near = semphsetting; }
         void SetSemaphoreTeleportFar(bool semphsetting) { mSemaphoreTeleport_Far = semphsetting; }
+        void ProcessDelayedOperations();
 
         void CheckExploreSystem(void);
 
@@ -1850,7 +1872,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         /***                 VARIOUS SYSTEMS                   ***/
         /*********************************************************/
         MovementInfo m_movementInfo;
+        SafePosition m_safeposition;
         bool HasMovementFlag(MovementFlags f) const;        // for script access to m_movementInfo.HasMovementFlag
+
         void UpdateFallInformationIfNeed(MovementInfo const& minfo,uint16 opcode);
         void SetFallInformation(uint32 time, float z)
         {
@@ -1858,6 +1882,8 @@ class MANGOS_DLL_SPEC Player : public Unit
             m_lastFallZ = z;
         }
         void HandleFall(MovementInfo const& movementInfo);
+
+        RedirectThreatMap* getRedirectThreatMap() { return &m_redirectMap; }
 
         void BuildTeleportAckMsg( WorldPacket *data, float x, float y, float z, float ang) const;
 
@@ -1911,6 +1937,12 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         bool IsVisibleInGridForPlayer(Player* pl) const;
         bool IsVisibleGloballyFor(Player* pl) const;
+
+        void SendInitialVisiblePackets(Unit* unit);
+
+        void UpdateVisibleObj(WorldObject* obj);
+
+        void UpdateVisibleObj(WorldObject* obj, UpdateData &data, std::set<Unit*>& visibleNow);
 
         void UpdateVisibilityOf(WorldObject* target);
 
@@ -2232,6 +2264,13 @@ class MANGOS_DLL_SPEC Player : public Unit
         int32 CalculateReputationGain(uint32 creatureOrQuestLevel, int32 rep, int32 faction, bool for_quest);
         void AdjustQuestReqItemCount( Quest const* pQuest, QuestStatusData& questStatusData );
 
+        bool IsCanDelayTeleport() const { return m_bCanDelayTeleport; }
+        void SetCanDelayTeleport(bool setting) { m_bCanDelayTeleport = setting; }
+        bool IsHasDelayedTeleport() const { return m_bHasDelayedTeleport; }
+        void SetDelayedTeleportFlag(bool setting) { m_bHasDelayedTeleport = setting; }
+
+        void ScheduleDelayedOperation(uint32 operation);
+
         GridReference<Player> m_gridRef;
         MapReference m_mapRef;
 
@@ -2243,8 +2282,13 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         // Current teleport data
         WorldLocation m_teleport_dest;
+        uint32 m_teleport_options;
         bool mSemaphoreTeleport_Near;
         bool mSemaphoreTeleport_Far;
+
+        uint32 m_DelayedOperations;
+        bool m_bCanDelayTeleport;
+        bool m_bHasDelayedTeleport;
 
         // Temporary removed pet cache
         uint32 m_temporaryUnsummonedPetNumber;
@@ -2253,6 +2297,9 @@ class MANGOS_DLL_SPEC Player : public Unit
        // last used pet number (for BG's)
        uint32 m_lastpetnumber;
         ReputationMgr  m_reputationMgr;
+
+        // Map used to control threat redirection effects
+        RedirectThreatMap m_redirectMap;
 };
 
 void AddItemsSetItem(Player*player,Item *item);

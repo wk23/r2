@@ -326,6 +326,11 @@ Player::Player (WorldSession *session): Unit(), m_reputationMgr(this)
     mSemaphoreTeleport_Near = false;
     mSemaphoreTeleport_Far = false;
 
+    m_DelayedOperations = 0;
+    m_bCanDelayTeleport = false;
+    m_bHasDelayedTeleport = false;
+    m_teleport_options = 0;
+
     pTrader = 0;
     ClearTrade();
 
@@ -846,7 +851,7 @@ void Player::HandleDrowning()
 
     AuraList const& mModWaterBreathing = GetAurasByType(SPELL_AURA_MOD_WATER_BREATHING);
     for(AuraList::const_iterator i = mModWaterBreathing.begin(); i != mModWaterBreathing.end(); ++i)
-        UnderWaterTime = uint32(UnderWaterTime * (100.0f + (*i)->GetModifier()->m_amount) / 100.0f);
+        UnderWaterTime = uint32(UnderWaterTime * (100.0f + (*i)->GetModifier()->m_amount * (*i)->m_stackAmount) / 100.0f);
 
     if ((m_isunderwater & 0x01) && !(m_isunderwater & 0x80) && isAlive())
     {
@@ -1006,7 +1011,10 @@ void Player::Update( uint32 p_time )
         m_nextMailDelivereTime = 0;
     }
 
+    //used to implement delayed far teleports
+    SetCanDelayTeleport(true);
     Unit::Update( p_time );
+    SetCanDelayTeleport(false);
 
     // update player only attacks
     if(uint32 ranged_att = getAttackTimer(RANGED_ATTACK))
@@ -1288,8 +1296,12 @@ void Player::Update( uint32 p_time )
     if(pet && !IsWithinDistInMap(pet, OWNER_MAX_DISTANCE))
     {
         RemovePet(pet, PET_SAVE_NOT_IN_SLOT, true);
-        return;
     }
+
+    //we should execute delayed teleports only for alive(!) players
+    //because we don't want player's ghost teleported from graveyard
+    if(IsHasDelayedTeleport() && isAlive())
+        TeleportTo(m_teleport_dest, m_teleport_options);
 }
 
 void Player::setDeathState(DeathState s)
@@ -1594,6 +1606,21 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     if ((GetMapId() == mapid) && (!m_transport))
     {
         m_anti_jumpbase = 0;
+        //lets reset far teleport flag if it wasn't reset during chained teleports
+        SetSemaphoreTeleportFar(false);
+        //setup delayed teleport flag
+        SetDelayedTeleportFlag(IsCanDelayTeleport());
+        //if teleport spell is casted in Unit::Update() func
+        //then we need to delay it until update process will be finished
+        if(IsHasDelayedTeleport())
+        {
+            SetSemaphoreTeleportNear(true);
+            //lets save teleport destination for player
+            m_teleport_dest = WorldLocation(mapid, x, y, z, orientation);
+            m_teleport_options = options;
+            return true;
+        }
+
         if (!(options & TELE_TO_NOT_UNSUMMON_PET))
         {
             //same map, only remove pet if out of range for new position
@@ -1635,6 +1662,21 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         Map *map = MapManager::Instance().FindMap(mapid);
         if (!map ||  map->CanEnter(this))
         {
+            //lets reset near teleport flag if it wasn't reset during chained teleports
+            SetSemaphoreTeleportNear(false);
+            //setup delayed teleport flag
+            SetDelayedTeleportFlag(IsCanDelayTeleport());
+            //if teleport spell is casted in Unit::Update() func
+            //then we need to delay it until update process will be finished
+            if(IsHasDelayedTeleport())
+            {
+                SetSemaphoreTeleportFar(true);
+                //lets save teleport destination for player
+                m_teleport_dest = WorldLocation(mapid, x, y, z, orientation);
+                m_teleport_options = options;
+                return true;
+            }
+
             SetSelection(0);
 
             CombatStop();
@@ -1663,6 +1705,9 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             if(!(options & TELE_TO_SPELL))
                 if(IsNonMeleeSpellCasted(true))
                     InterruptNonMeleeSpells(true);
+
+            //remove auras before removing from map...
+            RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_CHANGE_MAP | AURA_INTERRUPT_FLAG_MOVE | AURA_INTERRUPT_FLAG_TURNING);
 
             if(!GetSession()->PlayerLogout())
             {
@@ -1711,8 +1756,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             // if the player is saved before worldportack (at logout for example)
             // this will be used instead of the current location in SaveToDB
 
-            RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_CHANGE_MAP | AURA_INTERRUPT_FLAG_MOVE | AURA_INTERRUPT_FLAG_TURNING);
-
             // move packet sent by client always after far teleport
             // code for finish transfer to new map called in WorldSession::HandleMoveWorldportAckOpcode at client packet
             SetSemaphoreTeleportFar(true);
@@ -1721,6 +1764,53 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             return false;
     }
     return true;
+}
+
+void Player::ProcessDelayedOperations()
+{
+    if(m_DelayedOperations == 0)
+        return;
+
+    if(m_DelayedOperations & DELAYED_RESURRECT_PLAYER)
+    {
+        ResurrectPlayer(0.0f, false);
+
+        if(GetMaxHealth() > m_resurrectHealth)
+            SetHealth( m_resurrectHealth );
+        else
+            SetHealth( GetMaxHealth() );
+
+        if(GetMaxPower(POWER_MANA) > m_resurrectMana)
+            SetPower(POWER_MANA, m_resurrectMana );
+        else
+            SetPower(POWER_MANA, GetMaxPower(POWER_MANA) );
+
+        SetPower(POWER_RAGE, 0 );
+        SetPower(POWER_ENERGY, GetMaxPower(POWER_ENERGY) );
+
+        SpawnCorpseBones();
+    }
+
+    if(m_DelayedOperations & DELAYED_SAVE_PLAYER)
+    {
+        SaveToDB();
+    }
+
+    if(m_DelayedOperations & DELAYED_SPELL_CAST_DESERTER)
+    {
+        CastSpell(this, 26013, true);               // Deserter
+    }
+
+    //we have executed ALL delayed ops, so clear the flag
+    m_DelayedOperations = 0;
+}
+
+void Player::ScheduleDelayedOperation(uint32 operation)
+{
+    if(operation >= DELAYED_END)
+        return;
+
+    m_DelayedOperations |= operation;
 }
 
 void Player::AddToWorld()
@@ -1853,7 +1943,7 @@ void Player::Regenerate(Powers power)
         AuraList const& ModPowerRegenPCTAuras = GetAurasByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
         for(AuraList::const_iterator i = ModPowerRegenPCTAuras.begin(); i != ModPowerRegenPCTAuras.end(); ++i)
             if ((*i)->GetModifier()->m_miscvalue == power)
-                addvalue *= ((*i)->GetModifier()->m_amount + 100) / 100.0f;
+                addvalue *= ((*i)->GetModifier()->m_amount * (*i)->m_stackAmount + 100) / 100.0f;
     }
 
     if (power != POWER_RAGE)
@@ -1894,7 +1984,7 @@ void Player::RegenerateHealth()
         {
             AuraList const& mModHealthRegenPct = GetAurasByType(SPELL_AURA_MOD_HEALTH_REGEN_PERCENT);
             for(AuraList::const_iterator i = mModHealthRegenPct.begin(); i != mModHealthRegenPct.end(); ++i)
-                addvalue *= (100.0f + (*i)->GetModifier()->m_amount) / 100.0f;
+                addvalue *= (100.0f + (*i)->GetModifier()->m_amount * (*i)->m_stackAmount) / 100.0f;
         }
         else if(HasAuraType(SPELL_AURA_MOD_REGEN_DURING_COMBAT))
             addvalue *= GetTotalAuraModifier(SPELL_AURA_MOD_REGEN_DURING_COMBAT) / 100.0f;
@@ -2195,7 +2285,7 @@ void Player::GiveXP(uint32 xp, Unit* victim)
     // handle SPELL_AURA_MOD_XP_PCT auras
     Unit::AuraList const& ModXPPctAuras = GetAurasByType(SPELL_AURA_MOD_XP_PCT);
     for(Unit::AuraList::const_iterator i = ModXPPctAuras.begin();i != ModXPPctAuras.end(); ++i)
-        xp = uint32(xp*(1.0f + (*i)->GetModifier()->m_amount / 100.0f));
+        xp = uint32(xp*(1.0f + (*i)->GetModifier()->m_amount * (*i)->m_stackAmount / 100.0f));
 
     // XP resting bonus for kill
     uint32 rested_bonus_xp = victim ? GetXPRestBonus(xp) : 0;
@@ -3082,6 +3172,22 @@ void Player::RemoveSpellCooldown( uint32 spell_id, bool update /* = false */ )
 
     if(update)
         SendClearCooldown(spell_id, this);
+}
+
+void Player::RemoveSpellCategoryCooldown(uint32 cat, bool update /* = false */)
+{
+    SpellCategoryStore::const_iterator ct = sSpellCategoryStore.find(cat);
+    if (ct == sSpellCategoryStore.end())
+        return;
+
+    const SpellCategorySet& ct_set = ct->second;
+    for (SpellCooldowns::const_iterator i = m_spellCooldowns.begin(); i != m_spellCooldowns.end();)
+    {
+        if (ct_set.find(i->first) != ct_set.end())
+            RemoveSpellCooldown((i++)->first, update);
+        else
+            ++i;
+    }
 }
 
 void Player::RemoveArenaSpellCooldowns()
@@ -4892,6 +4998,7 @@ void Player::UpdateWeaponSkill (WeaponAttackType attType)
 
 void Player::UpdateCombatSkills(Unit *pVictim, WeaponAttackType attType, MeleeHitOutcome outcome, bool defence)
 {
+/* Not need, this checked on call this func from trigger system
     switch(outcome)
     {
         case MELEE_HIT_CRIT:
@@ -4904,7 +5011,7 @@ void Player::UpdateCombatSkills(Unit *pVictim, WeaponAttackType attType, MeleeHi
         default:
             break;
     }
-
+*/
     uint32 plevel = getLevel();                             // if defense than pVictim == attacker
     uint32 greylevel = MaNGOS::XP::GetGrayLevel(plevel);
     uint32 moblevel = pVictim->getLevelForTarget(this);
@@ -5338,6 +5445,13 @@ bool Player::SetPosition(float x, float y, float z, float orientation, bool tele
         x = GetPositionX();
         y = GetPositionY();
         z = GetPositionZ();
+
+        if(teleport || !(m_movementInfo.flags & (MOVEMENTFLAG_FALLING | MOVEMENTFLAG_JUMPING)))
+        {
+            m_safeposition.x = x;
+            m_safeposition.y = y;
+            m_safeposition.z = z;
+        }
 
         // group update
         if(GetGroup() && (old_x != x || old_y != y))
@@ -6413,7 +6527,7 @@ void Player::_ApplyWeaponDependentAuraCritMod(Item *item, WeaponAttackType attac
 
     if (item->IsFitToSpellRequirements(aura->GetSpellProto()))
     {
-        HandleBaseModValue(mod, FLAT_MOD, float (aura->GetModifier()->m_amount), apply);
+        HandleBaseModValue(mod, FLAT_MOD, float (aura->GetModifier()->m_amount * aura->m_stackAmount), apply);
     }
 }
 
@@ -6447,7 +6561,7 @@ void Player::_ApplyWeaponDependentAuraDamageMod(Item *item, WeaponAttackType att
 
     if (item->IsFitToSpellRequirements(aura->GetSpellProto()))
     {
-        HandleStatModifier(unitMod, unitModType, float(modifier->m_amount),apply);
+        HandleStatModifier(unitMod, unitModType, float(modifier->m_amount * aura->m_stackAmount),apply);
     }
 }
 
@@ -11656,7 +11770,11 @@ Quest const * Player::GetNextQuest( uint64 guid, Quest const *pQuest )
     }
     else
     {
-        GameObject *pGameObject = GetMap()->GetGameObject(guid);
+        //we should obtain map pointer from GetMap() in 99% of cases. Special case
+        //only for quests which cast teleport spells on player
+        Map * _map = IsInWorld() ? GetMap() : MapManager::Instance().FindMap(GetMapId(), GetInstanceId());
+        ASSERT(_map);
+        GameObject *pGameObject = _map->GetGameObject(guid);
         if( pGameObject )
         {
             pObject = (Object*)pGameObject;
@@ -11990,11 +12108,15 @@ void Player::IncompleteQuest( uint32 quest_id )
 
 void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver, bool announce )
 {
+    //this THING should be here to protect code from quest, which cast on player far teleport as a reward
+    //should work fine, cause far teleport will be executed in Player::Update()
+    SetCanDelayTeleport(true);
+
     uint32 quest_id = pQuest->GetQuestId();
 
     for (int i = 0; i < QUEST_OBJECTIVES_COUNT; ++i )
     {
-        if ( pQuest->ReqItemId[i] )
+        if (pQuest->ReqItemId[i])
             DestroyItemCount( pQuest->ReqItemId[i], pQuest->ReqItemCount[i], true);
     }
 
@@ -12002,12 +12124,12 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
     //    SetTimedQuest( 0 );
     m_timedquests.erase(pQuest->GetQuestId());
 
-    if ( pQuest->GetRewChoiceItemsCount() > 0 )
+    if (pQuest->GetRewChoiceItemsCount() > 0)
     {
-        if( pQuest->RewChoiceItemId[reward] )
+        if (pQuest->RewChoiceItemId[reward])
         {
             ItemPosCountVec dest;
-            if( CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, pQuest->RewChoiceItemId[reward], pQuest->RewChoiceItemCount[reward] ) == EQUIP_ERR_OK )
+            if (CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, pQuest->RewChoiceItemId[reward], pQuest->RewChoiceItemCount[reward] ) == EQUIP_ERR_OK)
             {
                 Item* item = StoreNewItem( dest, pQuest->RewChoiceItemId[reward], true);
                 SendNewItem(item, pQuest->RewChoiceItemCount[reward], true, false);
@@ -12015,14 +12137,14 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
         }
     }
 
-    if ( pQuest->GetRewItemsCount() > 0 )
+    if (pQuest->GetRewItemsCount() > 0)
     {
         for (uint32 i=0; i < pQuest->GetRewItemsCount(); ++i)
         {
-            if( pQuest->RewItemId[i] )
+            if (pQuest->RewItemId[i])
             {
                 ItemPosCountVec dest;
-                if( CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, pQuest->RewItemId[i], pQuest->RewItemCount[i] ) == EQUIP_ERR_OK )
+                if (CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, pQuest->RewItemId[i], pQuest->RewItemCount[i] ) == EQUIP_ERR_OK)
                 {
                     Item* item = StoreNewItem( dest, pQuest->RewItemId[i], true);
                     SendNewItem(item, pQuest->RewItemCount[i], true, false);
@@ -12033,13 +12155,8 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
 
     RewardReputation( pQuest );
 
-    if( pQuest->GetRewSpellCast() > 0 )
-        CastSpell( this, pQuest->GetRewSpellCast(), true);
-    else if( pQuest->GetRewSpell() > 0)
-        CastSpell( this, pQuest->GetRewSpell(), true);
-
     uint16 log_slot = FindQuestSlot( quest_id );
-    if( log_slot < MAX_QUEST_LOG_SIZE)
+    if (log_slot < MAX_QUEST_LOG_SIZE)
         SetQuestSlot(log_slot,0);
 
     QuestStatusData& q_status = mQuestStatus[quest_id];
@@ -12047,7 +12164,7 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
     // Not give XP in case already completed once repeatable quest
     uint32 XP = q_status.m_rewarded ? 0 : uint32(pQuest->XPValue( this )*sWorld.getRate(RATE_XP_QUEST));
 
-    if ( getLevel() < sWorld.getConfig(CONFIG_MAX_PLAYER_LEVEL) )
+    if (getLevel() < sWorld.getConfig(CONFIG_MAX_PLAYER_LEVEL))
         GiveXP( XP , NULL );
     else
         ModifyMoney( int32(pQuest->GetRewMoneyMaxLevel() * sWorld.getRate(RATE_DROP_MONEY)) );
@@ -12056,18 +12173,18 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
     ModifyMoney( pQuest->GetRewOrReqMoney() );
 
     // honor reward
-    if(pQuest->GetRewHonorableKills())
+    if (pQuest->GetRewHonorableKills())
         RewardHonor(NULL, 0, MaNGOS::Honor::hk_honor_at_level(getLevel(), pQuest->GetRewHonorableKills()));
 
     // title reward
-    if(pQuest->GetCharTitleId())
+    if (pQuest->GetCharTitleId())
     {
-        if(CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(pQuest->GetCharTitleId()))
+        if (CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(pQuest->GetCharTitleId()))
             SetTitle(titleEntry);
     }
 
     // Send reward mail
-    if(pQuest->GetRewMailTemplateId())
+    if (pQuest->GetRewMailTemplateId())
     {
         MailMessageType mailType;
         uint32 senderGuidOrEntry;
@@ -12105,9 +12222,9 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
         uint32 max_slot = questMailLoot.GetMaxSlotInLootFor(this);
         for(uint32 i = 0; mi.size() < MAX_MAIL_ITEMS && i < max_slot; ++i)
         {
-            if(LootItem* lootitem = questMailLoot.LootItemInSlot(i,this))
+            if (LootItem* lootitem = questMailLoot.LootItemInSlot(i,this))
             {
-                if(Item* item = Item::CreateItem(lootitem->itemid,lootitem->count,this))
+                if (Item* item = Item::CreateItem(lootitem->itemid,lootitem->count,this))
                 {
                     item->SaveToDB();                       // save for prevent lost at next mail load, if send fail then item will deleted
                     mi.AddItem(item->GetGUIDLow(), item->GetEntry(), item);
@@ -12118,20 +12235,26 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
         WorldSession::SendMailTo(this, mailType, MAIL_STATIONERY_NORMAL, senderGuidOrEntry, GetGUIDLow(), "", 0, &mi, 0, 0, MAIL_CHECK_MASK_NONE,pQuest->GetRewMailDelaySecs(),pQuest->GetRewMailTemplateId());
     }
 
-    if(pQuest->IsDaily())
+    if (pQuest->IsDaily())
         SetDailyQuestStatus(quest_id);
 
-    if ( !pQuest->IsRepeatable() )
+    if (!pQuest->IsRepeatable())
         SetQuestStatus(quest_id, QUEST_STATUS_COMPLETE);
     else
         SetQuestStatus(quest_id, QUEST_STATUS_NONE);
 
     q_status.m_rewarded = true;
+    if (q_status.uState != QUEST_NEW)
+        q_status.uState = QUEST_CHANGED;
 
-    if(announce)
+    if (announce)
         SendQuestReward( pQuest, XP, questGiver );
 
-    if (q_status.uState != QUEST_NEW) q_status.uState = QUEST_CHANGED;
+    // cast spells after mark quest complete (some spells have quest completed state reqyurements in spell_area data)
+    if (pQuest->GetRewSpellCast() > 0)
+        CastSpell( this, pQuest->GetRewSpellCast(), true);
+    else if ( pQuest->GetRewSpell() > 0)
+        CastSpell( this, pQuest->GetRewSpell(), true);
 
     uint32 zone = 0;
     uint32 area = 0;
@@ -12159,6 +12282,9 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
                 if( !HasAura(itr->second->spellId,0) )
                     CastSpell(this,itr->second->spellId,true);
     }
+
+    //lets remove flag for delayed teleports
+    SetCanDelayTeleport(false);
 }
 
 void Player::FailQuest( uint32 quest_id )
@@ -13455,7 +13581,8 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
     m_name = fields[3].GetCppString();
 
     // check name limitations
-    if(!ObjectMgr::IsValidName(m_name) || (GetSession()->GetSecurity() == SEC_PLAYER && objmgr.IsReservedName(m_name)))
+    if (ObjectMgr::CheckPlayerName(m_name) != CHAR_NAME_SUCCESS ||
+        GetSession()->GetSecurity() == SEC_PLAYER && objmgr.IsReservedName(m_name))
     {
         delete result;
         CharacterDatabase.PExecute("UPDATE characters SET at_login = at_login | '%u' WHERE guid ='%u'", uint32(AT_LOGIN_RENAME),guid);
@@ -14854,6 +14981,13 @@ void Player::SaveToDB()
     // delay auto save at any saves (manual, in code, or autosave)
     m_nextSave = sWorld.getConfig(CONFIG_INTERVAL_SAVE);
 
+    //lets allow only players in world to be saved
+    if(IsBeingTeleportedFar())
+    {
+        ScheduleDelayedOperation(DELAYED_SAVE_PLAYER);
+        return;
+    }
+
     // first save/honor gain after midnight will also update the player's honor fields
     UpdateHonorFields();
 
@@ -16211,8 +16345,8 @@ void Player::HandleStealthedUnitsDetection()
     TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyStealthedCheck >, GridTypeMapContainer >  grid_unit_searcher(searcher);
 
     CellLock<GridReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, world_unit_searcher, *GetMap());
-    cell_lock->Visit(cell_lock, grid_unit_searcher, *GetMap());
+    cell_lock->Visit(cell_lock, world_unit_searcher, *GetMap(), *this, sWorld.GetMaxVisibleDistanceForPlayer());
+    cell_lock->Visit(cell_lock, grid_unit_searcher, *GetMap(), *this, sWorld.GetMaxVisibleDistanceForPlayer());
 
     for (std::list<Unit*>::iterator i = stealthedUnits.begin(); i != stealthedUnits.end();)
     {
@@ -16526,16 +16660,16 @@ void Player::InitDataForForm(bool reapplyMods)
 }
 
 // Return true is the bought item has a max count to force refresh of window by caller
-bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint64 bagguid, uint8 slot)
+bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint8 bag, uint8 slot)
 {
     // cheating attempt
-    if(count < 1) count = 1;
+    if (count < 1) count = 1;
 
-    if(!isAlive())
+    if (!isAlive())
         return false;
 
     ItemPrototype const *pProto = objmgr.GetItemPrototype( item );
-    if( !pProto )
+    if (!pProto)
     {
         SendBuyError( BUY_ERR_CANT_FIND_ITEM, NULL, item, 0);
         return false;
@@ -16557,7 +16691,7 @@ bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint
     }
 
     size_t vendor_slot = vItems->FindItemSlot(item);
-    if(vendor_slot >= vItems->GetItemCount())
+    if (vendor_slot >= vItems->GetItemCount())
     {
         SendBuyError( BUY_ERR_CANT_FIND_ITEM, pCreature, item, 0);
         return false;
@@ -16566,39 +16700,39 @@ bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint
     VendorItem const* crItem = vItems->m_items[vendor_slot];
 
     // check current item amount if it limited
-    if( crItem->maxcount != 0 )
+    if (crItem->maxcount != 0)
     {
-        if(pCreature->GetVendorItemCurrentCount(crItem) < pProto->BuyCount * count )
+        if (pCreature->GetVendorItemCurrentCount(crItem) < pProto->BuyCount * count )
         {
             SendBuyError( BUY_ERR_ITEM_ALREADY_SOLD, pCreature, item, 0);
             return false;
         }
     }
 
-    if( uint32(GetReputationRank(pProto->RequiredReputationFaction)) < pProto->RequiredReputationRank)
+    if (uint32(GetReputationRank(pProto->RequiredReputationFaction)) < pProto->RequiredReputationRank)
     {
         SendBuyError( BUY_ERR_REPUTATION_REQUIRE, pCreature, item, 0);
         return false;
     }
 
-    if(crItem->ExtendedCost)
+    if (crItem->ExtendedCost)
     {
         ItemExtendedCostEntry const* iece = sItemExtendedCostStore.LookupEntry(crItem->ExtendedCost);
-        if(!iece)
+        if (!iece)
         {
             sLog.outError("Item %u have wrong ExtendedCost field value %u", pProto->ItemId, crItem->ExtendedCost);
             return false;
         }
 
         // honor points price
-        if(GetHonorPoints() < (iece->reqhonorpoints * count))
+        if (GetHonorPoints() < (iece->reqhonorpoints * count))
         {
             SendEquipError(EQUIP_ERR_NOT_ENOUGH_HONOR_POINTS, NULL, NULL);
             return false;
         }
 
         // arena points price
-        if(GetArenaPoints() < (iece->reqarenapoints * count))
+        if (GetArenaPoints() < (iece->reqarenapoints * count))
         {
             SendEquipError(EQUIP_ERR_NOT_ENOUGH_ARENA_POINTS, NULL, NULL);
             return false;
@@ -16628,62 +16762,38 @@ bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint
     // reputation discount
     price = uint32(floor(price * GetReputationPriceDiscount(pCreature)));
 
-    if( GetMoney() < price )
+    if (GetMoney() < price)
     {
         SendBuyError( BUY_ERR_NOT_ENOUGHT_MONEY, pCreature, item, 0);
         return false;
     }
 
-    uint8 bag = 0;                                          // init for case invalid bagGUID
-
-    if (bagguid != NULL_BAG && slot != NULL_SLOT)
-    {
-        if( bagguid == GetGUID() )
-        {
-            bag = INVENTORY_SLOT_BAG_0;
-        }
-        else
-        {
-            for (int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END;++i)
-            {
-                if( Bag *pBag = (Bag*)GetItemByPos(INVENTORY_SLOT_BAG_0,i) )
-                {
-                    if( bagguid == pBag->GetGUID() )
-                    {
-                        bag = i;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    if( IsInventoryPos( bag, slot ) || (bagguid == NULL_BAG && slot == NULL_SLOT) )
+    if ((bag == NULL_BAG && slot == NULL_SLOT) || IsInventoryPos(bag, slot))
     {
         ItemPosCountVec dest;
         uint8 msg = CanStoreNewItem( bag, slot, dest, item, pProto->BuyCount * count );
-        if( msg != EQUIP_ERR_OK )
+        if (msg != EQUIP_ERR_OK)
         {
             SendEquipError( msg, NULL, NULL );
             return false;
         }
 
         ModifyMoney( -(int32)price );
-        if(crItem->ExtendedCost)                            // case for new honor system
+        if (crItem->ExtendedCost)                            // case for new honor system
         {
             ItemExtendedCostEntry const* iece = sItemExtendedCostStore.LookupEntry(crItem->ExtendedCost);
-            if(iece->reqhonorpoints)
+            if (iece->reqhonorpoints)
                 ModifyHonorPoints( - int32(iece->reqhonorpoints * count));
-            if(iece->reqarenapoints)
+            if (iece->reqarenapoints)
                 ModifyArenaPoints( - int32(iece->reqarenapoints * count));
             for (uint8 i = 0; i < 5; ++i)
             {
-                if(iece->reqitem[i])
+                if (iece->reqitem[i])
                     DestroyItemCount(iece->reqitem[i], (iece->reqitemcount[i] * count), true);
             }
         }
 
-        if(Item *it = StoreNewItem( dest, item, true ))
+        if (Item *it = StoreNewItem( dest, item, true ))
         {
             uint32 new_count = pCreature->UpdateVendorItemCurrentCount(crItem,pProto->BuyCount * count);
 
@@ -16697,9 +16807,9 @@ bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint
             SendNewItem(it, pProto->BuyCount*count, true, false, false);
         }
     }
-    else if( IsEquipmentPos( bag, slot ) )
+    else if (IsEquipmentPos(bag, slot))
     {
-        if(pProto->BuyCount * count != 1)
+        if (pProto->BuyCount * count != 1)
         {
             SendEquipError( EQUIP_ERR_ITEM_CANT_BE_EQUIPPED, NULL, NULL );
             return false;
@@ -16707,19 +16817,19 @@ bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint
 
         uint16 dest;
         uint8 msg = CanEquipNewItem( slot, dest, item, false );
-        if( msg != EQUIP_ERR_OK )
+        if (msg != EQUIP_ERR_OK)
         {
             SendEquipError( msg, NULL, NULL );
             return false;
         }
 
         ModifyMoney( -(int32)price );
-        if(crItem->ExtendedCost)                            // case for new honor system
+        if (crItem->ExtendedCost)                            // case for new honor system
         {
             ItemExtendedCostEntry const* iece = sItemExtendedCostStore.LookupEntry(crItem->ExtendedCost);
-            if(iece->reqhonorpoints)
+            if (iece->reqhonorpoints)
                 ModifyHonorPoints( - int32(iece->reqhonorpoints));
-            if(iece->reqarenapoints)
+            if (iece->reqarenapoints)
                 ModifyArenaPoints( - int32(iece->reqarenapoints));
             for (uint8 i = 0; i < 5; ++i)
             {
@@ -16728,7 +16838,7 @@ bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint
             }
         }
 
-        if(Item *it = EquipNewItem( dest, item, true ))
+        if (Item *it = EquipNewItem( dest, item, true ))
         {
             uint32 new_count = pCreature->UpdateVendorItemCurrentCount(crItem,pProto->BuyCount * count);
 
@@ -16750,7 +16860,7 @@ bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint
         return false;
     }
 
-    return crItem->maxcount!=0;
+    return crItem->maxcount != 0;
 }
 
 uint32 Player::GetMaxPersonalArenaRatingRequirement()
@@ -17113,7 +17223,16 @@ void Player::LeaveBattleground(bool teleportToEntryPoint)
         if( bg->isBattleGround() && !isGameMaster() && sWorld.getConfig(CONFIG_BATTLEGROUND_CAST_DESERTER) )
         {
             if( bg->GetStatus() == STATUS_IN_PROGRESS || bg->GetStatus() == STATUS_WAIT_JOIN )
+            {
+                //lets check if player was teleported from BG and schedule delayed Deserter spell cast
+                if(IsBeingTeleportedFar())
+                {
+                    ScheduleDelayedOperation(DELAYED_SPELL_CAST_DESERTER);
+                    return;
+                }
+
                 CastSpell(this, 26013, true);               // Deserter
+            }
         }
     }
 }
@@ -17220,6 +17339,73 @@ bool Player::IsVisibleGloballyFor( Player* u ) const
 
     // non-gm stealth/invisibility not hide from global player lists
     return true;
+}
+
+void Player::SendInitialVisiblePackets(Unit* unit)
+{
+    SendAuraDurationsForTarget(unit);
+    if(unit->isAlive())
+    {
+        if(unit->GetTypeId() == TYPEID_UNIT)
+            ((Creature*)unit)->SendMonsterMoveWithSpeedToCurrentDestination(this);
+
+        if(unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING) && unit->getVictim())
+            unit->SendMeleeAttackStart(unit->getVictim());
+    }
+}
+
+void Player::UpdateVisibleObj(WorldObject* obj)
+{
+    if(HaveAtClient(obj))
+    {
+        if(obj->isVisibleForInState(this,true))
+            return;
+
+        obj->DestroyForPlayer(this);
+        m_clientGUIDs.erase(obj->GetGUID());
+    }
+    else
+    {
+        if(!obj->isVisibleForInState(this,false))
+            return;
+
+        UpdateData upd;
+        obj->BuildCreateUpdateBlockForPlayer(&upd, this);
+
+        WorldPacket packet;
+        upd.BuildPacket(&packet);
+        GetSession()->SendPacket(&packet);
+
+        if(obj->GetTypeId() != TYPEID_GAMEOBJECT || !((GameObject*)obj)->IsTransport())
+            m_clientGUIDs.insert(obj->GetGUID());
+
+        if(obj->isType(TYPEMASK_UNIT) && obj != this)
+            SendInitialVisiblePackets((Unit*)obj);
+    }
+}
+
+void Player::UpdateVisibleObj(WorldObject* obj, UpdateData &data, std::set<Unit*> &visibleNow)
+{
+    if(HaveAtClient(obj))
+    {
+        if(obj->isVisibleForInState(this,true))
+            return;
+
+        obj->BuildOutOfRangeUpdateBlock(&data);
+        m_clientGUIDs.erase(obj->GetGUID());
+    }
+    else
+    {
+        if(!obj->isVisibleForInState(this,false))
+            return;
+
+        obj->BuildCreateUpdateBlockForPlayer(&data, this);
+        if(obj->GetTypeId()!=TYPEID_GAMEOBJECT||!((GameObject*)obj)->IsTransport())
+            m_clientGUIDs.insert(obj->GetGUID());
+
+        if(obj->isType(TYPEMASK_UNIT) && obj != this)
+            visibleNow.insert((Unit*)obj);
+    }
 }
 
 void Player::UpdateVisibilityOf(WorldObject* target)
@@ -18262,6 +18448,14 @@ void Player::ResurectUsingRequestData()
     /// Teleport before resurrecting by player, otherwise the player might get attacked from creatures near his corpse
     if(IS_PLAYER_GUID(m_resurrectGUID))
         TeleportTo(m_resurrectMap, m_resurrectX, m_resurrectY, m_resurrectZ, GetOrientation());
+
+    //we cannot resurrect player when we triggered far teleport
+    //player will be resurrected upon teleportation
+    if(IsBeingTeleportedFar())
+    {
+        ScheduleDelayedOperation(DELAYED_RESURRECT_PLAYER);
+        return;
+    }
 
     ResurrectPlayer(0.0f,false);
 

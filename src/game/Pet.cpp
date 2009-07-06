@@ -641,7 +641,7 @@ void Pet::RegenerateFocus()
     AuraList const& ModPowerRegenPCTAuras = GetAurasByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
     for(AuraList::const_iterator i = ModPowerRegenPCTAuras.begin(); i != ModPowerRegenPCTAuras.end(); ++i)
         if ((*i)->GetModifier()->m_miscvalue == POWER_FOCUS)
-            addvalue *= ((*i)->GetModifier()->m_amount + 100) / 100.0f;
+            addvalue *= ((*i)->GetModifier()->m_amount * (*i)->m_stackAmount + 100) / 100.0f;
 
     ModifyPower(POWER_FOCUS, (int32)addvalue);
 }
@@ -1003,16 +1003,19 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
     return true;
 }
 
-bool Pet::InitStatsForLevel(uint32 petlevel)
+bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
 {
     CreatureInfo const *cinfo = GetCreatureInfo();
     assert(cinfo);
 
-    Unit* owner = GetOwner();
     if(!owner)
     {
-        sLog.outError("attempt to summon pet (Entry %u) without owner! Attempt terminated.", cinfo->Entry);
-        return false;
+        owner = GetOwner();
+        if(!owner)
+        {
+            sLog.outError("attempt to summon pet (Entry %u) without owner! Attempt terminated.", cinfo->Entry);
+            return false;
+        }
     }
 
     uint32 creature_ID = (getPetType() == HUNTER_PET) ? 1 : cinfo->Entry;

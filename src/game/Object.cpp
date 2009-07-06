@@ -989,6 +989,8 @@ WorldObject::WorldObject()
     : m_mapId(0), m_InstanceId(0),
     m_positionX(0.0f), m_positionY(0.0f), m_positionZ(0.0f), m_orientation(0.0f)
 {
+    m_notifyflags = 0;
+    m_executed_notifies = 0;
 }
 
 void WorldObject::CleanupsBeforeDelete()
@@ -1366,7 +1368,7 @@ void WorldObject::MonsterSay(int32 textId, uint32 language, uint64 TargetGuid)
     MaNGOS::PlayerDistWorker<MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> > say_worker(this,sWorld.getConfig(CONFIG_LISTEN_RANGE_SAY),say_do);
     TypeContainerVisitor<MaNGOS::PlayerDistWorker<MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> >, WorldTypeMapContainer > message(say_worker);
     CellLock<GridReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, message, *GetMap());
+    cell_lock->Visit(cell_lock, message, *GetMap(), *this, sWorld.getConfig(CONFIG_LISTEN_RANGE_SAY));
 }
 
 void WorldObject::MonsterYell(int32 textId, uint32 language, uint64 TargetGuid)
@@ -1382,7 +1384,7 @@ void WorldObject::MonsterYell(int32 textId, uint32 language, uint64 TargetGuid)
     MaNGOS::PlayerDistWorker<MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> > say_worker(this,sWorld.getConfig(CONFIG_LISTEN_RANGE_YELL),say_do);
     TypeContainerVisitor<MaNGOS::PlayerDistWorker<MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> >, WorldTypeMapContainer > message(say_worker);
     CellLock<GridReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, message, *GetMap());
+    cell_lock->Visit(cell_lock, message, *GetMap(), *this, sWorld.getConfig(CONFIG_LISTEN_RANGE_YELL));
 }
 
 void WorldObject::MonsterYellToZone(int32 textId, uint32 language, uint64 TargetGuid)
@@ -1411,7 +1413,7 @@ void WorldObject::MonsterTextEmote(int32 textId, uint64 TargetGuid, bool IsBossE
     MaNGOS::PlayerDistWorker<MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> > say_worker(this,sWorld.getConfig(CONFIG_LISTEN_RANGE_TEXTEMOTE),say_do);
     TypeContainerVisitor<MaNGOS::PlayerDistWorker<MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> >, WorldTypeMapContainer > message(say_worker);
     CellLock<GridReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, message, *GetMap());
+    cell_lock->Visit(cell_lock, message, *GetMap(), *this, sWorld.getConfig(CONFIG_LISTEN_RANGE_TEXTEMOTE));
 }
 
 void WorldObject::MonsterWhisper(int32 textId, uint64 receiver, bool IsBossWhisper)
@@ -1598,7 +1600,6 @@ namespace MaNGOS
 }                                                           // namespace MaNGOS
 
 //===================================================================================================
-
 void WorldObject::GetNearPoint2D(float &x, float &y, float distance2d, float absAngle ) const
 {
     x = GetPositionX() + (GetObjectSize() + distance2d) * cos(absAngle);
@@ -1642,8 +1643,8 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float &x, float &y, 
         TypeContainerVisitor<MaNGOS::WorldObjectWorker<MaNGOS::NearUsedPosDo>, WorldTypeMapContainer > world_obj_worker(worker);
 
         CellLock<GridReadGuard> cell_lock(cell, p);
-        cell_lock->Visit(cell_lock, grid_obj_worker,  *GetMap());
-        cell_lock->Visit(cell_lock, world_obj_worker, *GetMap());
+        cell_lock->Visit(cell_lock, grid_obj_worker,  *GetMap(), *searcher, distance2d);
+        cell_lock->Visit(cell_lock, world_obj_worker, *GetMap(), *searcher, distance2d);
     }
 
     // maybe can just place in primary position

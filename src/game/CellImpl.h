@@ -127,4 +127,80 @@ Cell::Visit(const CellLock<LOCK_TYPE> &l, TypeContainerVisitor<T, CONTAINER> &vi
         }
     }
 }
+
+template<class LOCK_TYPE, class T, class CONTAINER>
+inline void
+Cell::Visit(const CellLock<LOCK_TYPE> &l, TypeContainerVisitor<T, CONTAINER> &visitor, Map &m, const WorldObject &obj, float radius) const
+{
+    const CellPair &standing_cell = l.i_cellPair;
+    if (standing_cell.x_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP || standing_cell.y_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP)
+        return;
+
+    //no jokes here...
+    //ASSERT(radius);
+    if(radius <= 0.0f)
+    {
+        m.Visit(l, visitor);
+        return;
+    }
+
+    radius += obj.GetObjectSize();
+
+    //lets calculate object coord offsets from cell borders
+    //float x_offset = (obj.GetPositionX() - CENTER_GRID_CELL_OFFSET)/SIZE_OF_GRID_CELL;
+    //float y_offset = (obj.GetPositionY() - CENTER_GRID_CELL_OFFSET)/SIZE_OF_GRID_CELL;
+
+    //float x_val = x_offset + CENTER_GRID_CELL_ID + 0.5f;
+    //float y_val = y_offset + CENTER_GRID_CELL_ID + 0.5f;
+
+    //const float x_off = (x_offset - x_val + CENTER_GRID_CELL_ID) * SIZE_OF_GRID_CELL;
+    //const float y_off = (y_offset - y_val + CENTER_GRID_CELL_ID) * SIZE_OF_GRID_CELL;
+
+    double x_offset = (double(obj.GetPositionX()) - CENTER_GRID_CELL_OFFSET)/SIZE_OF_GRID_CELL;
+    double y_offset = (double(obj.GetPositionY()) - CENTER_GRID_CELL_OFFSET)/SIZE_OF_GRID_CELL;
+
+    int x_val = int(x_offset + CENTER_GRID_CELL_ID + 0.5);
+    int y_val = int(y_offset + CENTER_GRID_CELL_ID + 0.5);
+
+    const float x_off = (float(x_offset) - x_val + CENTER_GRID_CELL_ID) * SIZE_OF_GRID_CELL;
+    const float y_off = (float(y_offset) - y_val + CENTER_GRID_CELL_ID) * SIZE_OF_GRID_CELL;
+    int left = 0, right = 0, upper = 0, lower = 0;
+
+    if(CENTER_GRID_CELL_OFFSET - x_off < radius)
+        ++right;
+    if(CENTER_GRID_CELL_OFFSET + x_off < radius)
+        ++left;
+    if(CENTER_GRID_CELL_OFFSET - y_off < radius)
+        ++upper;
+    if(CENTER_GRID_CELL_OFFSET + y_off < radius)
+        ++lower;
+
+    if(!left && !right && !upper && !lower)
+    {
+        m.Visit(l, visitor);
+        return;
+    }
+
+    CellPair begin_cell = standing_cell;
+    CellPair end_cell = standing_cell;
+
+    begin_cell << left;
+    begin_cell -= lower;
+    end_cell >> right;
+    end_cell += upper;
+
+    // loop the cell range
+    for(uint32 x = begin_cell.x_coord; x <= end_cell.x_coord; x++)
+    {
+        for(uint32 y = begin_cell.y_coord; y <= end_cell.y_coord; y++)
+        {
+            CellPair cell_pair(x,y);
+            Cell r_zone(cell_pair);
+            r_zone.data.Part.nocreate = l->data.Part.nocreate;
+            CellLock<LOCK_TYPE> lock(r_zone, cell_pair);
+            m.Visit(lock, visitor);
+        }
+    }
+}
+
 #endif
