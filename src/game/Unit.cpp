@@ -6159,6 +6159,14 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
 
             switch(dummySpell->Id)
             {
+                // Judgements of the Wisedom
+                case 31876:
+                case 31877:
+                case 31878:
+                    target = this;
+                    basepoints0 = GetCreatePowers(POWER_MANA) * 15 / 100;
+                    triggered_spell_id = 31930;
+                    break;
                 // Holy Power (Redemption Armor set)
                 case 28789:
                 {
