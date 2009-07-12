@@ -179,38 +179,40 @@ namespace MaNGOS
     };
 
     // mass creature relocation
-    struct MANGOS_DLL_DECL DelayedCreatureRelocation
+    struct MANGOS_DLL_DECL DelayedUnitRelocation
     {
         typedef GridReadGuard ReadGuard;
         Map &i_map;
         CellLock<ReadGuard> &i_lock;
-        const float i_radius;
-        DelayedCreatureRelocation(CellLock<ReadGuard> &lock, Map &map, float radius) :
-            i_lock(lock), i_map(map), i_radius(radius) {}
+        //const float i_radius;
+        DelayedUnitRelocation(CellLock<ReadGuard> &lock, Map &map/*, float radius*/) :
+            i_lock(lock), i_map(map)/*, i_radius(radius)*/ {}
         template<class T> void Visit(GridRefManager<T> &) {}
         void Visit(CreatureMapType &);
+        void Visit(PlayerMapType &);
     };
 
-	// mass update player/non-player objects (that was added to visibility notify) to nearby players
+    // mass update player/creature objects (that was added to visibility notify) to nearby players
     struct MANGOS_DLL_DECL ObjectVisibilityUpdater
     {
         typedef GridReadGuard ReadGuard;
         Map &i_map;
         CellLock<ReadGuard>& i_lock;
-        const float i_radius;
-        ObjectVisibilityUpdater(CellLock<ReadGuard>& lock, Map &map, float radius) : 
-			i_lock(lock), i_map(map), i_radius(radius) {}
-        template<class T> void Visit(GridRefManager<T> &);
-		void Visit(PlayerMapType &) {}
+        //const float i_radius;
+        ObjectVisibilityUpdater(CellLock<ReadGuard>& lock, Map &map/*, float radius*/) : 
+            i_lock(lock), i_map(map)/*, i_radius(radius)*/ {}
+        template<class T> void Visit(GridRefManager<T> &) {}
+        void Visit(CreatureMapType &);
+        void Visit(PlayerMapType &);
    };
 
     struct MANGOS_DLL_DECL ResetNotifier
     {
-		uint16 reset_mask;
-		ResetNotifier(uint16 notifies) : reset_mask(notifies) {}
+        uint16 reset_mask;
+        ResetNotifier(uint16 notifies) : reset_mask(notifies) {}
         template<class T> void Visit(GridRefManager<T> &) {}
         void Visit(CreatureMapType &);
-		void Visit(PlayerMapType &) {}
+        void Visit(PlayerMapType &);
     };
 
     struct MANGOS_DLL_DECL DynamicObjectUpdater

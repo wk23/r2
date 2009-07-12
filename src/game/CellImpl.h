@@ -133,7 +133,44 @@ inline int CellHelper(const float radius)
     if(radius < 1.0f)
         return 0;
 
-    return (int)ceil(radius/SIZE_OF_GRID_CELL);
+    float _int = 0.0f;
+    const float _rem = modf(radius/SIZE_OF_GRID_CELL, &_int);
+
+    //small optimization, we add cell to interest area if we entered it in more than 15%.
+    //With cell size 66 yards this is 9.9 yards interest area e.g. 15% from SIZE_OF_GRID_CELL
+    if(_rem > 0.15f)
+        _int += 1.0f;
+
+    return int(_int);
+}
+
+inline CellArea Cell::CalculateCellArea(const WorldObject &obj, float radius)
+{
+    if(radius <= 0.0f)
+        return CellArea();
+
+    //we should increase search radius by object's radius, otherwise
+    //we could have problems with huge creatures, which won't attack nearest players etc
+    radius += obj.GetObjectSize();
+    //lets calculate object coord offsets from cell borders.
+    //TODO: add more correct/generic method for this task
+    const float x_offset = (obj.GetPositionX() - CENTER_GRID_CELL_OFFSET)/SIZE_OF_GRID_CELL;
+    const float y_offset = (obj.GetPositionY() - CENTER_GRID_CELL_OFFSET)/SIZE_OF_GRID_CELL;
+
+    const float x_val = floor(x_offset + CENTER_GRID_CELL_ID + 0.5f);
+    const float y_val = floor(y_offset + CENTER_GRID_CELL_ID + 0.5f);
+
+    const float x_off = (x_offset - x_val + CENTER_GRID_CELL_ID) * SIZE_OF_GRID_CELL;
+    const float y_off = (y_offset - y_val + CENTER_GRID_CELL_ID) * SIZE_OF_GRID_CELL;
+
+    const float tmp_diff = radius - CENTER_GRID_CELL_OFFSET;
+    //lets calculate upper/lower/right/left corners for cell search
+    int right = CellHelper(tmp_diff + x_off);
+    int left  = CellHelper(tmp_diff - x_off);
+    int upper = CellHelper(tmp_diff + y_off);
+    int lower = CellHelper(tmp_diff - y_off);
+
+    return CellArea(right, left, upper, lower);
 }
 
 template<class LOCK_TYPE, class T, class CONTAINER>
@@ -153,31 +190,10 @@ Cell::Visit(const CellLock<LOCK_TYPE> &l, TypeContainerVisitor<T, CONTAINER> &vi
         return;
     }
 
-    //we should increase search radius by object's radius, otherwise
-    //we could have problems with huge creatures, which won't attack nearest players
-    radius += obj.GetObjectSize();
     //lets calculate object coord offsets from cell borders.
-    //TODO: add more correct/generic method for this task
-    const float x_offset = (obj.GetPositionX() - CENTER_GRID_CELL_OFFSET)/SIZE_OF_GRID_CELL;
-    const float y_offset = (obj.GetPositionY() - CENTER_GRID_CELL_OFFSET)/SIZE_OF_GRID_CELL;
-
-    const float x_val = floor(x_offset + CENTER_GRID_CELL_ID + 0.5f);
-    const float y_val = floor(y_offset + CENTER_GRID_CELL_ID + 0.5f);
-
-    const float x_off = (x_offset - x_val + CENTER_GRID_CELL_ID) * SIZE_OF_GRID_CELL;
-    const float y_off = (y_offset - y_val + CENTER_GRID_CELL_ID) * SIZE_OF_GRID_CELL;
-
-    int left = 0, right = 0, upper = 0, lower = 0;
-
-    const float tmp_diff = radius - CENTER_GRID_CELL_OFFSET;
-    //lets calculate upper/lower/right/left corners for cell search
-    right = CellHelper(tmp_diff + x_off);
-    left = CellHelper(tmp_diff - x_off);
-    upper = CellHelper(tmp_diff + y_off);
-    lower = CellHelper(tmp_diff - y_off);
-
+    CellArea area = Cell::CalculateCellArea(obj, radius);
     //if radius fits inside standing cell
-    if(!left && !right && !upper && !lower)
+    if(!area)
     {
         m.Visit(l, visitor);
         return;
@@ -186,12 +202,17 @@ Cell::Visit(const CellLock<LOCK_TYPE> &l, TypeContainerVisitor<T, CONTAINER> &vi
     CellPair begin_cell = standing_cell;
     CellPair end_cell = standing_cell;
 
-    begin_cell << left;
-    begin_cell -= lower;
-    end_cell >> right;
-    end_cell += upper;
+    area.ResizeBorders(begin_cell, end_cell);
+    //visit all cells, found in CalculateCellArea()
+    //if radius is known to reach cell area more than 4x4 then we should call optimized VisitCircle
+    if(((end_cell.x_coord - begin_cell.x_coord) > 4) && ((end_cell.y_coord - begin_cell.y_coord) > 4))
+    {
+        VisitCircle(l, visitor, m, begin_cell, end_cell);
+        return;
+    }
 
-    //ALWAYS visit standing cell first!!!
+    //ALWAYS visit standing cell first!!! Since we deal with small radiuses
+    //it is very essential to call visitor for standing cell firstly...
     m.Visit(l, visitor);
 
     // loop the cell range
@@ -208,6 +229,58 @@ Cell::Visit(const CellLock<LOCK_TYPE> &l, TypeContainerVisitor<T, CONTAINER> &vi
                 CellLock<LOCK_TYPE> lock(r_zone, cell_pair);
                 m.Visit(lock, visitor);
             }
+        }
+    }
+}
+
+template<class LOCK_TYPE, class T, class CONTAINER>
+inline void
+Cell::VisitCircle(const CellLock<LOCK_TYPE> &l, TypeContainerVisitor<T, CONTAINER> &visitor, Map &m, const CellPair& begin_cell, const CellPair& end_cell) const
+{
+    //here is an algorithm for 'filling' circum-squared octagon
+    const uint32 x_center = begin_cell.x_coord + (end_cell.x_coord - begin_cell.x_coord) / 2;
+    const uint32 x_shift = (uint32)floorf((x_center - begin_cell.x_coord) * 0.4f);
+
+    const uint32 x_start = x_center - x_shift;
+    const uint32 x_end = x_center + x_shift + ((end_cell.x_coord - begin_cell.x_coord) & 0x01 ? 0 : 1);
+
+    //visit central strip with constant width...
+    for(uint32 x = x_start; x <= x_end; x++)
+    {
+        for(uint32 y = begin_cell.y_coord; y <= end_cell.y_coord; y++)
+        {
+            CellPair cell_pair(x,y);
+            Cell r_zone(cell_pair);
+            r_zone.data.Part.nocreate = l->data.Part.nocreate;
+            CellLock<LOCK_TYPE> lock(r_zone, cell_pair);
+            m.Visit(lock, visitor);
+        }
+    }
+
+    uint32 y_start = end_cell.y_coord;
+    uint32 y_end = begin_cell.y_coord;
+    //now we are visiting borders of an octagon...
+    for (uint32 step = 1; step <= (x_start - begin_cell.x_coord); ++step)
+    {
+        //each step reduces strip height by 2 cells...
+        y_end -= 1;
+        y_start += 1;
+        for (uint32 y = y_start; y >= y_end; --y)
+        {
+            //we visit cells symmetrically from both sides, heading from center to sides and from up to bottom
+            //e.g. filling 2 trapezoids after filling central cell strip...
+            CellPair cell_pair_left(x_start - step, y);
+            Cell r_zone_left(cell_pair_left);
+            r_zone_left.data.Part.nocreate = l->data.Part.nocreate;
+            CellLock<LOCK_TYPE> lock_left(r_zone_left, cell_pair_left);
+            m.Visit(lock_left, visitor);
+
+            //right trapezoid cell visit
+            CellPair cell_pair_right(x_end + step, y);
+            Cell r_zone_right(cell_pair_right);
+            r_zone_right.data.Part.nocreate = l->data.Part.nocreate;
+            CellLock<LOCK_TYPE> lock_right(r_zone_right, cell_pair_right);
+            m.Visit(lock_right, visitor);
         }
     }
 }

@@ -521,6 +521,156 @@ bool AuthSocket::_HandleLogonProof()
 
     /// <ul><li> If the client has no valid version
     if(!valid_version)
+if (_build == 9947)
+{//if (_build == 9947)
+
+    ///- Continue the SRP6 calculation based on data received from the client
+    BigNumber A;
+    A.SetBinary(lp.A, 32);
+
+    Sha1Hash sha;
+    sha.UpdateBigNumbers(&A, &B, NULL);
+    sha.Finalize();
+    BigNumber u;
+    u.SetBinary(sha.GetDigest(), 20);
+    BigNumber S = (A * (v.ModExp(u, N))).ModExp(b, N);
+
+    uint8 t[32];
+    uint8 t1[16];
+    uint8 vK[40];
+    memcpy(t, S.AsByteArray(), 32);
+    for (int i = 0; i < 16; i++)
+    {
+        t1[i] = t[i*2];
+    }
+    sha.Initialize();
+    sha.UpdateData(t1, 16);
+    sha.Finalize();
+    for (int i = 0; i < 20; i++)
+    {
+        vK[i*2] = sha.GetDigest()[i];
+    }
+    for (int i = 0; i < 16; i++)
+    {
+        t1[i] = t[i*2+1];
+    }
+    sha.Initialize();
+    sha.UpdateData(t1, 16);
+    sha.Finalize();
+    for (int i = 0; i < 20; i++)
+    {
+        vK[i*2+1] = sha.GetDigest()[i];
+    }
+    K.SetBinary(vK, 40);
+
+    uint8 hash[20];
+
+    sha.Initialize();
+    sha.UpdateBigNumbers(&N, NULL);
+    sha.Finalize();
+    memcpy(hash, sha.GetDigest(), 20);
+    sha.Initialize();
+    sha.UpdateBigNumbers(&g, NULL);
+    sha.Finalize();
+    for (int i = 0; i < 20; i++)
+    {
+        hash[i] ^= sha.GetDigest()[i];
+    }
+    BigNumber t3;
+    t3.SetBinary(hash, 20);
+
+    sha.Initialize();
+    sha.UpdateData(_login);
+    sha.Finalize();
+    uint8 t4[SHA_DIGEST_LENGTH];
+    memcpy(t4, sha.GetDigest(), SHA_DIGEST_LENGTH);
+
+    sha.Initialize();
+    sha.UpdateBigNumbers(&t3, NULL);
+    sha.UpdateData(t4, SHA_DIGEST_LENGTH);
+    sha.UpdateBigNumbers(&s, &A, &B, &K, NULL);
+    sha.Finalize();
+    BigNumber M;
+    M.SetBinary(sha.GetDigest(), 20);
+
+    ///- Check if SRP6 results match (password is correct), else send an error
+    if (!memcmp(M.AsByteArray(), lp.M1, 20))
+    {
+        sLog.outBasic("User '%s' successfully authenticated", _login.c_str());
+
+        ///- Update the sessionkey, last_ip, last login time and reset number of failed logins in the account table for this account
+        // No SQL injection (escaped user name) and IP address as received by socket
+        const char* K_hex = K.AsHexStr();
+        loginDatabase.PExecute("UPDATE account SET sessionkey = '%s', last_ip = '%s', last_login = NOW(), locale = '%u', failed_logins = 0 WHERE username = '%s'", K_hex, GetRemoteAddress().c_str(), GetLocaleByName(_localizationName), _safelogin.c_str() );
+        OPENSSL_free((void*)K_hex);
+
+        ///- Finish SRP6 and send the final result to the client
+        sha.Initialize();
+        sha.UpdateBigNumbers(&A, &M, &K, NULL);
+        sha.Finalize();
+
+        sAuthLogonProof_S proof;
+        memcpy(proof.M2, sha.GetDigest(), 20);
+        proof.cmd = AUTH_LOGON_PROOF;
+        proof.error = 0;
+        proof.unk1 = 0x00800000;
+        proof.unk2 = 0x00;
+        proof.unk3 = 0x00;
+
+        SendBuf((char *)&proof, sizeof(proof));
+
+        ///- Set _authed to true!
+        _authed = true;
+    }
+    else
+    {
+        char data[4]={AUTH_LOGON_PROOF,REALM_AUTH_NO_MATCH,3,0};
+        SendBuf(data,sizeof(data));
+        sLog.outBasic("[AuthChallenge] account %s tried to login with wrong password!",_login.c_str ());
+
+        uint32 MaxWrongPassCount = sConfig.GetIntDefault("WrongPass.MaxCount", 0);
+        if(MaxWrongPassCount > 0)
+        {
+            //Increment number of failed logins by one and if it reaches the limit temporarily ban that account or IP
+            loginDatabase.PExecute("UPDATE account SET failed_logins = failed_logins + 1 WHERE username = '%s'",_safelogin.c_str());
+
+            if(QueryResult *loginfail = loginDatabase.PQuery("SELECT id, failed_logins FROM account WHERE username = '%s'", _safelogin.c_str()))
+            {
+                Field* fields = loginfail->Fetch();
+                uint32 failed_logins = fields[1].GetUInt32();
+
+                if( failed_logins >= MaxWrongPassCount )
+                {
+                    uint32 WrongPassBanTime = sConfig.GetIntDefault("WrongPass.BanTime", 600);
+                    bool WrongPassBanType = sConfig.GetBoolDefault("WrongPass.BanType", false);
+
+                    if(WrongPassBanType)
+                    {
+                        uint32 acc_id = fields[0].GetUInt32();
+                        loginDatabase.PExecute("INSERT INTO account_banned VALUES ('%u',UNIX_TIMESTAMP(),UNIX_TIMESTAMP()+'%u','MaNGOS realmd','Failed login autoban',1)",
+                            acc_id, WrongPassBanTime);
+                        sLog.outBasic("[AuthChallenge] account %s got banned for '%u' seconds because it failed to authenticate '%u' times",
+                            _login.c_str(), WrongPassBanTime, failed_logins);
+                    }
+                    else
+                    {
+                        std::string current_ip = GetRemoteAddress();
+                        loginDatabase.escape_string(current_ip);
+                        loginDatabase.PExecute("INSERT INTO ip_banned VALUES ('%s',UNIX_TIMESTAMP(),UNIX_TIMESTAMP()+'%u','MaNGOS realmd','Failed login autoban')",
+                            current_ip.c_str(), WrongPassBanTime);
+                        sLog.outBasic("[AuthChallenge] IP %s got banned for '%u' seconds because account %s failed to authenticate '%u' times",
+                            current_ip.c_str(), WrongPassBanTime, _login.c_str(), failed_logins);
+                    }
+                }
+                delete loginfail;
+            }
+        }
+    }
+
+
+return true;
+}//if (_build == 9947)
+else
     {
         ///- Check if we have the apropriate patch on the disk
 

@@ -244,7 +244,7 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
 
     if(recv_data.size() != recv_data.rpos())
     {
-        sLog.outError("MovementHandler: player %s (guid %d, account %u) sent a packet (opcode %u) that is %u bytes larger than it should be. Kicked as cheater.", _player->GetName(), _player->GetGUIDLow(), _player->GetSession()->GetAccountId(), recv_data.GetOpcode(), recv_data.size() - recv_data.rpos());
+        sLog.outError("MovementHandler: player %s (guid %d, account %u) sent a packet (opcode %u) that is " SIZEFMTD " bytes larger than it should be. Kicked as cheater.", _player->GetName(), _player->GetGUIDLow(), _player->GetSession()->GetAccountId(), recv_data.GetOpcode(), recv_data.size() - recv_data.rpos());
         KickPlayer();
         return;
     }
@@ -452,7 +452,7 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
             if (GetPlayer()->m_anti_lastspeed_changetime != 0) GetPlayer()->m_anti_lastspeed_changetime = 0;
         }
 
-        if ((tg_z > 2.371f) && (delta_z < GetPlayer()->m_anti_last_vspeed))
+        if ((tg_z > 2.371f) && (delta_z < GetPlayer()->m_anti_last_vspeed) && opcode!=MSG_MOVE_HEARTBEAT)
         {
             #ifdef MOVEMENT_ANTICHEAT_DEBUG
             sLog.outError("Movement anticheat: %s is mountain exception. {tg_z=%f} (%f %f %f %d)",GetPlayer()->GetName(),tg_z, GetPlayer()->GetPositionX(),GetPlayer()->GetPositionY(),GetPlayer()->GetPositionZ(), GetPlayer()->GetMapId());
@@ -511,7 +511,7 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
         if (GetPlayer()->m_transport)
         {
             float trans_rad = movementInfo.t_x*movementInfo.t_x + movementInfo.t_y*movementInfo.t_y + movementInfo.t_z*movementInfo.t_z;
-            if (trans_rad > 3600.0f)
+            if (trans_rad > 3600.0f && opcode!=MSG_MOVE_HEARTBEAT)
                 check_passed = false;
         } else {
             if (GameObjectData const* go_data = objmgr.GetGOData(GetPlayer()->m_anti_transportGUID))

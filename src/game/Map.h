@@ -119,7 +119,6 @@ typedef UNORDERED_MAP<Creature*, CreatureMover> CreatureMoveList;
 #define MAX_HEIGHT            100000.0f                     // can be use for find ground height at surface
 #define INVALID_HEIGHT       -100000.0f                     // for check, must be equal to VMAP_INVALID_HEIGHT, real value for unknown height is VMAP_INVALID_HEIGHT_VALUE
 #define MIN_UNLOAD_DELAY      1                             // immediate unload
-#define MAP_NOTIFY_DELAY      600                          // lets update player/mob relocation and visibility every 1000 msec
 
 class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::ObjectLevelLockable<Map, ACE_Thread_Mutex>
 {
@@ -148,6 +147,8 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         void MessageBroadcast(WorldObject *, WorldPacket *);
         void MessageDistBroadcast(Player *, WorldPacket *, float dist, bool to_self, bool own_team_only = false);
         void MessageDistBroadcast(WorldObject *, WorldPacket *, float dist);
+
+        float GetVisibilityDistance() const { return m_VisibleDistance; }
 
         void PlayerRelocation(Player *, float x, float y, float z, float angl);
         void CreatureRelocation(Creature *creature, float x, float y, float, float);
@@ -295,7 +296,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         void ResetNotifies(uint16 notify_mask);
 
         void SetTimer(uint32 t) { i_gridExpiry = t < MIN_GRID_DELAY ? MIN_GRID_DELAY : t; }
-        //uint64 CalculateGridMask(const uint32 &y) const;
+        void InitVisibilityDistance();
 
         void SendInitSelf( Player * player );
 
@@ -337,9 +338,9 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         uint32 i_id;
         uint32 i_InstanceId;
         uint32 m_unloadTimer;
-		PeriodicTimer m_VisibilityNotifyTimer;
-		PeriodicTimer m_SelfVisibilityNotifyTimer;
-		PeriodicTimer m_RelocationNotifyTimer;
+        PeriodicTimer m_VisibilityNotifyTimer;
+        PeriodicTimer m_SelfVisibilityNotifyTimer;
+        PeriodicTimer m_RelocationNotifyTimer;
 
         MapRefManager m_mapRefManager;
         MapRefManager::iterator m_mapRefIter;
@@ -356,6 +357,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         std::bitset<TOTAL_NUMBER_OF_CELLS_PER_MAP*TOTAL_NUMBER_OF_CELLS_PER_MAP> marked_cells;
 
         time_t i_gridExpiry;
+        float m_VisibleDistance;
 
         std::set<WorldObject *> i_objectsToRemove;
 

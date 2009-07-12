@@ -95,29 +95,19 @@ struct TimeTrackerSmall
 
 struct PeriodicTimer
 {
-	PeriodicTimer() : i_expirity(0), i_period(0), enabled(false) {}
+    PeriodicTimer(int32 period, int32 start_time) :
+        i_expirity(start_time), i_period(period) {}
+        
+    bool Update(const uint32 &diff)
+    {
+        if((i_expirity -= diff) > 0)
+            return false;
 
-	PeriodicTimer(int32 period, int32 start_time) :
-		i_expirity(start_time), i_period(period) { enabled = i_period > 0 ? true : false;}
-		
-	void SetPeriodic(int32 period, int32 start_time)
-	{
-		i_expirity = start_time;
-		i_period = period;
-		enabled = i_period > 0 ? true : false;
-	}
-
-	bool Update(const uint32 &diff)
-	{
-		if(!enabled || (i_expirity -= diff) > 0)
-			return false;
-
-		i_expirity += i_period;
-		return true;
-	}
-	bool enabled;
-	int32 i_period;
-	int32 i_expirity;
+        i_expirity += i_period;
+        return true;
+    }
+    const int32 i_period;
+    int32 i_expirity;
 };
 
 #endif

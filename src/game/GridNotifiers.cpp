@@ -35,7 +35,7 @@ VisibleChangesNotifier::Visit(PlayerMapType &m)
         if(iter->getSource() == &i_object)
             continue;
 
-        iter->getSource()->UpdateVisibleObj(&i_object);
+        iter->getSource()->UpdateVisibilityOf(&i_object);
     }
 }
 
@@ -48,7 +48,7 @@ VisibleNotifier::Visit(PlayerMapType &m)
             continue;
 
         if(!iter->getSource()->isNotified(NOTIFY_VISIBILITY))
-            i_player.UpdateVisibleObj(iter->getSource(),i_data,i_visibleNow);
+            i_player.UpdateVisibilityOf(iter->getSource(),i_data,i_visibleNow);
 
         vis_guids.erase(iter->getSource()->GetGUID());
     }
@@ -66,10 +66,10 @@ VisibleNotifier::SendToSelf()
             if(vis_guids.find((*itr)->GetGUID()) != vis_guids.end())
             {
                 if(!i_player.isNotified(NOTIFY_VISIBILITY))
-                    (*itr)->UpdateVisibleObj(&i_player);
+                    (*itr)->UpdateVisibilityOf(&i_player);
 
                 if(!(*itr)->isNotified(NOTIFY_VISIBILITY))
-                    i_player.UpdateVisibleObj((*itr), i_data, i_visibleNow);
+                    i_player.UpdateVisibilityOf((*itr), i_data, i_visibleNow);
 
                 vis_guids.erase((*itr)->GetGUID());
             }
@@ -88,7 +88,7 @@ VisibleNotifier::SendToSelf()
     i_player.GetSession()->SendPacket(&packet);
 
     for(std::set<Unit*>::const_iterator it = i_visibleNow.begin(); it != i_visibleNow.end(); ++it)
-        i_player.SendInitialVisiblePackets(*it);
+        (*it)->SendInitialVisiblePackets(&i_player);
 }
 
 void

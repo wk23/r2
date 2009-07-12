@@ -72,7 +72,7 @@ enum Classes
     CLASS_HUNTER        = 3,
     CLASS_ROGUE         = 4,
     CLASS_PRIEST        = 5,
-    CLASS_DEATH_KNIGHT  = 6,
+    //CLASS_DEATH_KNIGHT  = 6,                              // not listed in DBC, will be in 3.0
     CLASS_SHAMAN        = 7,
     CLASS_MAGE          = 8,
     CLASS_WARLOCK       = 9,
@@ -918,6 +918,12 @@ enum Mechanics
     (1<<MECHANIC_SHACKLE )|(1<<MECHANIC_TURN     )|(1<<MECHANIC_HORROR)| \
     (1<<MECHANIC_DAZE    )|(1<<MECHANIC_SAPPED   ) )
 
+// Daze and all croud control spells except polymorph are not removed
+#define MECHANIC_NOT_REMOVED_BY_SHAPESHIFT ( \
+    (1<<MECHANIC_CHARM )|(1<<MECHANIC_FEAR  )|(1<<MECHANIC_PACIFY )| \
+    (1<<MECHANIC_STUN  )|(1<<MECHANIC_FREEZE     )|(1<<MECHANIC_BANISH)|(1<<MECHANIC_SHACKLE)| \
+    (1<<MECHANIC_HORROR)|(1<<MECHANIC_TURN       )|(1<<MECHANIC_DAZE  )|(1<<MECHANIC_SAPPED ) )
+
 // Spell dispell type
 enum DispelType
 {
@@ -1728,9 +1734,9 @@ enum CreatureFamily
 
 enum CreatureTypeFlags
 {
-    CREATURE_TYPEFLAGS_TAMEABLE   = 0x0001,
-    CREATURE_TYPEFLAGS_HERBLOOT   = 0x0100,
-    CREATURE_TYPEFLAGS_MININGLOOT = 0x0200
+    CREATURE_TYPEFLAGS_TAMEABLE        = 0x0001,
+    CREATURE_TYPEFLAGS_HERBLOOT        = 0x0100,
+    CREATURE_TYPEFLAGS_MININGLOOT      = 0x0200
 };
 
 enum CreatureEliteType
