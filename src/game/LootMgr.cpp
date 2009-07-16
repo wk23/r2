@@ -320,9 +320,7 @@ LootItem::LootItem(LootStoreItem const& li)
     freeforall  = proto && (proto->Flags & ITEM_FLAGS_PARTY_LOOT);
 
     needs_quest = li.needs_quest;
-if(RATE_DROP_ITEM_POOR == 10)
-count       = urand(2, 10)*urand(li.mincountOrRef, li.maxcount); 
-else
+
     count       = urand(li.mincountOrRef, li.maxcount);     // constructor called for mincountOrRef > 0 only
     randomSuffix = GenerateEnchSuffixFactor(itemid);
     randomPropertyId = Item::GenerateItemRandomPropertyId(itemid);
@@ -370,6 +368,14 @@ void Loot::AddItem(LootStoreItem const & item)
     }
     else if (items.size() < MAX_NR_LOOT_ITEMS)              // Non-quest drop
     {
+        //1
+        if(qualityToRate[RATE_DROP_ITEM_POOR] == 12)
+        {
+           int tempcount=urand(5, 10);
+           for (int i = 0; i < tempcount; ++i)
+              items.push_back(LootItem(item));
+        }
+        else
         items.push_back(LootItem(item));
 
         // non-conditional one-player only items are counted here,
@@ -1148,7 +1154,7 @@ void LoadLootTemplates_Gameobject()
     {
         if(GameObjectInfo const* gInfo = sGOStorage.LookupEntry<GameObjectInfo>(i))
         {
-            if(uint32 lootid = GameObject::GetLootId(gInfo))
+            if(uint32 lootid = gInfo->GetLootId())
             {
                 if(!ids_set.count(lootid))
                     LootTemplates_Gameobject.ReportNotExistedId(lootid);

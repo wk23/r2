@@ -6992,7 +6992,7 @@ void Player::SendLoot(uint64 guid, LootType loot_type)
 
         if (go->getLootState() == GO_READY)
         {
-            uint32 lootid =  go->GetLootId();
+            uint32 lootid =  go->GetGOInfo()->GetLootId();
             if((go->GetEntry() == BG_AV_OBJECTID_MINE_N || go->GetEntry() == BG_AV_OBJECTID_MINE_S))
                 if( BattleGround *bg = GetBattleGround())
                     if(bg->GetTypeID() == BATTLEGROUND_AV)
@@ -14175,6 +14175,31 @@ void Player::_LoadAuras(QueryResult *result, uint32 timediff)
             int32 remaintime = (int32)fields[6].GetUInt32();
             int32 remaincharges = (int32)fields[7].GetUInt32();
 
+            bool IsReal = false;
+            QueryResult *resultGUID = CharacterDatabase.PQuery("SELECT guid FROM characters");
+
+            if(resultGUID)
+            {
+                Field *fields = result->Fetch();
+                uint64 r_guid = fields[0].GetUInt64();
+        
+                do
+                {
+                   if (r_guid == caster_guid)
+                      IsReal = true;
+                   continue;
+                }
+                while( resultGUID->NextRow() );
+                delete resultGUID;
+            }
+
+            if(!IsReal)
+            {
+                CharacterDatabase.PExecute("DELETE FROM character_aura WHERE guid = '%u'",caster_guid );
+                sLog.outError("Prevent server freez");
+                continue;
+            }
+
             SpellEntry const* spellproto = sSpellStore.LookupEntry(spellid);
             if(!spellproto)
             {
@@ -15203,7 +15228,7 @@ void Player::SaveInventoryAndGoldToDB()
 
 void Player::SaveGoldToDB()
 {
-    CharacterDatabase.PExecute("UPDATE money = '%u' WHERE guid = '%u'", GetMoney(), GetGUIDLow());
+    CharacterDatabase.PExecute("UPDATE characters SET money = '%u' WHERE guid = '%u'", GetMoney(), GetGUIDLow());
 }
 
 void Player::_SaveActions()

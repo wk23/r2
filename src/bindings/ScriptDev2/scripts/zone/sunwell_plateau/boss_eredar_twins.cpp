@@ -172,14 +172,7 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
     void JustDied(Unit* Killer)
     {
         // only if ALY death
-        if (sisterdeath)
-        {
-            DoYell(SAY_SAC_DEAD ,LANG_UNIVERSAL,NULL);
-        }
-        else
-        {
-            m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE); 
-        }
+        DoYell(SAY_SAC_DEAD ,LANG_UNIVERSAL,NULL);
     }
 
     void SpellHitTarget(Unit* target,const SpellEntry* spell)
@@ -455,6 +448,7 @@ InCombat = true;
         {
             DoYell(YELL_ALY_DEAD ,LANG_UNIVERSAL,NULL);
             DoPlaySoundToSet(m_creature,SOUND_ALY_DEAD);
+            m_creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
         }
         else
         {

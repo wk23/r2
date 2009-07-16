@@ -10200,7 +10200,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, bool detect, bool inVisibleList, 
         //based on wowwiki every 5 mod we have 1 more level diff in calculation
         visibleDistance += (int32(u->GetTotalAuraModifier(SPELL_AURA_MOD_DETECT)) - stealthMod)/5.0f;
 
-        if(visibleDistance<0 || !IsWithinDist(u,visibleDistance))
+        if(visibleDistance <= 0 || !IsWithinDist(u,visibleDistance))
             return false;
     }
 
@@ -12313,6 +12313,8 @@ void Unit::SetFeared(bool apply, uint64 casterGUID, uint32 spellID, uint32 time)
 
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING);
 
+        RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+
         GetMotionMaster()->MovementExpired(false);
         CastStop(GetGUID()==casterGUID ? spellID : 0);
 
@@ -12350,6 +12352,8 @@ void Unit::SetConfused(bool apply, uint64 casterGUID, uint32 spellID)
     if( apply )
     {
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED);
+
+        RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 
         CastStop(GetGUID()==casterGUID ? spellID : 0);
 

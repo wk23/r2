@@ -216,8 +216,8 @@ struct MANGOS_DLL_DECL boss_priestess_delrissaAI : public ScriptedAI
         if (!m_pInstance)
             return;
 
-        if (m_pInstance->GetData(DATA_DELRISSA_DEATH_COUNT) == MAX_ACTIVE_LACKEY)
-            m_pInstance->SetData(DATA_DELRISSA_EVENT, DONE);
+        if (m_pInstance->GetData(DATA_DELRISSA_EVENT) == DONE)
+            m_creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
         else
         {
             if (m_creature->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE))

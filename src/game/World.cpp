@@ -807,8 +807,8 @@ void World::LoadConfigSettings(bool reload)
     m_configs[CONFIG_GM_CHAT]              = sConfig.GetIntDefault("GM.Chat", 2);
     m_configs[CONFIG_GM_WISPERING_TO]      = sConfig.GetIntDefault("GM.WhisperingTo", 2);
 
-    m_configs[CONFIG_GM_IN_GM_LIST]        = sConfig.GetBoolDefault("GM.InGMList",false);
-    m_configs[CONFIG_GM_IN_WHO_LIST]       = sConfig.GetBoolDefault("GM.InWhoList",false);
+    m_configs[CONFIG_GM_LEVEL_IN_GM_LIST]  = sConfig.GetIntDefault("GM.InGMList.Level", SEC_ADMINISTRATOR);
+    m_configs[CONFIG_GM_LEVEL_IN_WHO_LIST] = sConfig.GetIntDefault("GM.InWhoList.Level", SEC_ADMINISTRATOR);
     m_configs[CONFIG_GM_LOG_TRADE]         = sConfig.GetBoolDefault("GM.LogTrade", false);
 
     m_configs[CONFIG_START_GM_LEVEL] = sConfig.GetIntDefault("GM.StartLevel", 1);
@@ -1392,8 +1392,8 @@ void World::SetInitialWorldSettings()
     sprintf( isoDate, "%04d-%02d-%02d %02d:%02d:%02d",
         local.tm_year+1900, local.tm_mon+1, local.tm_mday, local.tm_hour, local.tm_min, local.tm_sec);
 
-    WorldDatabase.PExecute("INSERT INTO uptime (startstring, starttime, uptime) VALUES('%s', " UI64FMTD ", 0)",
-        isoDate, uint64(m_startTime));
+    loginDatabase.PExecute("INSERT INTO uptime (realmid, starttime, startstring, uptime) VALUES('%u', " UI64FMTD ", '%s', 0)",
+        realmID, uint64(m_startTime), isoDate);
 
     m_timers[WUPDATE_OBJECTS].SetInterval(0);
     m_timers[WUPDATE_SESSIONS].SetInterval(0);
@@ -1565,7 +1565,7 @@ void World::Update(uint32 diff)
         uint32 maxClientsNum = sWorld.GetMaxActiveSessionCount();
 
         m_timers[WUPDATE_UPTIME].Reset();
-        WorldDatabase.PExecute("UPDATE uptime SET uptime = %d, maxplayers = %d WHERE starttime = " UI64FMTD, tmpDiff, maxClientsNum, uint64(m_startTime));
+        loginDatabase.PExecute("UPDATE uptime SET uptime = %u, maxplayers = %u WHERE realmid = %u AND starttime = " UI64FMTD, tmpDiff, maxClientsNum, realmID, uint64(m_startTime));
     }
 
     /// <li> Handle all other objects
