@@ -162,19 +162,19 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
 
             if(type == CHAT_MSG_SAY)
             {
-                sChatLog.ChatMsg(GetPlayer(), msg, type);
+                //sChatLog.ChatMsg(GetPlayer(), msg, type);
 
                 GetPlayer()->Say(msg, lang);
             }
             else if(type == CHAT_MSG_EMOTE)
             {
-                sChatLog.ChatMsg(GetPlayer(), msg, type);
+                //sChatLog.ChatMsg(GetPlayer(), msg, type);
 
                 GetPlayer()->TextEmote(msg);
             }
             else if(type == CHAT_MSG_YELL)
             {
-                sChatLog.ChatMsg(GetPlayer(), msg, type);
+                //sChatLog.ChatMsg(GetPlayer(), msg, type);
 
                 GetPlayer()->Yell(msg, lang);
             }
@@ -194,7 +194,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            sChatLog.WhisperMsg(GetPlayer(), to, msg);
+            //sChatLog.WhisperMsg(GetPlayer(), to, msg);
 
             if(!normalizePlayerName(to))
             {
@@ -249,7 +249,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            sChatLog.PartyMsg(GetPlayer(), msg);
+            //sChatLog.PartyMsg(GetPlayer(), msg);
 
             Group *group = GetPlayer()->GetGroup();
             if(!group)
@@ -278,7 +278,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            sChatLog.GuildMsg(GetPlayer(), msg, false);
+            //sChatLog.GuildMsg(GetPlayer(), msg, false);
 
             if (GetPlayer()->GetGuildId())
             {
@@ -307,7 +307,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            sChatLog.GuildMsg(GetPlayer(), msg, true);
+            //sChatLog.GuildMsg(GetPlayer(), msg, true);
 
             if (GetPlayer()->GetGuildId())
             {
@@ -335,7 +335,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            sChatLog.RaidMsg(GetPlayer(), msg, type);
+            //sChatLog.RaidMsg(GetPlayer(), msg, type);
 
             Group *group = GetPlayer()->GetGroup();
             if(!group || !group->isRaidGroup())
@@ -363,7 +363,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            sChatLog.RaidMsg(GetPlayer(), msg, type);
+            //sChatLog.RaidMsg(GetPlayer(), msg, type);
 
             Group *group = GetPlayer()->GetGroup();
             if(!group || !group->isRaidGroup() || !group->IsLeader(GetPlayer()->GetGUID()))
@@ -385,7 +385,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            sChatLog.RaidMsg(GetPlayer(), msg, type);
+            //sChatLog.RaidMsg(GetPlayer(), msg, type);
 
             Group *group = GetPlayer()->GetGroup();
             if(!group || !group->isRaidGroup() || !(group->IsLeader(GetPlayer()->GetGUID()) || group->IsAssistant(GetPlayer()->GetGUID())))
@@ -408,7 +408,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            sChatLog.BattleGroundMsg(GetPlayer(), msg, type);
+            //sChatLog.BattleGroundMsg(GetPlayer(), msg, type);
 
             Group *group = GetPlayer()->GetGroup();
             if(!group || !group->isRaidGroup())
@@ -431,7 +431,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            sChatLog.BattleGroundMsg(GetPlayer(), msg, type);
+            //sChatLog.BattleGroundMsg(GetPlayer(), msg, type);
 
             Group *group = GetPlayer()->GetGroup();
             if(!group || !group->isRaidGroup() || !group->IsLeader(GetPlayer()->GetGUID()))
@@ -459,7 +459,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            sChatLog.ChannelMsg(GetPlayer(), channel, msg);
+            //sChatLog.ChannelMsg(GetPlayer(), channel, msg);
 
             if(ChannelMgr* cMgr = channelMgr(_player->GetTeam()))
             {
