@@ -53,7 +53,7 @@ bool ItemUse_item_smokeys_special_compound(Player* pPlayer, Item* _Item, SpellCa
             if (pPlayer->GetQuestStatus(6041) == QUEST_STATUS_INCOMPLETE)
             {
                 uint32 creditMarkerId = 12247;
-                pPlayer->KilledMonster(creditMarkerId, pPlayer->GetGUID());
+                pPlayer->KilledMonsterCredit(creditMarkerId, pPlayer->GetGUID());
             }
     return false;
 }

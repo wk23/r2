@@ -128,7 +128,7 @@ struct MANGOS_DLL_DECL mob_mature_netherwing_drakeAI : public ScriptedAI
                     DoScriptText(SAY_JUST_EATEN, m_creature);
 
                     if (Player* pPlr = (Player*)Unit::GetUnit((*m_creature), uiPlayerGUID))
-                        pPlr->KilledMonster(NPC_EVENT_PINGER, m_creature->GetGUID());
+                        pPlr->KilledMonsterCredit(NPC_EVENT_PINGER, m_creature->GetGUID());
 
                     Reset();
                     m_creature->GetMotionMaster()->Clear();
@@ -254,7 +254,7 @@ struct MANGOS_DLL_DECL mob_enslaved_netherwing_drakeAI : public ScriptedAI
                     Player* plr = ((Player*)Unit::GetUnit((*m_creature), PlayerGUID));
                     if (plr && plr->GetQuestStatus(10854) == QUEST_STATUS_INCOMPLETE)
                     {
-                        plr->KilledMonster(22316, m_creature->GetGUID());
+                        plr->KilledMonsterCredit(22316, m_creature->GetGUID());
                         /*
                         float x,y,z;
                         m_creature->GetPosition(x,y,z);
@@ -351,7 +351,7 @@ struct MANGOS_DLL_DECL mob_dragonmaw_peonAI : public ScriptedAI
             {
                 Player* plr = ((Player*)Unit::GetUnit((*m_creature), PlayerGUID));
                 if (plr && plr->GetQuestStatus(11020) == QUEST_STATUS_INCOMPLETE)
-                    plr->KilledMonster(23209, m_creature->GetGUID());
+                    plr->KilledMonsterCredit(23209, m_creature->GetGUID());
             }
             PoisonTimer = 0;
             m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);

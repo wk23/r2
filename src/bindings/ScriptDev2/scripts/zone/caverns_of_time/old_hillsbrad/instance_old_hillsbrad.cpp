@@ -85,7 +85,7 @@ struct MANGOS_DLL_DECL instance_old_hillsbrad : public ScriptedInstance
                     pPlayer->SendUpdateWorldState(WORLD_STATE_OH,mBarrelCount);
 
                     if (mBarrelCount == 5)
-                        pPlayer->KilledMonster(LODGE_QUEST_TRIGGER,0);
+                        pPlayer->KilledMonsterCredit(LODGE_QUEST_TRIGGER,0);
                 }
             }
         }else

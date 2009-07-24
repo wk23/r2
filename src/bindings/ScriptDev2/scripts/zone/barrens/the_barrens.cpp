@@ -51,7 +51,7 @@ bool GossipSelect_npc_beaten_corpse(Player* pPlayer, Creature* pCreature, uint32
     if (action == GOSSIP_ACTION_INFO_DEF +1)
     {
         pPlayer->SEND_GOSSIP_MENU(3558, pCreature->GetGUID());
-        pPlayer->KilledMonster(10668, pCreature->GetGUID());
+        pPlayer->KilledMonsterCredit(10668, pCreature->GetGUID());
     }
     return true;
 }

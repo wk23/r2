@@ -41,7 +41,7 @@ struct MANGOS_DLL_DECL npc_ravenholdtAI : public ScriptedAI
     {
         if (who->GetTypeId() == TYPEID_PLAYER)
             if (((Player*)who)->GetQuestStatus(6681) == QUEST_STATUS_INCOMPLETE)
-                ((Player*)who)->KilledMonster(m_creature->GetEntry(),m_creature->GetGUID());
+                ((Player*)who)->KilledMonsterCredit(m_creature->GetEntry(),m_creature->GetGUID());
     }
 };
 CreatureAI* GetAI_npc_ravenholdt(Creature* pCreature)

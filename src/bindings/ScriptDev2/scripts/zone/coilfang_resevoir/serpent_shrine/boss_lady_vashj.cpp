@@ -736,12 +736,12 @@ bool ItemUse_item_tainted_core(Player* pPlayer, Item* pItem, SpellCastTargets co
             pPlayer->DestroyItemCount(31088, 1, true);
             return true;
         }
-        else if( targets.getUnitTarget()->GetTypeId()==TYPEID_UNIT )
+        else if( sctTargets.getUnitTarget()->GetTypeId()==TYPEID_UNIT )
             return false;
-        else if(targets.getUnitTarget()->GetTypeId()==TYPEID_PLAYER)
+        else if(sctTargets.getUnitTarget()->GetTypeId()==TYPEID_PLAYER)
         {
-            player->DestroyItemCount(31088, 1, true);
-            player->CastSpell(targets.getUnitTarget(), 38134, true);
+            pPlayer->DestroyItemCount(31088, 1, true);
+            pPlayer->CastSpell(sctTargets.getUnitTarget(), 38134, true);
             return true;
         }
       }

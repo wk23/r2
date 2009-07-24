@@ -46,7 +46,7 @@ struct MANGOS_DLL_DECL mobs_bladespire_ogreAI : public ScriptedAI
     void JustDied(Unit* Killer)
     {
         if (Killer->GetTypeId() == TYPEID_PLAYER)
-            ((Player*)Killer)->KilledMonster(19995, m_creature->GetGUID());
+            ((Player*)Killer)->KilledMonsterCredit(19995, m_creature->GetGUID());
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -251,7 +251,7 @@ struct MANGOS_DLL_DECL npc_daranelleAI : public ScriptedAI
             {
                 DoScriptText(SAY_SPELL_INFLUENCE, m_creature, who);
                 //TODO: Move the below to updateAI and run if this statement == true
-                ((Player*)who)->KilledMonster(21511, m_creature->GetGUID());
+                ((Player*)who)->KilledMonsterCredit(21511, m_creature->GetGUID());
                 ((Player*)who)->RemoveAurasDueToSpell(36904);
             }
         }

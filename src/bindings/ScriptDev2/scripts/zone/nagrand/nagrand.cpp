@@ -510,7 +510,7 @@ struct MANGOS_DLL_DECL npc_creditmarker_visit_with_ancestorsAI : public Scripted
                 {
                     // 18840: Sunspring, 18841: Laughing, 18842: Garadar, 18843: Bleeding
                     if (!((Player*)who)->GetReqKillOrCastCurrentCount(10085, creditMarkerId))
-                        ((Player*)who)->KilledMonster(creditMarkerId, m_creature->GetGUID());
+                        ((Player*)who)->KilledMonsterCredit(creditMarkerId, m_creature->GetGUID());
                 }
             }
         }
