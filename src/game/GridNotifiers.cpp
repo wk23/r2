@@ -32,7 +32,7 @@ VisibleChangesNotifier::Visit(PlayerMapType &m)
 {
     for(PlayerMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
-        if(iter->getSource() == &i_object)
+        if(iter->getSource() == &i_object/* || iter->getSource()->isNeedNotify(NOTIFY_VISIBILITY_ACTIVE)*/)
             continue;
 
         iter->getSource()->UpdateVisibilityOf(&i_object);
@@ -40,16 +40,17 @@ VisibleChangesNotifier::Visit(PlayerMapType &m)
 }
 
 void
-VisibleNotifier::Visit(PlayerMapType &m)
+Player2PlayerNotifier::Visit(PlayerMapType &m)
 {
     for(PlayerMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
         if(iter->getSource() == &i_player)
             continue;
 
-        if(!iter->getSource()->isNotified(NOTIFY_VISIBILITY))
-            i_player.UpdateVisibilityOf(iter->getSource(),i_data,i_visibleNow);
+        if(!iter->getSource()->isNeedNotify(NOTIFY_PLAYER_VISIBILITY))//passive plr
+            iter->getSource()->UpdateVisibilityOf(&i_player);
 
+        i_player.UpdateVisibilityOf(iter->getSource(),i_data,i_visibleNow);
         vis_guids.erase(iter->getSource()->GetGUID());
     }
 }
@@ -57,28 +58,56 @@ VisibleNotifier::Visit(PlayerMapType &m)
 void
 VisibleNotifier::SendToSelf()
 {
+    for(Player::ClientGUIDs::const_iterator it = vis_guids.begin();it != vis_guids.end(); ++it)
+    {   //player guids processed in Player2PlayerNotifier
+        if(IS_PLAYER_GUID(*it))
+            continue;
+
+        i_player.m_clientGUIDs.erase(*it);
+        i_data.AddOutOfRangeGUID(*it);
+    }
+
+    if(!i_data.HasData())
+        return;
+
+    WorldPacket packet;
+    i_data.BuildPacket(&packet);
+    i_player.GetSession()->SendPacket(&packet);
+
+    for(std::set<Unit*>::const_iterator it = i_visibleNow.begin(); it != i_visibleNow.end(); ++it)
+        (*it)->SendInitialVisiblePackets(&i_player);
+}
+
+void
+Player2PlayerNotifier::SendToSelf()
+{
     // at this moment i_clientGUIDs have guids that not iterate at grid level checks
     // but exist one case when this possible and object not out of range: transports
-    if(Transport* transport = i_player.GetTransport())	// ONTRANSPORT_VISIBILITY
+    if(Transport* transport = i_player.GetTransport())
     {
         for(Transport::PlayerSet::const_iterator itr = transport->GetPassengers().begin();itr!=transport->GetPassengers().end();++itr)
         {
             if(vis_guids.find((*itr)->GetGUID()) != vis_guids.end())
             {
-                if(!i_player.isNotified(NOTIFY_VISIBILITY))
-                    (*itr)->UpdateVisibilityOf(&i_player);
-
-                if(!(*itr)->isNotified(NOTIFY_VISIBILITY))
-                    i_player.UpdateVisibilityOf((*itr), i_data, i_visibleNow);
-
                 vis_guids.erase((*itr)->GetGUID());
+
+        i_player.UpdateVisibilityOf((*itr), i_data, i_visibleNow);
+
+                if(!(*itr)->isNeedNotify(NOTIFY_PLAYER_VISIBILITY))
+                    (*itr)->UpdateVisibilityOf(&i_player);
             }
         }
     }
 
-    i_data.AddOutOfRangeGUID(vis_guids);
     for(Player::ClientGUIDs::const_iterator it = vis_guids.begin();it != vis_guids.end(); ++it)
+    {
+        //since its player-player notifier we work only with player guids
+        if(!IS_PLAYER_GUID(*it))
+            continue;
+
         i_player.m_clientGUIDs.erase(*it);
+        i_data.AddOutOfRangeGUID(*it);
+    }
 
     if(!i_data.HasData())
         return;

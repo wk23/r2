@@ -175,15 +175,16 @@ struct MANGOS_DLL_DECL boss_alarAI : public ScriptedAI
             //Begin attack
             if ( m_creature->Attack(who, true) )
             {
-				if (Phase1)
-					m_creature->AddThreat(who, 0.0f);
-				else
+	if (Phase1)
+	   m_creature->AddThreat(who, 0.0f);
+	else
                 {
                     m_creature->GetMotionMaster()->MoveChase(who);
                     m_creature->AddThreat(who, 0.0f);
                 }
             }
         }
+        m_creature->AddThreat(who, 0.0f);
     }
 
     void DamageTaken(Unit* pKiller, uint32 &damage)

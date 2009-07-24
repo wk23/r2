@@ -179,6 +179,8 @@ bool ChatHandler::HandleReloadConfigCommand(const char* /*args*/)
 {
     sLog.outString( "Re-Loading config settings..." );
     sWorld.LoadConfigSettings(true);
+    MapManager::Instance().InitializeVisibilityDistanceInfo();
+    MapManager::Instance().InitializeVisibilityNotifyTimers();
     SendGlobalSysMessage("World config settings reloaded.");
     return true;
 }
@@ -4666,8 +4668,9 @@ bool ChatHandler::HandleQuestComplete(const char* args)
         }
         else if(creature > 0)
         {
-            for(uint16 z = 0; z < creaturecount; ++z)
-                player->KilledMonster(creature,0);
+            if(CreatureInfo const* cInfo = objmgr.GetCreatureTemplate(creature))
+                for(uint16 z = 0; z < creaturecount; ++z)
+                    player->KilledMonster(cInfo,0);
         }
         else if(creature < 0)
         {

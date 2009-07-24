@@ -1154,24 +1154,7 @@ struct MANGOS_DLL_DECL npc_engAI : public ScriptedAI
                 //DoCast(m_creature, 5851);
                 //DoCast(m_creature, 21861);
                 //DoCast(m_creature->getVictim(), 31334);
-/*      
-std::list<HostilReference*>::iterator itr;
-Unit* target;
-        for(itr = m_creature->getVictim()->getThreatManager().getThreatList().begin(); itr != m_creature->getVictim()->getThreatManager().getThreatList().end(); ++itr)
-        {
-            Unit* pUnit = Unit::GetUnit((*m_creature->getVictim()), (*itr)->getUnitGuid());
-error_log("SD2:", (*itr)->getUnitGuid());
-            if (pUnit && (pUnit->GetTypeId() == TYPEID_PLAYER))
-                target=pUnit;
-        }
-        for(itr = target->getThreatManager().getThreatList().begin(); itr != target->getThreatManager().getThreatList().end(); ++itr)
-        {
-            Unit* pUnit = Unit::GetUnit((*target), (*itr)->getUnitGuid());
-error_log("target:", (*itr)->getUnitGuid());
-            if (pUnit && (pUnit->GetTypeId() == TYPEID_UNIT))
-                pUnit->getThreatManager().addThreat(m_creature,1000.0f);;
-        }
-   */
+
                 if (m_creature->getVictim()->GetTypeId() == TYPEID_UNIT)
                        m_creature->getVictim()->getThreatManager().addThreat(m_creature,1000.0f);
                 break;

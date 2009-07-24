@@ -32,10 +32,12 @@
 #define CONTACT_DISTANCE            0.5f
 #define INTERACTION_DISTANCE        5.0f
 #define ATTACK_DISTANCE             5.0f
-#define MAX_VISIBILITY_DISTANCE     333.0f      // max distance for visible object show, limited in 333 yards
+#define MAX_VISIBILITY_DISTANCE     165.0f      // max distance for visible object show, limited in 333 yards
 #define DEFAULT_VISIBILITY_DISTANCE 90.0f       // default visible distance, 90 yards on continents
 #define DEFAULT_VISIBILITY_INSTANCE 120.0f      // default visible distance in instances, 120 yards
-#define DEFAULT_VISIBILITY_BGARENAS 180.0f      // default visible distance in BG/Arenas, 180 yards
+#define DEFAULT_VISIBILITY_BGARENAS 165.0f      // default visible distance in BG/Arenas, 180 yards
+#define MAX_STEALTH_DETECT_RANGE    45.0f
+#define CREATURE_MAX_AGGRO_RANGE    45.0f * sWorld.getRate(RATE_CREATURE_AGGRO)
 
 #define DEFAULT_WORLD_OBJECT_SIZE   0.388999998569489f      // player size, also currently used (correctly?) for any non Unit world objects
 
@@ -82,9 +84,10 @@ enum TempSummonType
 enum NotifyFlags
 {
     NOTIFY_NONE                     = 0x00,
-    NOTIFY_RELOCATION               = 0x01,
-    NOTIFY_VISIBILITY               = 0x02,
-    NOTIFY_VISIBILITY_SELF          = 0x04,
+    NOTIFY_AI_RELOCATION            = 0x01,
+    NOTIFY_VISIBILITY_CHANGED       = 0x02,
+    NOTIFY_VISIBILITY_ACTIVE        = 0x04,
+    NOTIFY_PLAYER_VISIBILITY        = 0x08,
     NOTIFY_ALL                      = 0xFF
 };
 

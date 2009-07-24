@@ -360,7 +360,6 @@ Player::Player (WorldSession *session): Unit(), m_reputationMgr(this)
     m_swingErrorMsg = 0;
 
     m_DetectInvTimer = 1*IN_MILISECONDS;
-    undetected = false;
 
     m_bgBattleGroundID = 0;
     for (int j=0; j < PLAYER_MAX_BATTLEGROUND_QUEUES; ++j)
@@ -620,8 +619,8 @@ bool Player::Create( uint32 guidlow, const std::string& name, uint8 race, uint8 
 
     // Played time
     m_Last_tick = time(NULL);
-    m_Played_time[0] = 0;
-    m_Played_time[1] = 0;
+    m_Played_time[PLAYED_TIME_TOTAL] = 0;
+    m_Played_time[PLAYED_TIME_LEVEL] = 0;
 
     // base stats and related field values
     InitStatsForLevel();
@@ -1247,25 +1246,19 @@ void Player::Update( uint32 p_time )
     {
         if (p_time >= m_DetectInvTimer)
         {
-            undetected = false;
-            m_DetectInvTimer = 3000;
             HandleStealthedUnitsDetection();
-        }else
-            m_DetectInvTimer -= p_time;
-
-        if(!undetected && m_DetectInvTimer <= 300)
-        {
-            undetected = true;
-            HandleStealthedUnitsUndetection();
+            m_DetectInvTimer = 3000;
         }
+        else
+            m_DetectInvTimer -= p_time;
     }
 
     // Played time
     if (now > m_Last_tick)
     {
         uint32 elapsed = uint32(now - m_Last_tick);
-        m_Played_time[0] += elapsed;                        // Total played time
-        m_Played_time[1] += elapsed;                        // Level played time
+        m_Played_time[PLAYED_TIME_TOTAL] += elapsed;        // Total played time
+        m_Played_time[PLAYED_TIME_LEVEL] += elapsed;        // Level played time
         m_Last_tick = now;
     }
 
@@ -2343,7 +2336,7 @@ void Player::GiveLevel(uint32 level)
 
     //update level, max level of skills
     if(getLevel()!= level)
-        m_Played_time[1] = 0;                               // Level Played Time reset
+        m_Played_time[PLAYED_TIME_LEVEL] = 0;               // Level Played Time reset
     SetLevel(level);
     UpdateSkillsForLevel ();
 
@@ -9982,7 +9975,6 @@ Item* Player::EquipNewItem( uint16 pos, uint32 item, bool update )
 
 Item* Player::EquipItem( uint16 pos, Item *pItem, bool update )
 {
-
     AddEnchantmentDurations(pItem);
     AddItemDurations(pItem);
 
@@ -12965,7 +12957,17 @@ void Player::ItemRemovedQuestCheck( uint32 entry, uint32 count )
     UpdateForQuestsGO();
 }
 
-void Player::KilledMonster( uint32 entry, uint64 guid )
+void Player::KilledMonster( CreatureInfo const* cInfo, uint64 guid )
+{
+    if(cInfo->Entry)
+        KilledMonsterCredit(cInfo->Entry,guid);
+
+    for(int i = 0; i < MAX_KILL_CREDIT; ++i)
+        if(cInfo->KillCredit[i])
+            KilledMonsterCredit(cInfo->KillCredit[i],guid);
+}
+
+void Player::KilledMonsterCredit( uint32 entry, uint64 guid )
 {
     uint32 addkillcount = 1;
 
@@ -13422,8 +13424,8 @@ bool Player::MinimalLoadFromDB( QueryResult *result, uint32 guid )
     SetMapId(fields[6].GetUInt32());
     // the instance id is not needed at character enum
 
-    m_Played_time[0] = fields[7].GetUInt32();
-    m_Played_time[1] = fields[8].GetUInt32();
+    m_Played_time[PLAYED_TIME_TOTAL] = fields[7].GetUInt32();
+    m_Played_time[PLAYED_TIME_LEVEL] = fields[8].GetUInt32();
 
     m_atLoginFlags = fields[9].GetUInt32();
 
@@ -13839,8 +13841,8 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
     }
 
     m_cinematic = fields[19].GetUInt32();
-    m_Played_time[0]= fields[20].GetUInt32();
-    m_Played_time[1]= fields[21].GetUInt32();
+    m_Played_time[PLAYED_TIME_TOTAL]= fields[20].GetUInt32();
+    m_Played_time[PLAYED_TIME_LEVEL]= fields[21].GetUInt32();
 
     m_resetTalentsCost = fields[25].GetUInt32();
     m_resetTalentsTime = time_t(fields[26].GetUInt64());
@@ -14175,30 +14177,10 @@ void Player::_LoadAuras(QueryResult *result, uint32 timediff)
             int32 remaintime = (int32)fields[6].GetUInt32();
             int32 remaincharges = (int32)fields[7].GetUInt32();
 
-            bool IsReal = false;
-            QueryResult *resultGUID = CharacterDatabase.PQuery("SELECT guid FROM characters");
-
-            if(resultGUID)
-            {
-                Field *fields = result->Fetch();
-                uint64 r_guid = fields[0].GetUInt64();
-        
-                do
-                {
-                   if (r_guid == caster_guid)
-                      IsReal = true;
-                   continue;
-                }
-                while( resultGUID->NextRow() );
-                delete resultGUID;
-            }
-
-            if(!IsReal)
-            {
-                CharacterDatabase.PExecute("DELETE FROM character_aura WHERE guid = '%u'",caster_guid );
-                sLog.outError("Prevent server freez");
+            Unit* a_caster = ObjectAccessor::GetObjectInWorld(caster_guid, (Unit*)NULL);
+            if( !IS_PLAYER_GUID(caster_guid) )
+               if  (!a_caster || !a_caster->IsInWorld())  
                 continue;
-            }
 
             SpellEntry const* spellproto = sSpellStore.LookupEntry(spellid);
             if(!spellproto)
@@ -15142,9 +15124,9 @@ void Player::SaveToDB()
     ss << m_cinematic;
 
     ss << ", ";
-    ss << m_Played_time[0];
+    ss << m_Played_time[PLAYED_TIME_TOTAL];
     ss << ", ";
-    ss << m_Played_time[1];
+    ss << m_Played_time[PLAYED_TIME_LEVEL];
 
     ss << ", ";
     ss << finiteAlways(m_rest_bonus);
@@ -16411,83 +16393,39 @@ void Player::HandleStealthedUnitsDetection()
     TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyStealthedCheck >, GridTypeMapContainer >  grid_unit_searcher(searcher);
 
     CellLock<GridReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, world_unit_searcher, *GetMap());
-    cell_lock->Visit(cell_lock, grid_unit_searcher, *GetMap());
+    cell_lock->Visit(cell_lock, world_unit_searcher, *GetMap(), *this, MAX_STEALTH_DETECT_RANGE);
+    cell_lock->Visit(cell_lock, grid_unit_searcher, *GetMap(), *this, MAX_STEALTH_DETECT_RANGE);
 
-    for (std::list<Unit*>::iterator i = stealthedUnits.begin(); i != stealthedUnits.end();)
+    for (std::list<Unit*>::const_iterator i = stealthedUnits.begin(); i != stealthedUnits.end(); ++i)
     {
         if((*i)==this)
-        {
-            i = stealthedUnits.erase(i);
             continue;
-        }
 
-        if (!HaveAtClient(*i) && (*i)->isVisibleForOrDetect(this,true))
+        bool hasAtClient = HaveAtClient((*i));
+        bool hasDetected = (*i)->isVisibleForOrDetect(this, true);
+
+        if (hasDetected)
         {
+            if(!hasAtClient)
+            {
+                (*i)->SendUpdateToPlayer(this);
+                m_clientGUIDs.insert((*i)->GetGUID());
 
-            (*i)->SendUpdateToPlayer(this);
-            m_clientGUIDs.insert((*i)->GetGUID());
+                #ifdef MANGOS_DEBUG
+                if((sLog.getLogFilter() & LOG_FILTER_VISIBILITY_CHANGES)==0)
+                    sLog.outDebug("Object %u (Type: %u) is detected in stealth by player %u. Distance = %f",(*i)->GetGUIDLow(),(*i)->GetTypeId(),GetGUIDLow(),GetDistance(*i));
+                #endif
 
-            #ifdef MANGOS_DEBUG
-            if((sLog.getLogFilter() & LOG_FILTER_VISIBILITY_CHANGES)==0)
-                sLog.outDebug("Object %u (Type: %u) is detected in stealth by player %u. Distance = %f",(*i)->GetGUIDLow(),(*i)->GetTypeId(),GetGUIDLow(),GetDistance(*i));
-            #endif
-
-            // target aura duration for caster show only if target exist at caster client
-            // send data at target visibility change (adding to client)
-            if((*i)->isType(TYPEMASK_UNIT))
+                // target aura duration for caster show only if target exist at caster client
+                // send data at target visibility change (adding to client)
                 (*i)->SendInitialVisiblePackets(this);
-
-            i = stealthedUnits.erase(i);
-            continue;
+            }
         }
-
-        ++i;
-    }
-}
-
-void Player::HandleStealthedUnitsUndetection()
-{
-    std::list<Unit*> stealthedUnits;
-
-    CellPair p(MaNGOS::ComputeCellPair(GetPositionX(),GetPositionY()));
-    Cell cell(p);
-    cell.data.Part.reserved = ALL_DISTRICT;
-    cell.SetNoCreate();
-
-    MaNGOS::AnyStealthedCheck u_check;
-    MaNGOS::UnitListSearcher<MaNGOS::AnyStealthedCheck > searcher(stealthedUnits, u_check);
-
-    TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyStealthedCheck >, WorldTypeMapContainer > world_unit_searcher(searcher);
-    TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyStealthedCheck >, GridTypeMapContainer >  grid_unit_searcher(searcher);
-
-    CellLock<GridReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, world_unit_searcher, *GetMap(), *this, GetMap()->GetVisibilityDistance());
-    cell_lock->Visit(cell_lock, grid_unit_searcher, *GetMap(), *this, GetMap()->GetVisibilityDistance());
-
-    for (std::list<Unit*>::iterator i = stealthedUnits.begin(); i != stealthedUnits.end();)
-    {
-        if((*i)==this)
-        {
-            i = stealthedUnits.erase(i);
-            continue;
-        }
-
-        if (HaveAtClient(*i) && !(*i)->isVisibleForOrDetect(this,false))
+        else if(hasAtClient)
         {
             (*i)->DestroyForPlayer(this);
             m_clientGUIDs.erase((*i)->GetGUID());
-
-            #ifdef MANGOS_DEBUG
-            if((sLog.getLogFilter() & LOG_FILTER_VISIBILITY_CHANGES)==0)
-                sLog.outDebug("Object %u (Type: %u) is undetected in stealth by player %u. Distance = %f",(*i)->GetGUIDLow(),(*i)->GetTypeId(),GetGUIDLow(),GetDistance(*i));
-            #endif
-
-            i = stealthedUnits.erase(i);
-            continue;
         }
-
-        ++i;
     }
 }
 
@@ -17469,7 +17407,7 @@ void Player::UpdateVisibilityOf(WorldObject* target)
 {
     if(HaveAtClient(target))
     {
-        if(!target->isVisibleForInState(this,true))
+        if(!target->isVisibleForInState(this, true))
         {
             target->DestroyForPlayer(this);
             m_clientGUIDs.erase(target->GetGUID());
@@ -18403,7 +18341,7 @@ bool Player::RewardPlayerAndGroupAtKill(Unit* pVictim)
                     {
                         // normal creature (not pet/etc) can be only in !PvP case
                         if(pVictim->GetTypeId()==TYPEID_UNIT)
-                            pGroupGuy->KilledMonster(pVictim->GetEntry(), pVictim->GetGUID());
+                            pGroupGuy->KilledMonster(((Creature*)pVictim)->GetCreatureInfo(), pVictim->GetGUID());
                     }
                 }
             }
@@ -18428,7 +18366,7 @@ bool Player::RewardPlayerAndGroupAtKill(Unit* pVictim)
 
             // normal creature (not pet/etc) can be only in !PvP case
             if(pVictim->GetTypeId()==TYPEID_UNIT)
-                KilledMonster(pVictim->GetEntry(),pVictim->GetGUID());
+                KilledMonster(((Creature*)pVictim)->GetCreatureInfo(), pVictim->GetGUID());
         }
     }
     return xp || honored_kill;
@@ -18452,11 +18390,11 @@ void Player::RewardPlayerAndGroupAtEvent(uint32 creature_id, WorldObject* pRewar
 
             // quest objectives updated only for alive group member or dead but with not released body
             if(pGroupGuy->isAlive()|| !pGroupGuy->GetCorpse())
-                pGroupGuy->KilledMonster(creature_id, creature_guid);
+                pGroupGuy->KilledMonsterCredit(creature_id, creature_guid);
         }
     }
     else                                                    // if (!pGroup)
-        KilledMonster(creature_id, creature_guid);
+        KilledMonsterCredit(creature_id, creature_guid);
 }
 
 bool Player::IsAtGroupRewardDistance(WorldObject const* pRewardSource) const
@@ -18767,7 +18705,7 @@ bool Player::isTotalImmunity()
 
 bool Player::HasTitle(uint32 bitIndex)
 {
-    if (bitIndex > 64)
+    if (bitIndex > MAX_TITLE_INDEX)
         return false;
 
     uint32 fieldIndexOffset = bitIndex / 32;
@@ -18775,11 +18713,30 @@ bool Player::HasTitle(uint32 bitIndex)
     return HasFlag(PLAYER__FIELD_KNOWN_TITLES + fieldIndexOffset, flag);
 }
 
-void Player::SetTitle(CharTitlesEntry const* title)
+void Player::SetTitle(CharTitlesEntry const* title, bool lost)
 {
     uint32 fieldIndexOffset = title->bit_index / 32;
     uint32 flag = 1 << (title->bit_index % 32);
-    SetFlag(PLAYER__FIELD_KNOWN_TITLES + fieldIndexOffset, flag);
+
+    if(lost)
+    {
+        if(!HasFlag(PLAYER__FIELD_KNOWN_TITLES + fieldIndexOffset, flag))
+            return;
+
+        RemoveFlag(PLAYER__FIELD_KNOWN_TITLES + fieldIndexOffset, flag);
+    }
+    else
+    {
+        if(HasFlag(PLAYER__FIELD_KNOWN_TITLES + fieldIndexOffset, flag))
+            return;
+
+        SetFlag(PLAYER__FIELD_KNOWN_TITLES + fieldIndexOffset, flag);
+    }
+
+    WorldPacket data(SMSG_TITLE_EARNED, 4 + 4);
+    data << uint32(title->bit_index);
+    data << uint32(lost ? 0 : 1);                           // 1 - earned, 0 - lost
+    GetSession()->SendPacket(&data);
 }
 
 void Player::AutoStoreLoot(uint8 bag, uint8 slot, uint32 loot_id, LootStore const& store, bool broadcast)

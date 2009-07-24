@@ -1060,7 +1060,7 @@ void GameObject::Use(Unit* user)
                         player->UpdateFishingSkill();
 
                         //TODO: find reasonable value for fishing hole search
-                        GameObject* ok = LookupFishingHoleAround(45.0f);
+                        GameObject* ok = LookupFishingHoleAround(20.0f + CONTACT_DISTANCE);
                         if (ok)
                         {
                             player->SendLoot(ok->GetGUID(),LOOT_FISHINGHOLE);

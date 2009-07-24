@@ -152,10 +152,10 @@ struct MANGOS_DLL_DECL Cell
         {
             unsigned grid_x : 6;
             unsigned grid_y : 6;
-            unsigned cell_x : 4;
-            unsigned cell_y : 4;
+            unsigned cell_x : 6;
+            unsigned cell_y : 6;
             unsigned nocreate : 1;
-            unsigned reserved : 11;
+            unsigned reserved : 7;
         } Part;
         uint32 All;
     } data;

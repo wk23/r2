@@ -306,6 +306,9 @@ struct MANGOS_DLL_DECL mob_avatar_of_martyredAI : public ScriptedAI
     void Reset()
     {
         Mortal_Strike_timer = 10000;
+        m_creature->CastSpell(m_creature, 8149, true);
+        m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+        m_creature->RemoveCorpse();
     }
 
     void UpdateAI(const uint32 diff)

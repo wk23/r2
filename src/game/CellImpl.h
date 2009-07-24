@@ -133,15 +133,7 @@ inline int CellHelper(const float radius)
     if(radius < 1.0f)
         return 0;
 
-    float _int = 0.0f;
-    const float _rem = modf(radius/SIZE_OF_GRID_CELL, &_int);
-
-    //small optimization, we add cell to interest area if we entered it in more than 15%.
-    //With cell size 66 yards this is 9.9 yards interest area e.g. 15% from SIZE_OF_GRID_CELL
-    if(_rem > 0.15f)
-        _int += 1.0f;
-
-    return int(_int);
+    return (int)ceilf(radius/SIZE_OF_GRID_CELL);
 }
 
 inline CellArea Cell::CalculateCellArea(const WorldObject &obj, float radius)
@@ -205,6 +197,8 @@ Cell::Visit(const CellLock<LOCK_TYPE> &l, TypeContainerVisitor<T, CONTAINER> &vi
     area.ResizeBorders(begin_cell, end_cell);
     //visit all cells, found in CalculateCellArea()
     //if radius is known to reach cell area more than 4x4 then we should call optimized VisitCircle
+    //currently this technique works with MAX_NUMBER_OF_CELLS 16 and higher, with lower values
+    //there are nothing to optimize because SIZE_OF_GRID_CELL is too big...
     if(((end_cell.x_coord - begin_cell.x_coord) > 4) && ((end_cell.y_coord - begin_cell.y_coord) > 4))
     {
         VisitCircle(l, visitor, m, begin_cell, end_cell);
@@ -238,16 +232,15 @@ inline void
 Cell::VisitCircle(const CellLock<LOCK_TYPE> &l, TypeContainerVisitor<T, CONTAINER> &visitor, Map &m, const CellPair& begin_cell, const CellPair& end_cell) const
 {
     //here is an algorithm for 'filling' circum-squared octagon
-    const uint32 x_center = begin_cell.x_coord + (end_cell.x_coord - begin_cell.x_coord) / 2;
-    const uint32 x_shift = (uint32)floorf((x_center - begin_cell.x_coord) * 0.4f);
-
-    const uint32 x_start = x_center - x_shift;
-    const uint32 x_end = x_center + x_shift + ((end_cell.x_coord - begin_cell.x_coord) & 0x01 ? 0 : 1);
+    uint32 x_shift = (uint32)ceilf((end_cell.x_coord - begin_cell.x_coord) * 0.3f - 0.5f);
+    //lets calculate x_start/x_end coords for central strip...
+    const uint32 x_start = begin_cell.x_coord + x_shift;
+    const uint32 x_end = end_cell.x_coord - x_shift;
 
     //visit central strip with constant width...
-    for(uint32 x = x_start; x <= x_end; x++)
+    for(uint32 x = x_start; x <= x_end; ++x)
     {
-        for(uint32 y = begin_cell.y_coord; y <= end_cell.y_coord; y++)
+        for(uint32 y = begin_cell.y_coord; y <= end_cell.y_coord; ++y)
         {
             CellPair cell_pair(x,y);
             Cell r_zone(cell_pair);
@@ -257,14 +250,19 @@ Cell::VisitCircle(const CellLock<LOCK_TYPE> &l, TypeContainerVisitor<T, CONTAINE
         }
     }
 
+    //if x_shift == 0 then we have too small cell area, which were already
+    //visited at previous step, so just return from procedure...
+    if(x_shift == 0)
+        return;
+
     uint32 y_start = end_cell.y_coord;
     uint32 y_end = begin_cell.y_coord;
     //now we are visiting borders of an octagon...
     for (uint32 step = 1; step <= (x_start - begin_cell.x_coord); ++step)
     {
         //each step reduces strip height by 2 cells...
-        y_end -= 1;
-        y_start += 1;
+        y_end += 1;
+        y_start -= 1;
         for (uint32 y = y_start; y >= y_end; --y)
         {
             //we visit cells symmetrically from both sides, heading from center to sides and from up to bottom

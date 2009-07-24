@@ -307,6 +307,7 @@ class Spell
         void EffectTriggerRitualOfSummoning(uint32 i);
         void EffectKillCredit(uint32 i);
         void EffectQuestFail(uint32 i);
+        void EffectPlayMusic(uint32 i);
 
         Spell( Unit* Caster, SpellEntry const *info, bool triggered, uint64 originalCasterGUID = 0, Spell** triggeringContainer = NULL );
         ~Spell();
@@ -319,7 +320,6 @@ class Spell
         void TakePower();
         void TakeReagents();
         void TakeCastItem();
-        void TriggerSpell();
 
         SpellCastResult CheckCast(bool strict);
         SpellCastResult CheckPetCast(Unit* target);
@@ -422,7 +422,9 @@ class Spell
 
         bool CheckTargetCreatureType(Unit* target) const;
 
-        void AddTriggeredSpell(SpellEntry const* spell) { m_TriggerSpells.push_back(spell); }
+        void AddTriggeredSpell(SpellEntry const* spellInfo) { m_TriggerSpells.push_back(spellInfo); }
+        void AddTriggeredSpell(uint32 spellId);
+        void CastTriggerSpells();
 
         void CleanupTargetList();
     protected:
@@ -535,8 +537,8 @@ class Spell
         // -------------------------------------------
 
         //List For Triggered Spells
-        typedef std::list<SpellEntry const*> TriggerSpells;
-        TriggerSpells m_TriggerSpells;
+        typedef std::list<SpellEntry const*> SpellInfoList;
+        SpellInfoList m_TriggerSpells;                      // casted by caster to same targets settings in m_targets at success finish of current spell
 
         uint32 m_spellState;
         uint32 m_timer;

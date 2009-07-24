@@ -57,7 +57,7 @@ struct MANGOS_DLL_DECL boss_void_reaverAI : public ScriptedAI
 
     void Reset()
     {
-        Pounding_Timer = 15000;
+        Pounding_Timer = 12000;
         ArcaneOrb_Timer = 3000;
         KnockAway_Timer = 30000;
         Berserk_Timer = 600000;
@@ -122,7 +122,7 @@ struct MANGOS_DLL_DECL boss_void_reaverAI : public ScriptedAI
                 target = Unit::GetUnit(*m_creature, (*itr)->getUnitGuid());
 
                 //18 yard radius minimum
-                if (target && !target->IsWithinDist(m_creature, 18.0f, false))
+                if (target && !target->IsWithinDist(m_creature, 11.0f))
                     target_list.push_back(target);
 
                 target = NULL;

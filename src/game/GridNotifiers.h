@@ -40,14 +40,18 @@ namespace MaNGOS
     // creates UpdateData for i_player
     struct MANGOS_DLL_DECL VisibleNotifier
     {
+        bool globalUpdate;
         Player &i_player;
         UpdateData i_data;
         std::set<Unit*> i_visibleNow;
         Player::ClientGUIDs vis_guids;
 
-        explicit VisibleNotifier(Player &player) : i_player(player), vis_guids(player.m_clientGUIDs) {}
+        explicit VisibleNotifier(Player &player, bool global) :
+            i_player(player), vis_guids(player.m_clientGUIDs), globalUpdate(global) {}
+        explicit VisibleNotifier(Player &player) :
+            i_player(player), vis_guids(player.m_clientGUIDs), globalUpdate(player.isNeedNotify(NOTIFY_VISIBILITY_ACTIVE)) {}
         template<class T> void Visit(GridRefManager<T> &m);
-        void Visit(PlayerMapType &m);
+        void Visit(PlayerMapType &m) {}
         void SendToSelf(void);
     };
 
@@ -59,6 +63,19 @@ namespace MaNGOS
         explicit VisibleChangesNotifier(WorldObject &object) : i_object(object) {}
         template<class T> void Visit(GridRefManager<T> &) {}
         void Visit(PlayerMapType &);
+    };
+
+    struct MANGOS_DLL_DECL Player2PlayerNotifier
+    {
+        Player &i_player;
+        UpdateData i_data;
+        std::set<Unit*> i_visibleNow;
+        Player::ClientGUIDs vis_guids;
+
+        explicit Player2PlayerNotifier(Player &player) : i_player(player) {}
+        template<class T> void Visit(GridRefManager<T> &) {}
+        void Visit(PlayerMapType &);
+        void SendToSelf(void);
     };
 
     struct MANGOS_DLL_DECL GridUpdater
@@ -184,9 +201,9 @@ namespace MaNGOS
         typedef GridReadGuard ReadGuard;
         Map &i_map;
         CellLock<ReadGuard> &i_lock;
-        //const float i_radius;
-        DelayedUnitRelocation(CellLock<ReadGuard> &lock, Map &map/*, float radius*/) :
-            i_lock(lock), i_map(map)/*, i_radius(radius)*/ {}
+        const float i_radius;
+        DelayedUnitRelocation(CellLock<ReadGuard> &lock, Map &map, float radius) :
+            i_lock(lock), i_map(map), i_radius(radius) {}
         template<class T> void Visit(GridRefManager<T> &) {}
         void Visit(CreatureMapType &);
         void Visit(PlayerMapType &);
@@ -201,9 +218,8 @@ namespace MaNGOS
         //const float i_radius;
         ObjectVisibilityUpdater(CellLock<ReadGuard>& lock, Map &map/*, float radius*/) : 
             i_lock(lock), i_map(map)/*, i_radius(radius)*/ {}
-        template<class T> void Visit(GridRefManager<T> &) {}
+            template<class T> void Visit(GridRefManager<T> &) {}
         void Visit(CreatureMapType &);
-        void Visit(PlayerMapType &);
    };
 
     struct MANGOS_DLL_DECL ResetNotifier

@@ -568,7 +568,7 @@ void OutdoorPvPObjective::SendObjectiveComplete(uint32 id,uint64 guid)
         Player * plr = objmgr.GetPlayer(*itr);
         if(plr && plr->GetTeam() == controlling_faction)
         {
-            plr->KilledMonster(id,guid);
+            plr->KilledMonsterCredit(id,guid);
         }
     }
 }

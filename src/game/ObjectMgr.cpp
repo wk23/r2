@@ -494,7 +494,7 @@ void ObjectMgr::LoadCreatureTemplates()
 
         // used later for scale
         CreatureDisplayInfoEntry const* displayScaleEntry = NULL;
-        
+
         if (cInfo->DisplayID_A[0])
         {
             CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(cInfo->DisplayID_A[0]);
@@ -561,6 +561,18 @@ void ObjectMgr::LoadCreatureTemplates()
 
         if (!displayScaleEntry)
             sLog.outErrorDb("Creature (Entry: %u) not has any existed display id in DisplayID_A/DisplayID_A2/DisplayID_H/DisplayID_H2", cInfo->Entry);
+
+        for(int k = 0; k < MAX_KILL_CREDIT; ++k)
+        {
+            if(cInfo->KillCredit[k])
+            {
+                if(!GetCreatureTemplate(cInfo->KillCredit[k]))
+                {
+                    sLog.outErrorDb("Creature (Entry: %u) has not existed creature entry in `KillCredit%d` (%u)",cInfo->Entry,k+1,cInfo->KillCredit[k]);
+                    const_cast<CreatureInfo*>(cInfo)->KillCredit[k] = 0;
+                }
+            }
+        }
 
         if(cInfo->dmgschool >= MAX_SPELL_SCHOOL)
         {
@@ -6418,7 +6430,7 @@ uint8 ObjectMgr::CheckPlayerName( const std::string& name, bool create )
     uint32 strictMask = sWorld.getConfig(CONFIG_STRICT_PLAYER_NAMES);
     if(!isValidString(wname,strictMask,false,create))
         return CHAR_NAME_MIXED_LANGUAGES;
-    
+
     return CHAR_NAME_SUCCESS;
 }
 

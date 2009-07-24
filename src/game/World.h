@@ -476,6 +476,10 @@ class World
         void ScriptCommandStart(ScriptInfo const& script, uint32 delay, Object* source, Object* target);
         bool IsScriptScheduled() const { return !m_scriptSchedule.empty(); }
 
+        int32 GetVisibilityNotifyPeriodOnContinents()    { return m_visibility_notify_periodOnContinents; }
+        int32 GetVisibilityNotifyPeriodInInstances()     { return m_visibility_notify_periodInInctances;  }
+        int32 GetVisibilityNotifyPeriodInBGArenas()      { return m_visibility_notify_periodInBGArenas;   }
+
         // for max speed access
         static float GetMaxVisibleDistanceOnContinents()    { return m_MaxVisibleDistanceOnContinents; }
         static float GetMaxVisibleDistanceInInstances()     { return m_MaxVisibleDistanceInInctances;  }
@@ -548,6 +552,10 @@ class World
         bool m_allowMovement;
         std::string m_motd;
         std::string m_dataPath;
+
+        int32 m_visibility_notify_periodOnContinents;
+        int32 m_visibility_notify_periodInInctances;
+        int32 m_visibility_notify_periodInBGArenas;
 
         // for max speed access
         static float m_MaxVisibleDistanceOnContinents;

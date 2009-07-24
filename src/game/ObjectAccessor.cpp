@@ -420,7 +420,7 @@ void ObjectAccessor::UpdateVisibilityForPlayer( Player* player )
     Cell cell(p);
     Map* m = player->GetMap();
 
-    m->UpdateObjectVisibility(player,cell,p);
+    m->UpdatePlayerVisibility(player,cell,p);
     m->UpdateObjectsVisibilityFor(player,cell,p);
 }
 

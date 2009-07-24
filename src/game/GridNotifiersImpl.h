@@ -34,10 +34,10 @@ MaNGOS::VisibleNotifier::Visit(GridRefManager<T> &m)
 {
     for(typename GridRefManager<T>::iterator iter = m.begin(); iter != m.end(); ++iter)
     {
-        if(!iter->getSource()->isNotified(NOTIFY_VISIBILITY))
-            i_player.UpdateVisibilityOf(iter->getSource(),i_data,i_visibleNow);
-
         vis_guids.erase(iter->getSource()->GetGUID());
+
+        if(globalUpdate || iter->getSource()->isNeedNotify(NOTIFY_VISIBILITY_CHANGED))
+            i_player.UpdateVisibilityOf(iter->getSource(),i_data,i_visibleNow);
     }
 }
 
@@ -92,7 +92,7 @@ MaNGOS::PlayerRelocationNotifier::Visit(CreatureMapType &m)
     for(CreatureMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
         Creature * c = iter->getSource();
-        if(c->isAlive() && !c->isNotified(NOTIFY_RELOCATION))
+        if(c->isAlive() && !c->isNotified(NOTIFY_AI_RELOCATION))
             PlayerCreatureRelocationWorker(&i_player, c);
     }
 }
@@ -107,7 +107,7 @@ MaNGOS::CreatureRelocationNotifier::Visit(PlayerMapType &m)
     for(PlayerMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
         Player * pl = iter->getSource();
-        if( pl->isAlive() && !pl->isInFlight() && !pl->isNotified(NOTIFY_RELOCATION))
+        if( pl->isAlive() && !pl->isInFlight() && !pl->isNotified(NOTIFY_AI_RELOCATION))
             PlayerCreatureRelocationWorker(pl, &i_creature);
     }
 }
@@ -122,7 +122,7 @@ MaNGOS::CreatureRelocationNotifier::Visit(CreatureMapType &m)
     for(CreatureMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
         Creature* c = iter->getSource();
-        if( c != &i_creature && c->isAlive() && !c->isNotified(NOTIFY_RELOCATION))
+        if( c != &i_creature && c->isAlive() && !c->isNotified(NOTIFY_AI_RELOCATION))
             CreatureCreatureRelocationWorker(c, &i_creature);
     }
 }
@@ -133,18 +133,17 @@ MaNGOS::DelayedUnitRelocation::Visit(CreatureMapType &m)
     for(CreatureMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
         Creature * i_creature = iter->getSource();
-        if(!i_creature->isAlive() || !i_creature->isNeedNotify(NOTIFY_RELOCATION) || i_creature->isNotified(NOTIFY_RELOCATION))
+        if(!i_creature->isAlive() || !i_creature->isNeedNotify(NOTIFY_AI_RELOCATION))
             continue;
 
         CreatureRelocationNotifier relocate(*i_creature);
         TypeContainerVisitor<MaNGOS::CreatureRelocationNotifier, WorldTypeMapContainer > c2world_relocation(relocate);
         TypeContainerVisitor<MaNGOS::CreatureRelocationNotifier, GridTypeMapContainer >  c2grid_relocation(relocate);
 
-        i_lock->Visit(i_lock, c2world_relocation, i_map/*, *i_creature, i_radius*/);
-        i_lock->Visit(i_lock, c2grid_relocation, i_map/*, *i_creature, i_radius*/);
+        i_lock->Visit(i_lock, c2world_relocation, i_map, *i_creature, i_radius);
+        i_lock->Visit(i_lock, c2grid_relocation, i_map, *i_creature, i_radius);
 
-        i_creature->SetNotified(NOTIFY_RELOCATION);
-        i_creature->RemoveFromNotify(NOTIFY_RELOCATION);
+        i_creature->SetNotified(NOTIFY_AI_RELOCATION);
     }
 }
 
@@ -154,27 +153,26 @@ MaNGOS::DelayedUnitRelocation::Visit(PlayerMapType &m)
     for(PlayerMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
         Player * i_player = iter->getSource();
-        if(!i_player->isAlive() || !i_player->isNeedNotify(NOTIFY_RELOCATION) || i_player->isNotified(NOTIFY_RELOCATION))
+        if(!i_player->isAlive() || !i_player->isNeedNotify(NOTIFY_AI_RELOCATION))
             continue;
 
         PlayerRelocationNotifier relocate(*i_player);
         TypeContainerVisitor<MaNGOS::PlayerRelocationNotifier, WorldTypeMapContainer > c2world_relocation(relocate);
         TypeContainerVisitor<MaNGOS::PlayerRelocationNotifier, GridTypeMapContainer >  c2grid_relocation(relocate);
 
-        i_lock->Visit(i_lock, c2world_relocation, i_map/*, *i_player, i_radius*/);
-        i_lock->Visit(i_lock, c2grid_relocation, i_map/*, *i_player, i_radius*/);
+        i_lock->Visit(i_lock, c2world_relocation, i_map, *i_player, i_radius);
+        i_lock->Visit(i_lock, c2grid_relocation, i_map, *i_player, i_radius);
 
-        i_player->SetNotified(NOTIFY_RELOCATION);
-        i_player->RemoveFromNotify(NOTIFY_RELOCATION);
+        i_player->SetNotified(NOTIFY_AI_RELOCATION);
     }
 }
 
-inline void		// i_object data to all nearby players
+inline void		// i_object data to all nearby passive players
 MaNGOS::ObjectVisibilityUpdater::Visit(CreatureMapType &m)
 {
     for(CreatureMapType::iterator iter = m.begin(); iter != m.end(); ++iter)
     {
-        if(!iter->getSource()->isNeedNotify(NOTIFY_VISIBILITY) || iter->getSource()->isNotified(NOTIFY_VISIBILITY))
+        if(!iter->getSource()->isNeedNotify(NOTIFY_VISIBILITY_CHANGED))
             continue;
 
         Creature * obj = iter->getSource();
@@ -183,27 +181,7 @@ MaNGOS::ObjectVisibilityUpdater::Visit(CreatureMapType &m)
         TypeContainerVisitor<VisibleChangesNotifier, WorldTypeMapContainer > world_notifier(notify);
         i_lock->Visit(i_lock, world_notifier, i_map/*, *obj, i_radius*/);
 
-        obj->SetNotified(NOTIFY_VISIBILITY);
-        obj->RemoveFromNotify(NOTIFY_VISIBILITY);
-    }
-}
-
-inline void		// i_object data to all nearby players
-MaNGOS::ObjectVisibilityUpdater::Visit(PlayerMapType &m)
-{
-    for(PlayerMapType::iterator iter = m.begin(); iter != m.end(); ++iter)
-    {
-        if(!iter->getSource()->isNeedNotify(NOTIFY_VISIBILITY) || iter->getSource()->isNotified(NOTIFY_VISIBILITY))
-            continue;
-
-        Player * obj = iter->getSource();
-        VisibleChangesNotifier notify(*obj);
-
-        TypeContainerVisitor<VisibleChangesNotifier, WorldTypeMapContainer > world_notifier(notify);
-        i_lock->Visit(i_lock, world_notifier, i_map/*, *obj, i_radius*/);
-
-        obj->SetNotified(NOTIFY_VISIBILITY);
-        obj->RemoveFromNotify(NOTIFY_VISIBILITY);
+        obj->SetNotified(NOTIFY_VISIBILITY_CHANGED);
     }
 }
 

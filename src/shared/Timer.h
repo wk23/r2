@@ -106,7 +106,13 @@ struct PeriodicTimer
         i_expirity += i_period;
         return true;
     }
-    const int32 i_period;
+
+	void SetPeriodic(int32 period, int32 start_time)
+	{
+        i_expirity=start_time, i_period=period;
+	}
+
+    int32 i_period;
     int32 i_expirity;
 };
 
