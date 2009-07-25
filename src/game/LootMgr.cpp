@@ -369,13 +369,13 @@ void Loot::AddItem(LootStoreItem const & item)
     else if (items.size() < MAX_NR_LOOT_ITEMS)              // Non-quest drop
     {
         //1
-        if(qualityToRate[RATE_DROP_ITEM_POOR] == 12)
+        /*if(qualityToRate[RATE_DROP_ITEM_POOR] == 12)
         {
            int tempcount=urand(5, 10);
            for (int i = 0; i < tempcount; ++i)
               items.push_back(LootItem(item));
         }
-        else
+        else*/
         items.push_back(LootItem(item));
 
         // non-conditional one-player only items are counted here,
