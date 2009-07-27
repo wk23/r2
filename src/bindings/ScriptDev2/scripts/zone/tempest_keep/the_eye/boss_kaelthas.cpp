@@ -399,7 +399,7 @@ struct MANGOS_DLL_DECL boss_kaelthasAI : public ScriptedAI
                 return;
 
             float attackRadius = m_creature->GetAttackDistance(who);
-            if (m_creature->IsWithinDistInMap(who, attackRadius) && m_creature->IsWithinLOSInMap(who))
+            if (m_creature->IsWithinDistInMap(who, attackRadius))
             {
                 if (!m_creature->getVictim() && Phase >= 4)
                 {

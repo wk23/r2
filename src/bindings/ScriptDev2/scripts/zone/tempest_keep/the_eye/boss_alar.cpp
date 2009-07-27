@@ -120,6 +120,7 @@ struct MANGOS_DLL_DECL boss_alarAI : public ScriptedAI
     
     void Aggro (Unit *who)
     {
+        DoZoneInCombat();
         StartEvent();
     }
 
@@ -139,21 +140,20 @@ struct MANGOS_DLL_DECL boss_alarAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit *who)
     {
-        if( !m_creature->getVictim() && who->isTargetableForAttack() && ( m_creature->IsHostileTo( who )) && who->isInAccessablePlaceFor(m_creature) )
+        if (!who) return;
+        if( !m_creature->getVictim() && who->isTargetableForAttack() && ( m_creature->IsHostileTo( who )) )
         {
             if (m_creature->GetDistanceZ(who) > CREATURE_Z_ATTACK_RANGE)
                 return;
 
             float attackRadius = m_creature->GetAttackDistance(who);
-            if( m_creature->IsWithinDistInMap(who, attackRadius) && m_creature->IsWithinLOSInMap(who) )
+            if( m_creature->IsWithinDistInMap(who, attackRadius))
             {
-                if (!who) return;
-
 	            if ( m_creature->Attack(who, true) )
 	            {
-					if (Phase1)
-						m_creature->AddThreat(who, 0.0f);
-					else
+		if (Phase1)
+		m_creature->AddThreat(who, 0.0f);
+		else
 	                {
 	                    m_creature->GetMotionMaster()->MoveChase(who);
 	                    m_creature->AddThreat(who, 0.0f);
@@ -185,6 +185,8 @@ struct MANGOS_DLL_DECL boss_alarAI : public ScriptedAI
             }
         }
         m_creature->AddThreat(who, 0.0f);
+        ScriptedAI::AttackStart(who);
+
     }
 
     void DamageTaken(Unit* pKiller, uint32 &damage)
