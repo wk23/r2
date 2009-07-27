@@ -88,8 +88,17 @@ InstanceSave* InstanceSaveManager::AddInstanceSave(uint32 mapId, uint32 instance
     {
         // initialize reset time
         // for normal instances if no creatures are killed the instance will reset in two hours
-        if(entry->map_type == MAP_RAID || difficulty == DIFFICULTY_HEROIC)
+        if(entry->map_type == MAP_RAID)
+        {
             resetTime = GetResetTimeFor(mapId);
+            ScheduleReset(true, resetTime, InstResetEvent(0, mapId, instanceId));
+        }
+        else
+        if (difficulty == DIFFICULTY_HEROIC)
+       {
+            resetTime = time(NULL) + 24 * HOUR;
+            ScheduleReset(true, resetTime, InstResetEvent(0, mapId, instanceId));
+        }
         else
         {
             resetTime = time(NULL) + 2 * HOUR;
@@ -168,7 +177,7 @@ void InstanceSave::SaveToDB()
         }
     }
 
-    CharacterDatabase.PExecute("INSERT INTO instance VALUES ('%u', '%u', '"UI64FMTD"', '%u', '%s')", m_instanceid, GetMapId(), (uint64)GetResetTimeForDB(), GetDifficulty(), data.c_str());
+    CharacterDatabase.DirectPExecute("INSERT INTO instance VALUES ('%u', '%u', '"UI64FMTD"', '%u', '%s')", m_instanceid, GetMapId(), (uint64)GetResetTimeForDB(), GetDifficulty(), data.c_str());
 }
 
 time_t InstanceSave::GetResetTimeForDB()
@@ -340,12 +349,12 @@ void InstanceSaveManager::PackInstances()
         if (*i != InstanceNumber)
         {
             // remap instance id
-            WorldDatabase.PExecute("UPDATE creature_respawn SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
-            WorldDatabase.PExecute("UPDATE gameobject_respawn SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
-            CharacterDatabase.PExecute("UPDATE corpse SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
-            CharacterDatabase.PExecute("UPDATE character_instance SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
-            CharacterDatabase.PExecute("UPDATE instance SET id = '%u' WHERE id = '%u'", InstanceNumber, *i);
-            CharacterDatabase.PExecute("UPDATE group_instance SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
+            WorldDatabase.DirectPExecute("UPDATE creature_respawn SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
+            WorldDatabase.DirectPExecute("UPDATE gameobject_respawn SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
+            CharacterDatabase.DirectPExecute("UPDATE corpse SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
+            CharacterDatabase.DirectPExecute("UPDATE character_instance SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
+            CharacterDatabase.DirectPExecute("UPDATE instance SET id = '%u' WHERE id = '%u'", InstanceNumber, *i);
+            CharacterDatabase.DirectPExecute("UPDATE group_instance SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
         }
 
         ++InstanceNumber;
