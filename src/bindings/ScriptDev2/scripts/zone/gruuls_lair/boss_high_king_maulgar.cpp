@@ -89,7 +89,7 @@ struct MANGOS_DLL_DECL boss_high_king_maulgarAI : public ScriptedAI
         Charge_Timer = 2000;
         Fear_Timer = 10000+rand()%15000;
         Phase2 = false;
-
+        GetCouncil();
         Creature *pCreature = NULL;
         for(uint8 i = 0; i < 4; i++)
         {
@@ -135,6 +135,12 @@ struct MANGOS_DLL_DECL boss_high_king_maulgarAI : public ScriptedAI
     }
 
     void Aggro(Unit *who) { StartEvent(who); }
+
+    void DamageTaken(Unit* done_by, uint32 &damage)
+    {
+        if (done_by == m_creature)
+            return;
+    }
 
     void GetCouncil()
     {
@@ -267,6 +273,12 @@ struct MANGOS_DLL_DECL boss_olm_the_summonerAI : public ScriptedAI
         }
     }
 
+    void DamageTaken(Unit* done_by, uint32 &damage)
+    {
+        if (done_by == m_creature)
+            return;
+    }
+
     float DoCalculateRandomLocation()
     {
         float Loc;
@@ -360,6 +372,12 @@ struct MANGOS_DLL_DECL boss_kiggler_the_crazedAI : public ScriptedAI
             pInstance->SetData64(DATA_MAULGAREVENT_TANK, who->GetGUID());
             pInstance->SetData(DATA_MAULGAREVENT, 1);
         }
+    }
+
+    void DamageTaken(Unit* done_by, uint32 &damage)
+    {
+        if (done_by == m_creature)
+            return;
     }
 
     void MoveInLineOfSight(Unit *who)
@@ -477,6 +495,12 @@ struct MANGOS_DLL_DECL boss_blindeye_the_seerAI : public ScriptedAI
         }
     }
 
+    void DamageTaken(Unit* done_by, uint32 &damage)
+    {
+        if (done_by == m_creature)
+            return;
+    }
+
     void MoveInLineOfSight(Unit *who)
     {
         if (!m_creature->getVictim() && who->isTargetableForAttack() && who->isInAccessablePlaceFor(m_creature) && m_creature->IsHostileTo(who))
@@ -579,6 +603,12 @@ struct MANGOS_DLL_DECL boss_krosh_firehandAI : public ScriptedAI
             pInstance->SetData64(DATA_MAULGAREVENT_TANK, who->GetGUID());
             pInstance->SetData(DATA_MAULGAREVENT, 1);
         }
+    }
+
+    void DamageTaken(Unit* done_by, uint32 &damage)
+    {
+        if (done_by == m_creature)
+            return;
     }
 
     void MoveInLineOfSight(Unit *who)
