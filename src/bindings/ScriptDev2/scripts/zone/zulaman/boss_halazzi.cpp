@@ -339,6 +339,9 @@ struct MANGOS_DLL_DECL boss_spiritlynxAI : public ScriptedAI
     {
         FrenzyTimer = (30+rand()%20)*1000;  //frenzy every 30-50 seconds
         shredder_timer = 4000;
+        m_creature->CastSpell(m_creature, 8149, true);
+        m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+        m_creature->RemoveCorpse();
     }
 
     void DamageTaken(Unit *done_by, uint32 &damage)
