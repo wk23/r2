@@ -278,6 +278,9 @@ bool DatabaseMysql::Execute(const char *sql)
     if (!mMysql)
         return false;
 
+    if (!sql)
+        return false;
+
     // don't use queued execution if it has not been initialized
     if (!m_threadBody) return DirectExecute(sql);
 
