@@ -583,7 +583,7 @@ void Spell::EffectSchoolDMG(uint32 effect_idx)
         }
 
         if(damage >= 0)
-            m_damage+= damage;
+            m_damage += damage;
     }
 }
 
@@ -2304,7 +2304,7 @@ void Spell::EffectPowerBurn(uint32 i)
         modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_MULTIPLE_VALUE, multiplier);
 
     new_damage = int32(new_damage * multiplier);
-    m_damage+=new_damage;
+    m_damage += new_damage;
 }
 
 void Spell::EffectHeal( uint32 /*i*/ )
@@ -2370,7 +2370,7 @@ void Spell::EffectHeal( uint32 /*i*/ )
             addhealth += tickheal * tickcount;
         }
         else
-            addhealth = caster->SpellHealingBonus(m_spellInfo, addhealth,HEAL, unitTarget);
+            addhealth = caster->SpellHealingBonus(m_spellInfo, addhealth, HEAL, unitTarget);
 
         m_healing+=addhealth;
     }
@@ -2429,7 +2429,7 @@ void Spell::EffectHealthLeech(uint32 i)
 
     int32 new_damage = int32(damage*multiplier);
     uint32 curHealth = unitTarget->GetHealth();
-    new_damage = m_caster->SpellNonMeleeDamageLog(unitTarget, m_spellInfo->Id, new_damage, m_IsTriggeredSpell, true);
+    new_damage = m_caster->SpellNonMeleeDamageLog(unitTarget, m_spellInfo->Id, new_damage);
     if(curHealth < new_damage)
         new_damage = curHealth;
 
@@ -4341,7 +4341,7 @@ void Spell::EffectHealMaxHealth(uint32 /*i*/)
 
     uint32 heal = m_caster->GetMaxHealth();
 
-    m_healing+=heal;
+    m_healing += heal;
 }
 
 void Spell::EffectInterruptCast(uint32 /*i*/)

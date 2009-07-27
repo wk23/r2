@@ -47,11 +47,11 @@ Player2PlayerNotifier::Visit(PlayerMapType &m)
         if(iter->getSource() == &i_player)
             continue;
 
-        if(!iter->getSource()->isNeedNotify(NOTIFY_PLAYER_VISIBILITY))//passive plr
+        vis_guids.erase(iter->getSource()->GetGUID());
+        if(force || !iter->getSource()->isNotified(NOTIFY_PLAYER_VISIBILITY))//passive plr or not notified yet
             iter->getSource()->UpdateVisibilityOf(&i_player);
 
         i_player.UpdateVisibilityOf(iter->getSource(),i_data,i_visibleNow);
-        vis_guids.erase(iter->getSource()->GetGUID());
     }
 }
 
@@ -91,7 +91,7 @@ Player2PlayerNotifier::SendToSelf()
             {
                 vis_guids.erase((*itr)->GetGUID());
 
-        i_player.UpdateVisibilityOf((*itr), i_data, i_visibleNow);
+                i_player.UpdateVisibilityOf((*itr), i_data, i_visibleNow);
 
                 if(!(*itr)->isNeedNotify(NOTIFY_PLAYER_VISIBILITY))
                     (*itr)->UpdateVisibilityOf(&i_player);
@@ -107,6 +107,9 @@ Player2PlayerNotifier::SendToSelf()
 
         i_player.m_clientGUIDs.erase(*it);
         i_data.AddOutOfRangeGUID(*it);
+        Player* plr = ObjectAccessor::GetPlayer(i_player,*it);
+        if(plr && !plr->isNotified(NOTIFY_PLAYER_VISIBILITY))
+            plr->UpdateVisibilityOf(&i_player);
     }
 
     if(!i_data.HasData())

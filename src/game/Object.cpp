@@ -1058,6 +1058,8 @@ InstanceData* WorldObject::GetInstanceData()
                                                             //slow
 float WorldObject::GetDistance(const WorldObject* obj) const
 {
+    if(!obj)
+       return 0;
     float dx = GetPositionX() - obj->GetPositionX();
     float dy = GetPositionY() - obj->GetPositionY();
     float dz = GetPositionZ() - obj->GetPositionZ();
@@ -1087,6 +1089,8 @@ float WorldObject::GetDistance(float x, float y, float z) const
 
 float WorldObject::GetDistance2d(const WorldObject* obj) const
 {
+    if(!obj)
+       return 0;
     float dx = GetPositionX() - obj->GetPositionX();
     float dy = GetPositionY() - obj->GetPositionY();
     float sizefactor = GetObjectSize() + obj->GetObjectSize();
@@ -1096,6 +1100,8 @@ float WorldObject::GetDistance2d(const WorldObject* obj) const
 
 float WorldObject::GetDistanceZ(const WorldObject* obj) const
 {
+    if(!obj)
+       return 0;
     float dz = fabs(GetPositionZ() - obj->GetPositionZ());
     float sizefactor = GetObjectSize() + obj->GetObjectSize();
     float dist = dz - sizefactor;
@@ -1129,6 +1135,8 @@ bool WorldObject::IsWithinDist2d(float x, float y, float dist2compare) const
 
 bool WorldObject::_IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const
 {
+    if(!obj)
+       return false;
     float dx = GetPositionX() - obj->GetPositionX();
     float dy = GetPositionY() - obj->GetPositionY();
     float distsq = dx*dx + dy*dy;
@@ -1145,6 +1153,8 @@ bool WorldObject::_IsWithinDist(WorldObject const* obj, float dist2compare, bool
 
 bool WorldObject::IsWithinLOSInMap(const WorldObject* obj) const
 {
+    if(!obj)
+       return false;
     if (!IsInMap(obj)) return false;
     float ox,oy,oz;
     obj->GetPosition(ox,oy,oz);
@@ -1184,6 +1194,8 @@ bool WorldObject::GetDistanceOrder(WorldObject const* obj1, WorldObject const* o
 
 bool WorldObject::IsInRange(WorldObject const* obj, float minRange, float maxRange, bool is3D /* = true */) const
 {
+    if(!obj)
+       return false;
     float dx = GetPositionX() - obj->GetPositionX();
     float dy = GetPositionY() - obj->GetPositionY();
     float distsq = dx*dx + dy*dy;
@@ -1268,6 +1280,8 @@ float WorldObject::GetAngle( const float x, const float y ) const
 bool WorldObject::HasInArc(const float arcangle, const WorldObject* obj) const
 {
     // always have self in arc
+    if(!obj)
+       return false;
     if(obj == this)
         return true;
 

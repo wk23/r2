@@ -773,7 +773,7 @@ void Map::ProcesssPlayersVisibility()
         cell.SetNoCreate();
         TypeContainerVisitor<MaNGOS::Player2PlayerNotifier, WorldTypeMapContainer > world_notifier(notifier);
         CellLock<ReadGuard> cell_lock(cell, cellpair);
-        cell_lock->Visit(cell_lock, world_notifier, *this, *player, sWorld.GetMaxVisibleDistanceForObject());
+        cell_lock->Visit(cell_lock, world_notifier, *this, *player, GetVisibilityDistance());
 
         // send data
         notifier.SendToSelf();
@@ -804,8 +804,8 @@ void Map::ProcessObjectsVisibility()
         TypeContainerVisitor<MaNGOS::VisibleNotifier, WorldTypeMapContainer > world_notifier(notifier);
         TypeContainerVisitor<MaNGOS::VisibleNotifier, GridTypeMapContainer  > grid_notifier(notifier);
         CellLock<ReadGuard> cell_lock(cell, cellpair);
-        cell_lock->Visit(cell_lock, world_notifier, *this, *player, sWorld.GetMaxVisibleDistanceForObject());
-        cell_lock->Visit(cell_lock, grid_notifier,  *this, *player, sWorld.GetMaxVisibleDistanceForObject());
+        cell_lock->Visit(cell_lock, world_notifier, *this, *player, GetVisibilityDistance());
+        cell_lock->Visit(cell_lock, grid_notifier,  *this, *player, GetVisibilityDistance());
 
         // send data
         notifier.SendToSelf();
@@ -1601,7 +1601,7 @@ void Map::UpdatePlayerVisibility( Player* player, Cell cell, CellPair cellpair )
 {
     cell.data.Part.reserved = ALL_DISTRICT;
 
-    MaNGOS::Player2PlayerNotifier    pl_notifier(*player);
+    MaNGOS::Player2PlayerNotifier    pl_notifier(*player, true);
     TypeContainerVisitor<MaNGOS::Player2PlayerNotifier, WorldTypeMapContainer > player_notifier(pl_notifier);
 
     CellLock<ReadGuard> cell_lock(cell, cellpair);

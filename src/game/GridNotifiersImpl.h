@@ -36,7 +36,7 @@ MaNGOS::VisibleNotifier::Visit(GridRefManager<T> &m)
     {
         vis_guids.erase(iter->getSource()->GetGUID());
 
-        if(globalUpdate || iter->getSource()->isNeedNotify(NOTIFY_VISIBILITY_CHANGED))
+        if(force || iter->getSource()->isNeedNotify(NOTIFY_VISIBILITY_CHANGED))
             i_player.UpdateVisibilityOf(iter->getSource(),i_data,i_visibleNow);
     }
 }
@@ -167,35 +167,11 @@ MaNGOS::DelayedUnitRelocation::Visit(PlayerMapType &m)
     }
 }
 
-inline void		// i_object data to all nearby passive players
-MaNGOS::ObjectVisibilityUpdater::Visit(CreatureMapType &m)
-{
-    for(CreatureMapType::iterator iter = m.begin(); iter != m.end(); ++iter)
-    {
-        if(!iter->getSource()->isNeedNotify(NOTIFY_VISIBILITY_CHANGED))
-            continue;
-
-        Creature * obj = iter->getSource();
-        VisibleChangesNotifier notify(*obj);
-
-        TypeContainerVisitor<VisibleChangesNotifier, WorldTypeMapContainer > world_notifier(notify);
-        i_lock->Visit(i_lock, world_notifier, i_map/*, *obj, i_radius*/);
-
-        obj->SetNotified(NOTIFY_VISIBILITY_CHANGED);
-    }
-}
-
+template<class T>
 inline void
-MaNGOS::ResetNotifier::Visit(CreatureMapType &m)
+MaNGOS::ResetNotifier::resetNotify(GridRefManager<T> &m)
 {
-    for(CreatureMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
-        iter->getSource()->ResetAllNotifiesbyMask(reset_mask);
-}
-
-inline void
-MaNGOS::ResetNotifier::Visit(PlayerMapType &m)
-{
-    for(PlayerMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
+    for(typename GridRefManager<T>::iterator iter=m.begin(); iter != m.end(); ++iter)
         iter->getSource()->ResetAllNotifiesbyMask(reset_mask);
 }
 

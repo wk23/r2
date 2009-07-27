@@ -32,10 +32,10 @@
 #define CONTACT_DISTANCE            0.5f
 #define INTERACTION_DISTANCE        5.0f
 #define ATTACK_DISTANCE             5.0f
-#define MAX_VISIBILITY_DISTANCE     165.0f      // max distance for visible object show, limited in 333 yards
+#define MAX_VISIBILITY_DISTANCE     164.0f      // max distance for visible object show, limited in 164 yards
 #define DEFAULT_VISIBILITY_DISTANCE 90.0f       // default visible distance, 90 yards on continents
 #define DEFAULT_VISIBILITY_INSTANCE 120.0f      // default visible distance in instances, 120 yards
-#define DEFAULT_VISIBILITY_BGARENAS 165.0f      // default visible distance in BG/Arenas, 180 yards
+#define DEFAULT_VISIBILITY_BGARENAS 160.0f      // default visible distance in BG/Arenas, 160 yards
 #define MAX_STEALTH_DETECT_RANGE    45.0f
 #define CREATURE_MAX_AGGRO_RANGE    45.0f * sWorld.getRate(RATE_CREATURE_AGGRO)
 
