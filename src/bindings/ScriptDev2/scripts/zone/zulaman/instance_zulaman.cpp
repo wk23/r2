@@ -309,7 +309,7 @@ struct MANGOS_DLL_DECL instance_zulaman : public ScriptedInstance
                 if (uiData == DONE)
                 {
                 DoUseDoorOrButton(HexLordGateGUID);
-                DoUseDoorOrButton(ZulJinDoorGUID);
+                DoUseDoorOrButton(ZulJinGateGUID);
                 }
                 break;
             case DATA_J_HATCHLEFT:
