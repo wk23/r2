@@ -2276,6 +2276,69 @@ void Unit::SendMeleeAttackStop(Unit* victim)
     ((Creature*)victim)->AI().EnterEvadeMode(this);*/
 }
 
+void Unit::SendInitialVisiblePackets(Player *player)
+{
+    SendAuras(player);
+    if(isAlive())
+    {
+        if(GetTypeId() == TYPEID_UNIT)
+            ((Creature*)this)->SendMonsterMoveWithSpeedToCurrentDestination(player);
+
+        if(hasUnitState(UNIT_STAT_MELEE_ATTACKING) && getVictim())
+            SendMeleeAttackStart(getVictim());
+    }
+}
+
+void Unit::SendAuras(Player *player)
+{
+        player->SendAuraDurationsForTarget(player);/*if(GetVisibleAuras()->empty())                  // speedup things
+        return;
+
+    WorldPacket data(SMSG_AURA_UPDATE_ALL);
+    data.append(GetPackGUID());
+
+    Unit::VisibleAuraMap const *visibleAuras = GetVisibleAuras();
+    for(Unit::VisibleAuraMap::const_iterator itr = visibleAuras->begin(); itr != visibleAuras->end(); ++itr)
+    {
+        for(uint32 j = 0; j < 3; ++j)
+        {
+            if(Aura *aura = GetAura(itr->second, j))
+            {
+                data << uint8(aura->GetAuraSlot());
+                data << uint32(aura->GetId());
+
+                if(aura->GetId())
+                {
+                    uint8 auraFlags = aura->GetAuraFlags();*/
+                    // flags
+                    //data << uint8(auraFlags);
+                    // level
+                    //data << uint8(aura->GetAuraLevel());
+                    // charges
+                    /*data << uint8(aura->GetAuraCharges());
+
+                    if(!(auraFlags & AFLAG_NOT_CASTER))
+                    {
+                        data << uint8(0);                   
+                    }
+
+                    if(auraFlags & AFLAG_DURATION)          
+                    {
+                        data << uint32(aura->GetAuraMaxDuration());
+                        data << uint32(aura->GetAuraDuration());
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    if (player)
+        player->GetSession()->SendPacket(&data);
+    else
+        SendMessageToSet(&data,true);*/
+}
+
 bool Unit::isSpellBlocked(Unit *pVictim, SpellEntry const * /*spellProto*/, WeaponAttackType attackType)
 {
     if (pVictim->HasInArc(M_PI,this))
@@ -6406,8 +6469,7 @@ void Unit::setPowerType(Powers new_powertype)
             break;
         case POWER_ENERGY:
             SetMaxPower(POWER_ENERGY,GetCreatePowers(POWER_ENERGY));
-            if(GetTypeId()==TYPEID_PLAYER && this->getClass() != CLASS_DRUID)
-                SetPower(   POWER_ENERGY,0);
+            SetPower(   POWER_ENERGY,0);
             break;
         case POWER_HAPPINESS:
             SetMaxPower(POWER_HAPPINESS,GetCreatePowers(POWER_HAPPINESS));
@@ -8428,7 +8490,7 @@ int32 Unit::ModifyPower(Powers power, int32 dVal)
 
 bool Unit::isVisibleForOrDetect(Unit const* u, bool detect, bool inVisibleList, bool is3dDistance) const
 {
-    if(!u)
+    if(!u || !IsInMap(u))
         return false;
 
     // Always can see self
@@ -8452,6 +8514,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, bool detect, bool inVisibleList, 
         return false;
 
     // Grid dead/alive checks
+	Map& _map = *u->GetMap();
     if( u->GetTypeId()==TYPEID_PLAYER)
     {
         // non visible at grid for any stealth state
@@ -8490,26 +8553,26 @@ bool Unit::isVisibleForOrDetect(Unit const* u, bool detect, bool inVisibleList, 
         if(u->GetTypeId()==TYPEID_PLAYER)
         {
             // Players far than max visible distance for player or not in our map are not visible too
-            if (!at_same_transport && !IsWithinDistInMap(u,World::GetMaxVisibleDistanceForPlayer()+(inVisibleList ? World::GetVisibleUnitGreyDistance() : 0.0f), is3dDistance))
+            if (!at_same_transport && !IsWithinDistInMap(u,_map.GetVisibilityDistance()+(inVisibleList ? World::GetVisibleUnitGreyDistance() : 0.0f), is3dDistance))
                 return false;
         }
         else
         {
             // Units far than max visible distance for creature or not in our map are not visible too
-            if (!IsWithinDistInMap(u,World::GetMaxVisibleDistanceForCreature()+(inVisibleList ? World::GetVisibleUnitGreyDistance() : 0.0f), is3dDistance))
+            if (!IsWithinDistInMap(u, _map.GetVisibilityDistance()+(inVisibleList ? World::GetVisibleUnitGreyDistance() : 0.0f), is3dDistance))
                 return false;
         }
     }
     else if(GetCharmerOrOwnerGUID())                        // distance for show pet/charmed
     {
         // Pet/charmed far than max visible distance for player or not in our map are not visible too
-        if (!IsWithinDistInMap(u,World::GetMaxVisibleDistanceForPlayer()+(inVisibleList ? World::GetVisibleUnitGreyDistance() : 0.0f), is3dDistance))
+        if (!IsWithinDistInMap(u, _map.GetVisibilityDistance()+(inVisibleList ? World::GetVisibleUnitGreyDistance() : 0.0f), is3dDistance))
             return false;
     }
     else                                                    // distance for show creature
     {
         // Units far than max visible distance for creature or not in our map are not visible too
-        if (!IsWithinDistInMap(u,World::GetMaxVisibleDistanceForCreature()+(inVisibleList ? World::GetVisibleUnitGreyDistance() : 0.0f), is3dDistance))
+        if (!IsWithinDistInMap(u,_map.GetVisibilityDistance()+(inVisibleList ? World::GetVisibleUnitGreyDistance() : 0.0f), is3dDistance))
             return false;
     }
 
@@ -8613,7 +8676,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, bool detect, bool inVisibleList, 
     float visibleDistance = (u->GetTypeId() == TYPEID_PLAYER) ? MAX_PLAYER_STEALTH_DETECT_RANGE : ((Creature const*)u)->GetAttackDistance(this);
 
     //Always invisible from back (when stealth detection is on), also filter max distance cases
-    bool isInFront = u->isInFrontInMap(this, visibleDistance);
+    bool isInFront = u->isInFrontInMap(this, MAX_STEALTH_DETECT_RANGE);
     if(!isInFront)
         return false;
 
@@ -8657,11 +8720,18 @@ void Unit::SetVisibility(UnitVisibility x)
     if(IsInWorld())
     {
         Map *m = GetMap();
-
-        if(GetTypeId()==TYPEID_PLAYER)
-            m->PlayerRelocation((Player*)this,GetPositionX(),GetPositionY(),GetPositionZ(),GetOrientation());
+        CellPair p(MaNGOS::ComputeCellPair(GetPositionX(), GetPositionY()));
+        Cell cell(p);
+ 
+        if(GetTypeId() == TYPEID_PLAYER)
+        {
+            m->UpdatePlayerVisibility((Player*)this, cell, p);
+            m->UpdateObjectsVisibilityFor((Player*)this, cell, p);
+        }
         else
-            m->CreatureRelocation((Creature*)this,GetPositionX(),GetPositionY(),GetPositionZ(),GetOrientation());
+            m->UpdateObjectVisibility(this, cell, p);
+
+        AddToNotify(NOTIFY_AI_RELOCATION);
     }
 }
 

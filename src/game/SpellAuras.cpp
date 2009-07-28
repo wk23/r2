@@ -674,8 +674,8 @@ void AreaAura::Update(uint32 diff)
                     TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck>, WorldTypeMapContainer > world_unit_searcher(searcher);
                     TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
                     CellLock<GridReadGuard> cell_lock(cell, p);
-                    cell_lock->Visit(cell_lock, world_unit_searcher, *caster->GetMap());
-                    cell_lock->Visit(cell_lock, grid_unit_searcher, *caster->GetMap());
+                    cell_lock->Visit(cell_lock, world_unit_searcher, *caster->GetMap(), *caster, m_radius);
+                    cell_lock->Visit(cell_lock, grid_unit_searcher, *caster->GetMap(), *caster, m_radius);
                     break;
                 }
                 case AREA_AURA_ENEMY:
@@ -690,8 +690,8 @@ void AreaAura::Update(uint32 diff)
                     TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyAoETargetUnitInObjectRangeCheck>, WorldTypeMapContainer > world_unit_searcher(searcher);
                     TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyAoETargetUnitInObjectRangeCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
                     CellLock<GridReadGuard> cell_lock(cell, p);
-                    cell_lock->Visit(cell_lock, world_unit_searcher, *caster->GetMap());
-                    cell_lock->Visit(cell_lock, grid_unit_searcher, *caster->GetMap());
+                    cell_lock->Visit(cell_lock, world_unit_searcher, *caster->GetMap(), *caster, m_radius);
+                    cell_lock->Visit(cell_lock, grid_unit_searcher, *caster->GetMap(), *caster, m_radius);
                     break;
                 }
                 case AREA_AURA_OWNER:
@@ -2580,9 +2580,9 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
 
                     if (m_modifier.m_miscvalue == FORM_CAT)
                     {
-                         uint32 currEnergy = m_target->GetPower(POWER_ENERGY);
-                         uint32 newEnergy = (currEnergy <= FurorChance) ? currEnergy : FurorChance;
-                         m_target->SetPower(POWER_ENERGY,newEnergy);
+                        m_target->SetPower(POWER_ENERGY, 0);
+                        if(urand(1,100) <= FurorChance)
+                            m_target->CastSpell(m_target, 17099, true, NULL, this);
                     }
                     else
                     {
