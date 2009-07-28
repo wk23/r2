@@ -937,7 +937,7 @@ bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const * spellP
         return false;
 
     // Always trigger for this
-    if (EventProcFlag & (PROC_FLAG_KILLED | PROC_FLAG_KILL | PROC_FLAG_ON_TRAP_ACTIVATION))
+    if (EventProcFlag & (PROC_FLAG_KILLED | PROC_FLAG_KILL_AND_GET_XP | PROC_FLAG_ON_TRAP_ACTIVATION))
         return true;
 
     if (spellProcEvent)     // Exist event data
@@ -965,7 +965,7 @@ bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const * spellP
             // spellFamilyName is Ok need check for spellFamilyMask if present
             if(spellProcEvent->spellFamilyMask)
             {
-                if ((spellProcEvent->spellFamilyMask  & procSpell->SpellFamilyFlags ) == 0)
+                if ((spellProcEvent->spellFamilyMask  & procSpell->SpellFamilyFlags) == 0)
                     return false;
                 active = true; // Spell added manualy -> so its active spell
             }

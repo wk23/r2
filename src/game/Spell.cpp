@@ -407,12 +407,12 @@ WorldObject* Spell::FindCorpseUsing()
 
     TypeContainerVisitor<MaNGOS::WorldObjectSearcher<T>, GridTypeMapContainer > grid_searcher(searcher);
     CellLock<GridReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, grid_searcher, *m_caster->GetMap(), *m_caster, max_range);
+    cell_lock->Visit(cell_lock, grid_searcher, *m_caster->GetMap());
 
     if (!result)
     {
         TypeContainerVisitor<MaNGOS::WorldObjectSearcher<T>, WorldTypeMapContainer > world_searcher(searcher);
-        cell_lock->Visit(cell_lock, world_searcher, *m_caster->GetMap(), *m_caster, max_range);
+        cell_lock->Visit(cell_lock, world_searcher, *m_caster->GetMap());
     }
 
     return result;
@@ -756,15 +756,15 @@ void Spell::prepareDataForTriggerSystem()
                 if ((m_spellInfo->SpellFamilyFlags & UI64LIT(0x0100200000000284)))
                     m_canTrigger = true;
                 break;
-            case SPELLFAMILY_PALADIN: // For Judgements (all) / Holy Shock triggers need do it
-                if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0001000900B80400))
+            case SPELLFAMILY_PALADIN: // Holy Shock triggers need do it
+                if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0001000000200000))
                     m_canTrigger = true;
                 break;
             default:
                 break;
         }
     }
-
+    if (m_CastItem) m_canTrigger = false;
     // Get data for type of attack and fill base info for trigger
     switch (m_spellInfo->DmgClass)
     {
@@ -791,7 +791,7 @@ void Spell::prepareDataForTriggerSystem()
                 m_procAttacker = PROC_FLAG_SUCCESSFUL_POSITIVE_SPELL;
                 m_procVictim   = PROC_FLAG_TAKEN_POSITIVE_SPELL;
             }
-            else if (m_spellInfo->AttributesEx2 & SPELL_ATTR_EX2_AUTOREPEAT_FLAG) // Wands auto attack
+            else if (m_spellInfo->Id == 5019) // Wands auto attack
             {
                 m_procAttacker = PROC_FLAG_SUCCESSFUL_RANGED_HIT;
                 m_procVictim   = PROC_FLAG_TAKEN_RANGED_HIT;
@@ -1101,12 +1101,12 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
         }
         else
             procEx |= PROC_EX_NORMAL_HIT;
-
+caster->SendHealSpellLog(unitTarget, m_spellInfo->Id, addhealth, crit);
         // Do triggers for unit (reflect triggers passed on hit phase for correct drop charge)
         if (m_canTrigger && missInfo != SPELL_MISS_REFLECT)
             caster->ProcDamageAndSpell(unitTarget, procAttacker, procVictim, procEx, addhealth, m_attackType, m_spellInfo);
-
         int32 gain = caster->DealHeal(unitTarget, addhealth, m_spellInfo, crit);
+if(caster->GetTypeId()==TYPEID_PLAYER) if(BattleGround *bg = ((Player*)caster)->GetBattleGround()) bg->UpdatePlayerScore(((Player*)caster), SCORE_HEALING_DONE, gain);
         unitTarget->getHostilRefManager().threatAssist(caster, float(gain) * 0.5f, m_spellInfo);
     }
     // Do damage and triggers
@@ -1136,6 +1136,38 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
         {
             int32 damagePoint  = damageInfo.damage * 33 / 100;
             m_caster->CastCustomSpell(m_caster, 32220, &damagePoint, NULL, NULL, true);
+        }
+        // Shadow Word: Death - deals damage equal to damage done to caster if victim is not killed
+        else if (m_spellInfo->SpellFamilyName == SPELLFAMILY_PRIEST && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000200000000) &&
+            caster != unitTarget && unitTarget->isAlive())
+        {
+            // Redirect damage to caster if victim Alive
+            damageInfo.target = caster;
+            damageInfo.absorb = 0;
+            damageInfo.resist = 0;
+            damageInfo.blocked = 0;
+            // Send log damage message to client
+            caster->SendSpellNonMeleeDamageLog(&damageInfo);
+            caster->DealSpellDamage(&damageInfo, true);
+        }
+        // Bloodthirst
+        else if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & UI64LIT(0x40000000000))
+        {
+            uint32 BTAura = 0;
+            switch(m_spellInfo->Id)
+            {
+                case 23881: BTAura = 23885; break;
+                case 23892: BTAura = 23886; break;
+                case 23893: BTAura = 23887; break;
+                case 23894: BTAura = 23888; break;
+                case 25251: BTAura = 25252; break;
+                case 30335: BTAura = 30339; break;
+                default:
+                    sLog.outError("Spell::EffectSchoolDMG: Spell %u not handled in BTAura",m_spellInfo->Id);
+                    break;
+            }
+            if (BTAura)
+                m_caster->CastSpell(m_caster,BTAura,true);
         }
     }
     // Passive spell hits/misses or active spells only misses (only triggers)
@@ -1525,8 +1557,8 @@ void Spell::SetTargetMap(uint32 i,uint32 cur,UnitList& TagUnitMap)
                 TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyAoETargetUnitInObjectRangeCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
 
                 CellLock<GridReadGuard> cell_lock(cell, p);
-                cell_lock->Visit(cell_lock, world_unit_searcher, *m_caster->GetMap(), *m_caster, max_range);
-                cell_lock->Visit(cell_lock, grid_unit_searcher, *m_caster->GetMap(), *m_caster, max_range);
+                cell_lock->Visit(cell_lock, world_unit_searcher, *m_caster->GetMap());
+                cell_lock->Visit(cell_lock, grid_unit_searcher, *m_caster->GetMap());
             }
 
             if(tempUnitMap.empty())
@@ -1631,8 +1663,8 @@ void Spell::SetTargetMap(uint32 i,uint32 cur,UnitList& TagUnitMap)
                         TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyAoETargetUnitInObjectRangeCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
 
                         CellLock<GridReadGuard> cell_lock(cell, p);
-                        cell_lock->Visit(cell_lock, world_unit_searcher, *m_caster->GetMap(), *pUnitTarget, max_range);
-                        cell_lock->Visit(cell_lock, grid_unit_searcher, *m_caster->GetMap(), *pUnitTarget, max_range);
+                        cell_lock->Visit(cell_lock, world_unit_searcher, *m_caster->GetMap());
+                        cell_lock->Visit(cell_lock, grid_unit_searcher, *m_caster->GetMap());
                     }
 
                     tempUnitMap.sort(TargetDistanceOrder(pUnitTarget));
@@ -2631,25 +2663,6 @@ void Spell::finish(bool ok)
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
         ((Player*)m_caster)->RemoveSpellMods(this);
 
-    //holy nova heal
-    if(m_spellInfo->SpellFamilyName == SPELLFAMILY_PRIEST && m_spellInfo->SpellIconID == 1874)
-    {
-        int holy_nova_heal = 0;
-        switch(m_spellInfo->Id)
-        {
-            case 15237: holy_nova_heal = 23455; break;
-            case 15430: holy_nova_heal = 23458; break;
-            case 15431: holy_nova_heal = 23459; break;
-            case 27799: holy_nova_heal = 27803; break;
-            case 27804: holy_nova_heal = 27800; break;
-            case 27801: holy_nova_heal = 27805; break;
-            case 25331: holy_nova_heal = 25329; break;
-            default:break;
-        }
-        if(holy_nova_heal)
-            m_caster->CastSpell(m_caster, holy_nova_heal, true);
-    }
-
     //handle SPELL_AURA_ADD_TARGET_TRIGGER auras
     Unit::AuraList const& targetTriggers = m_caster->GetAurasByType(SPELL_AURA_ADD_TARGET_TRIGGER);
     for(Unit::AuraList::const_iterator i = targetTriggers.begin(); i != targetTriggers.end(); ++i)
@@ -2677,7 +2690,10 @@ void Spell::finish(bool ok)
 
     // Heal caster for all health leech from all targets
     if (m_healthLeech)
+    {
         m_caster->DealHeal(m_caster, uint32(m_healthLeech), m_spellInfo);
+        m_caster->SendHealSpellLog(m_caster, m_spellInfo->Id, uint32(m_healthLeech));
+    }
 
     if (IsMeleeAttackResetSpell())
     {
@@ -3561,7 +3577,7 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                                 TypeContainerVisitor<MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck>, GridTypeMapContainer > object_checker(checker);
                                 CellLock<GridReadGuard> cell_lock(cell, p);
-                                cell_lock->Visit(cell_lock, object_checker, *m_caster->GetMap(), *m_caster, range);
+                                cell_lock->Visit(cell_lock, object_checker, *m_caster->GetMap());
 
                                 if(p_GameObject)
                                 {
@@ -3600,7 +3616,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                             TypeContainerVisitor<MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck>, GridTypeMapContainer >  grid_creature_searcher(searcher);
 
                             CellLock<GridReadGuard> cell_lock(cell, p);
-                            cell_lock->Visit(cell_lock, grid_creature_searcher, *m_caster->GetMap(), *m_caster, range);
+                            cell_lock->Visit(cell_lock, grid_creature_searcher, *m_caster->GetMap());
 
                             if(p_Creature )
                             {
@@ -4651,8 +4667,7 @@ SpellCastResult Spell::CheckItems()
 
         TypeContainerVisitor<MaNGOS::GameObjectSearcher<MaNGOS::GameObjectFocusCheck>, GridTypeMapContainer > object_checker(checker);
         CellLock<GridReadGuard> cell_lock(cell, p);
-        Map& map = *m_caster->GetMap();
-        cell_lock->Visit(cell_lock, object_checker, map, *m_caster, map.GetVisibilityDistance());
+        cell_lock->Visit(cell_lock, object_checker, *m_caster->GetMap());
 
         if(!ok)
             return SPELL_FAILED_REQUIRES_SPELL_FOCUS;
@@ -5372,8 +5387,8 @@ void Spell::FillAreaTargets( UnitList& TagUnitMap, float x, float y, float radiu
     TypeContainerVisitor<MaNGOS::SpellNotifierCreatureAndPlayer, WorldTypeMapContainer > world_notifier(notifier);
     TypeContainerVisitor<MaNGOS::SpellNotifierCreatureAndPlayer, GridTypeMapContainer > grid_notifier(notifier);
     CellLock<GridReadGuard> cell_lock(cell, p);
-    Map& map = *m_caster->GetMap();cell_lock->Visit(cell_lock, world_notifier, *m_caster->GetMap(), *m_caster, map.GetVisibilityDistance());
-    cell_lock->Visit(cell_lock, grid_notifier, *m_caster->GetMap(), *m_caster, map.GetVisibilityDistance());
+    cell_lock->Visit(cell_lock, world_notifier, *m_caster->GetMap());
+    cell_lock->Visit(cell_lock, grid_notifier, *m_caster->GetMap());
 }
 
 void Spell::FillRaidOrPartyTargets( UnitList &TagUnitMap, Unit* target, float radius, bool raid, bool withPets, bool withcaster )

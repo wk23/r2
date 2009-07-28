@@ -713,9 +713,7 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, uint32 queue_id, uin
         sLog.outDebug("Battleground: horde pool wasn't created");
 
     // if selection pools are ready, create the new bg
-    if (bAllyOK || sBattleGroundMgr.isTesting())
-    if (bHordeOK || sBattleGroundMgr.isTesting())
-    //if ((bAllyOK && bHordeOK) || ( sBattleGroundMgr.isTesting() && (bAllyOK || bHordeOK)))
+    if ((bAllyOK && bHordeOK) || ( sBattleGroundMgr.isTesting() && (bAllyOK || bHordeOK)))
     {
         BattleGround * bg2 = 0;
         // special handling for arenas

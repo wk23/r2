@@ -70,12 +70,6 @@ MapManager::Initialize()
     InitMaxInstanceId();
 }
 
-void MapManager::InitializeVisibilityDistanceInfo()
-{
-    for(MapMapType::iterator iter=i_maps.begin(); iter != i_maps.end(); ++iter)
-        (*iter).second->InitVisibilityDistance();
-}
-
 // debugging code, should be deleted some day
 void MapManager::checkAndCorrectGridStatesArray()
 {
@@ -314,12 +308,6 @@ void MapManager::InitMaxInstanceId()
         i_MaxInstanceId = result->Fetch()[0].GetUInt32();
         delete result;
     }
-}
-
-void MapManager::InitializeVisibilityNotifyTimers()
-{
-    for(MapMapType::iterator iter=i_maps.begin(); iter != i_maps.end(); ++iter)
-        (*iter).second->InitializeNotifyTimers();
 }
 
 uint32 MapManager::GetNumInstances()

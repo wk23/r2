@@ -40,8 +40,6 @@
 
 #define DEFAULT_GRID_EXPIRY     300
 #define MAX_GRID_LOAD_TIME      50
-#define DEFAULT_VISIBILITY_NOTIFY_PERIOD      600
-#define MAX_CREATURE_ATTACK_RADIUS  (45.0f * sWorld.getRate(RATE_CREATURE_AGGRO))
 
 // magic *.map header
 const char MAP_MAGIC[] = "MAP_2.50";                        // for destination from 3.0.8 maps
@@ -190,13 +188,6 @@ void Map::LoadMapAndVMap(int gx,int gy)
         LoadVMap(gx, gy);                                   // Only load the data for the base map
 }
 
-void Map::InitializeNotifyTimers()
-{
-	m_PlayerVisibilityNotifyTimer.SetPeriodic(0.5*sWorld.GetVisibilityNotifyPeriodOnContinents(), 0.25*sWorld.GetVisibilityNotifyPeriodOnContinents());
-	m_ObjectVisibilityNotifyTimer.SetPeriodic(sWorld.GetVisibilityNotifyPeriodOnContinents(), 0 * sWorld.GetVisibilityNotifyPeriodOnContinents());
-	m_RelocationNotifyTimer.SetPeriodic(sWorld.GetVisibilityNotifyPeriodOnContinents(),0.5*sWorld.GetVisibilityNotifyPeriodOnContinents());
-}
-
 void Map::InitStateMachine()
 {
     si_GridStates[GRID_STATE_INVALID] = new InvalidState;
@@ -217,11 +208,7 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
   : i_mapEntry (sMapStore.LookupEntry(id)), i_spawnMode(SpawnMode),
   i_id(id), i_InstanceId(InstanceId), m_unloadTimer(0),
   m_activeNonPlayersIter(m_activeNonPlayers.end()),
-  i_gridExpiry(expiry),
-  m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE),
-  m_PlayerVisibilityNotifyTimer(0.5*DEFAULT_VISIBILITY_NOTIFY_PERIOD, 0.25*DEFAULT_VISIBILITY_NOTIFY_PERIOD),
-  m_ObjectVisibilityNotifyTimer(DEFAULT_VISIBILITY_NOTIFY_PERIOD, 0 * DEFAULT_VISIBILITY_NOTIFY_PERIOD),
-  m_RelocationNotifyTimer(DEFAULT_VISIBILITY_NOTIFY_PERIOD,0.5*DEFAULT_VISIBILITY_NOTIFY_PERIOD)
+  i_gridExpiry(expiry)
 {
     for(unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)
     {
@@ -232,16 +219,6 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
             setNGrid(NULL, idx, j);
         }
     }
-
-    //lets initialize visibility distance for map
-    InitVisibilityDistance();
-    InitializeNotifyTimers();
-}
-
-void Map::InitVisibilityDistance()
-{
-    //init visibility for continents
-    m_VisibleDistance = sWorld.GetMaxVisibleDistanceOnContinents();
 }
 
 // Template specialization of utility methods
@@ -346,15 +323,13 @@ void Map::AddNotifier(T* , Cell const& , CellPair const& )
 template<>
 void Map::AddNotifier(Player* obj, Cell const& cell, CellPair const& cellpair)
 {
-    obj->AddToNotify(NOTIFY_AI_RELOCATION);
-    //PlayerRelocationNotify(obj,cell,cellpair);
+    PlayerRelocationNotify(obj,cell,cellpair);
 }
 
 template<>
 void Map::AddNotifier(Creature* obj, Cell const& cell, CellPair const& cellpair)
 {
-    obj->AddToNotify(NOTIFY_AI_RELOCATION);
-    //CreatureRelocationNotify(obj,cell,cellpair);
+    CreatureRelocationNotify(obj,cell,cellpair);
 }
 
 void
@@ -374,8 +349,8 @@ Map::EnsureGridCreated(const GridPair &p)
             getNGrid(p.x_coord, p.y_coord)->SetGridState(GRID_STATE_IDLE);
 
             //z coord
-            int gx = (MAX_NUMBER_OF_GRIDS - 1) - p.x_coord;
-            int gy = (MAX_NUMBER_OF_GRIDS - 1) - p.y_coord;
+            int gx=63-p.x_coord;
+            int gy=63-p.y_coord;
 
             if(!GridMaps[gx][gy])
                 LoadMapAndVMap(gx,gy);
@@ -451,15 +426,13 @@ bool Map::Add(Player *player)
     CellPair p = MaNGOS::ComputeCellPair(player->GetPositionX(), player->GetPositionY());
     Cell cell(p);
     EnsureGridLoadedAtEnter(cell, player);
-    player->ResetAllNotifies();
     player->AddToWorld();
 
     SendInitSelf(player);
     SendInitTransports(player);
 
-    player->AddToNotify(NOTIFY_VISIBILITY_ACTIVE | NOTIFY_PLAYER_VISIBILITY);
-    //UpdatePlayerVisibility(player,cell,p);
-    //UpdateObjectsVisibilityFor(player,cell,p);
+    UpdatePlayerVisibility(player,cell,p);
+    UpdateObjectsVisibilityFor(player,cell,p);
 
     AddNotifier(player,cell,p);
     return true;
@@ -488,7 +461,6 @@ Map::Add(T *obj)
     assert( grid != NULL );
 
     AddToGrid(obj,grid,cell);
-    obj->ResetAllNotifies();
     obj->AddToWorld();
 
     if(obj->isActiveObject())
@@ -496,8 +468,7 @@ Map::Add(T *obj)
 
     DEBUG_LOG("Object %u enters grid[%u,%u]", GUID_LOPART(obj->GetGUID()), cell.GridX(), cell.GridY());
 
-    obj->AddToNotify(NOTIFY_VISIBILITY_CHANGED);
-    //UpdateObjectVisibility(obj,cell,p);
+    UpdateObjectVisibility(obj,cell,p);
 
     AddNotifier(obj,cell,p);
 }
@@ -521,7 +492,7 @@ void Map::MessageBroadcast(Player *player, WorldPacket *msg, bool to_self)
     MaNGOS::MessageDeliverer post_man(*player, msg, to_self);
     TypeContainerVisitor<MaNGOS::MessageDeliverer, WorldTypeMapContainer > message(post_man);
     CellLock<ReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, message, *this, *player, GetVisibilityDistance());
+    cell_lock->Visit(cell_lock, message, *this);
 }
 
 void Map::MessageBroadcast(WorldObject *obj, WorldPacket *msg)
@@ -541,12 +512,10 @@ void Map::MessageBroadcast(WorldObject *obj, WorldPacket *msg)
     if( !loaded(GridPair(cell.data.Part.grid_x, cell.data.Part.grid_y)) )
         return;
 
-    //TODO: currently on continents when Visibility.Distance.InFlight > Visibility.Distance.Continents
-    //we have alot of blinking mobs because monster move packet send is broken...
     MaNGOS::ObjectMessageDeliverer post_man(msg);
     TypeContainerVisitor<MaNGOS::ObjectMessageDeliverer, WorldTypeMapContainer > message(post_man);
     CellLock<ReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, message, *this, *obj, GetVisibilityDistance());
+    cell_lock->Visit(cell_lock, message, *this);
 }
 
 void Map::MessageDistBroadcast(Player *player, WorldPacket *msg, float dist, bool to_self, bool own_team_only)
@@ -568,7 +537,7 @@ void Map::MessageDistBroadcast(Player *player, WorldPacket *msg, float dist, boo
     MaNGOS::MessageDistDeliverer post_man(*player, msg, dist, to_self, own_team_only);
     TypeContainerVisitor<MaNGOS::MessageDistDeliverer , WorldTypeMapContainer > message(post_man);
     CellLock<ReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, message, *this, *player, dist);
+    cell_lock->Visit(cell_lock, message, *this);
 }
 
 void Map::MessageDistBroadcast(WorldObject *obj, WorldPacket *msg, float dist)
@@ -588,10 +557,10 @@ void Map::MessageDistBroadcast(WorldObject *obj, WorldPacket *msg, float dist)
     if( !loaded(GridPair(cell.data.Part.grid_x, cell.data.Part.grid_y)) )
         return;
 
-    MaNGOS::ObjectMessageDistDeliverer post_man(*obj, msg, dist);
+    MaNGOS::ObjectMessageDistDeliverer post_man(*obj, msg,dist);
     TypeContainerVisitor<MaNGOS::ObjectMessageDistDeliverer, WorldTypeMapContainer > message(post_man);
     CellLock<ReadGuard> cell_lock(cell, p);
-    cell_lock->Visit(cell_lock, message, *this, *obj, dist);
+    cell_lock->Visit(cell_lock, message, *this);
 }
 
 bool Map::loaded(const GridPair &p) const
@@ -636,9 +605,8 @@ void Map::Update(const uint32 &t_diff)
         // the overloaded operators handle range checking
         // so ther's no need for range checking inside the loop
         CellPair begin_cell(standing_cell), end_cell(standing_cell);
-        //lets update mobs/objects in ALL visible cells around player!
-        CellArea area = Cell::CalculateCellArea(*plr, GetVisibilityDistance());
-        area.ResizeBorders(begin_cell, end_cell);
+        begin_cell << 1; begin_cell -= 1;               // upper left
+        end_cell >> 1; end_cell += 1;                   // lower right
 
         for(uint32 x = begin_cell.x_coord; x <= end_cell.x_coord; ++x)
         {
@@ -714,178 +682,16 @@ void Map::Update(const uint32 &t_diff)
 
     // Don't unload grids if it's battleground, since we may have manually added GOs,creatures, those doesn't load from DB at grid re-load !
     // This isn't really bother us, since as soon as we have instanced BG-s, the whole map unloads as the BG gets ended
-    if (IsBattleGroundOrArena() == false)
-    {
-        for (GridRefManager<NGridType>::iterator i = GridRefManager<NGridType>::begin(); i != GridRefManager<NGridType>::end(); )
-        {
-            NGridType *grid = i->getSource();
-            GridInfo *info = i->getSource()->getGridInfoRef();
-            ++i;                                                // The update might delete the map and we need the next map before the iterator gets invalid
-            assert(grid->GetGridState() >= 0 && grid->GetGridState() < MAX_GRID_STATE);
-            si_GridStates[grid->GetGridState()]->Update(*this, *grid, *info, grid->getX(), grid->getY(), t_diff);
-        }
-    }
-
-
-    if(!m_mapRefManager.isEmpty())
-    {
-        if(m_PlayerVisibilityNotifyTimer.Update(t_diff))
-        {   // process player-player visibility
-            ProcesssPlayersVisibility();
-            ResetNotifies(NOTIFY_PLAYER_VISIBILITY);
-        }
-        
-        if(m_ObjectVisibilityNotifyTimer.Update(t_diff))
-        {
-            ProcessObjectsVisibility();
-            ResetNotifies(NOTIFY_VISIBILITY_CHANGED | NOTIFY_VISIBILITY_ACTIVE);
-        }
-    }
-
-    if(m_mapRefManager.isEmpty() && m_activeNonPlayers.empty())
+    if (IsBattleGroundOrArena())
         return;
 
-    if(m_RelocationNotifyTimer.Update(t_diff))
-    {
-        ProcessRelocationNotifies();
-        ResetNotifies(NOTIFY_AI_RELOCATION);
-    }
-}
-
-void Map::ProcesssPlayersVisibility()
-{
-    for(m_mapRefIter = m_mapRefManager.begin(); m_mapRefIter != m_mapRefManager.end(); ++m_mapRefIter)
-    {
-        Player* player = m_mapRefIter->getSource();
-
-        if(!player->IsInWorld() || !player->isNeedNotify(NOTIFY_PLAYER_VISIBILITY))
-            continue;
-
-        CellPair cellpair(MaNGOS::ComputeCellPair(player->GetPositionX(), player->GetPositionY()));
-
-        if (cellpair.x_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP || cellpair.y_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP)
-            continue;
-
-        MaNGOS::Player2PlayerNotifier notifier(*player);
-
-        Cell cell(cellpair);
-        cell.data.Part.reserved = ALL_DISTRICT;
-        cell.SetNoCreate();
-        TypeContainerVisitor<MaNGOS::Player2PlayerNotifier, WorldTypeMapContainer > world_notifier(notifier);
-        CellLock<ReadGuard> cell_lock(cell, cellpair);
-        cell_lock->Visit(cell_lock, world_notifier, *this, *player, GetVisibilityDistance());
-
-        // send data
-        notifier.SendToSelf();
-        player->SetNotified(NOTIFY_PLAYER_VISIBILITY);
-    }
-}
-
-void Map::ProcessObjectsVisibility()
-{
-    for(m_mapRefIter = m_mapRefManager.begin(); m_mapRefIter != m_mapRefManager.end(); ++m_mapRefIter)
-    {
-        Player* player = m_mapRefIter->getSource();
-
-        if(!player->IsInWorld())
-            continue;
-
-        CellPair cellpair(MaNGOS::ComputeCellPair(player->GetPositionX(), player->GetPositionY()));
-
-        if (cellpair.x_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP || cellpair.y_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP)
-            continue;
-
-        Cell cell(cellpair);
-        cell.data.Part.reserved = ALL_DISTRICT;
-        cell.SetNoCreate();
-
-        MaNGOS::VisibleNotifier notifier(*player);
-
-        TypeContainerVisitor<MaNGOS::VisibleNotifier, WorldTypeMapContainer > world_notifier(notifier);
-        TypeContainerVisitor<MaNGOS::VisibleNotifier, GridTypeMapContainer  > grid_notifier(notifier);
-        CellLock<ReadGuard> cell_lock(cell, cellpair);
-        cell_lock->Visit(cell_lock, world_notifier, *this, *player, GetVisibilityDistance());
-        cell_lock->Visit(cell_lock, grid_notifier,  *this, *player, GetVisibilityDistance());
-
-        // send data
-        notifier.SendToSelf();
-        player->SetNotified(NOTIFY_VISIBILITY_ACTIVE);
-    }
-}
-
-void Map::ProcessRelocationNotifies()
-{
-    for(GridRefManager<NGridType>::iterator i = GridRefManager<NGridType>::begin(); i != GridRefManager<NGridType>::end(); ++i)
+    for (GridRefManager<NGridType>::iterator i = GridRefManager<NGridType>::begin(); i != GridRefManager<NGridType>::end(); )
     {
         NGridType *grid = i->getSource();
-
-        if(!grid || grid->GetGridState() != GRID_STATE_ACTIVE)
-            continue;
-
-        uint32 gx = grid->getX(), gy = grid->getY();
-
-        CellPair cell_min(gx*MAX_NUMBER_OF_CELLS, gy*MAX_NUMBER_OF_CELLS);
-        CellPair cell_max(cell_min.x_coord + MAX_NUMBER_OF_CELLS, cell_min.y_coord+MAX_NUMBER_OF_CELLS);
-
-        for(uint32 x = cell_min.x_coord; x <= cell_max.x_coord; ++x)
-        {
-            for(uint32 y = cell_min.y_coord; y <= cell_max.y_coord; ++y)
-            {
-                uint32 cell_id = (y * TOTAL_NUMBER_OF_CELLS_PER_MAP) + x;
-                if(!isCellMarked(cell_id))
-                    continue;
-
-                CellPair pair(x,y);
-                Cell cell(pair);
-                cell.data.Part.reserved = CENTER_DISTRICT;
-                cell.SetNoCreate();
-
-                CellLock<ReadGuard> cell_lock(cell, pair);
-                MaNGOS::DelayedUnitRelocation cell_relocation(cell_lock, *this, CREATURE_MAX_AGGRO_RANGE);
-                TypeContainerVisitor<MaNGOS::DelayedUnitRelocation, GridTypeMapContainer  > grid_object_relocation(cell_relocation);
-                TypeContainerVisitor<MaNGOS::DelayedUnitRelocation, WorldTypeMapContainer > world_object_relocation(cell_relocation);
-                cell_lock->Visit(cell_lock, grid_object_relocation,  *this);
-                cell_lock->Visit(cell_lock, world_object_relocation,  *this);
-            }
-        }
-    }
-}
-
-void Map::ResetNotifies(uint16 notify_mask)
-{
-    MaNGOS::ResetNotifier reset(notify_mask);
-    TypeContainerVisitor<MaNGOS::ResetNotifier, GridTypeMapContainer >  grid_notifier(reset);
-    TypeContainerVisitor<MaNGOS::ResetNotifier, WorldTypeMapContainer > world_notifier(reset);
-
-    for(GridRefManager<NGridType>::iterator i = GridRefManager<NGridType>::begin(); i != GridRefManager<NGridType>::end(); ++i)
-    {
-        NGridType *grid = i->getSource();
-
-        if(!grid || grid->GetGridState() != GRID_STATE_ACTIVE)
-            continue;
-
-        uint32 gx = grid->getX(), gy = grid->getY();
-
-        CellPair cell_min(gx*MAX_NUMBER_OF_CELLS, gy*MAX_NUMBER_OF_CELLS);
-        CellPair cell_max(cell_min.x_coord + MAX_NUMBER_OF_CELLS, cell_min.y_coord+MAX_NUMBER_OF_CELLS);
-
-        for(uint32 x = cell_min.x_coord; x <= cell_max.x_coord; ++x)
-        {
-            for(uint32 y = cell_min.y_coord; y <= cell_max.y_coord; ++y)
-            {
-                uint32 cell_id = (y * TOTAL_NUMBER_OF_CELLS_PER_MAP) + x;
-                if(!isCellMarked(cell_id))
-                    continue;
-
-                CellPair pair(x,y);
-                Cell cell(pair);
-                cell.data.Part.reserved = CENTER_DISTRICT;
-                cell.SetNoCreate();
-                CellLock<NullGuard> cell_lock(cell, pair);
-                cell_lock->Visit(cell_lock, grid_notifier,  *this);
-                cell_lock->Visit(cell_lock, world_notifier,  *this);
-            }
-        }
+        GridInfo *info = i->getSource()->getGridInfoRef();
+        ++i;                                                // The update might delete the map and we need the next map before the iterator gets invalid
+        assert(grid->GetGridState() >= 0 && grid->GetGridState() < MAX_GRID_STATE);
+        si_GridStates[grid->GetGridState()]->Update(*this, *grid, *info, grid->getX(), grid->getY(), t_diff);
     }
 }
 
@@ -923,13 +729,11 @@ void Map::Remove(Player *player, bool remove)
     NGridType *grid = getNGrid(cell.GridX(), cell.GridY());
     assert(grid != NULL);
 
-    player->ResetAllNotifies();
     player->RemoveFromWorld();
     RemoveFromGrid(player,grid,cell);
 
     SendRemoveTransports(player);
 
-    UpdateObjectVisibility(player,cell,p);
     UpdateObjectsVisibilityFor(player,cell,p);
 
     if( remove )
@@ -971,7 +775,6 @@ Map::Remove(T *obj, bool remove)
     if(obj->isActiveObject())
         RemoveFromActive(obj);
 
-    //obj->RemoveAllNotifies();
     obj->RemoveFromWorld();
     RemoveFromGrid(obj,grid,cell);
 
@@ -1018,12 +821,9 @@ Map::PlayerRelocation(Player *player, float x, float y, float z, float orientati
     }
 
     // if move then update what player see and who seen
-    //UpdatePlayerVisibility(player,new_cell,new_val);
-    //UpdateObjectsVisibilityFor(player,new_cell,new_val);
-
-    //PlayerRelocationNotify(player,new_cell,new_val);
-    player->AddToNotify(NOTIFY_PLAYER_VISIBILITY | NOTIFY_VISIBILITY_ACTIVE | NOTIFY_AI_RELOCATION);
-
+    UpdatePlayerVisibility(player,new_cell,new_val);
+    UpdateObjectsVisibilityFor(player,new_cell,new_val);
+    PlayerRelocationNotify(player,new_cell,new_val);
     NGridType* newGrid = getNGrid(new_cell.GridX(), new_cell.GridY());
     if( !same_cell && newGrid->GetGridState()!= GRID_STATE_ACTIVE )
     {
@@ -1055,8 +855,7 @@ Map::CreatureRelocation(Creature *creature, float x, float y, float z, float ang
     else
     {
         creature->Relocate(x, y, z, ang);
-        creature->AddToNotify(NOTIFY_VISIBILITY_CHANGED | NOTIFY_AI_RELOCATION);
-        //CreatureRelocationNotify(creature,new_cell,new_val);
+        CreatureRelocationNotify(creature,new_cell,new_val);
     }
     assert(CheckGridIntegrity(creature,true));
 }
@@ -1088,8 +887,7 @@ void Map::MoveAllCreaturesInMoveList()
         {
             // update pos
             c->Relocate(cm.x, cm.y, cm.z, cm.ang);
-            c->AddToNotify(NOTIFY_VISIBILITY_CHANGED | NOTIFY_AI_RELOCATION);
-            //CreatureRelocationNotify(c,new_cell,new_cell.cellPair());
+            CreatureRelocationNotify(c,new_cell,new_cell.cellPair());
         }
         else
         {
@@ -1201,8 +999,7 @@ bool Map::CreatureRespawnRelocation(Creature *c)
     {
         c->Relocate(resp_x, resp_y, resp_z, resp_o);
         c->GetMotionMaster()->Initialize();                 // prevent possible problems with default move generators
-        c->AddToNotify(NOTIFY_VISIBILITY_CHANGED | NOTIFY_AI_RELOCATION);
-        //CreatureRelocationNotify(c,resp_cell,resp_cell.cellPair());
+        CreatureRelocationNotify(c,resp_cell,resp_cell.cellPair());
         return true;
     }
     else
@@ -1235,9 +1032,8 @@ bool Map::UnloadGrid(const uint32 &x, const uint32 &y, bool pForce)
         delete getNGrid(x, y);
         setNGrid(NULL, x, y);
     }
-
-    int gx = (MAX_NUMBER_OF_GRIDS - 1) - x;
-    int gy = (MAX_NUMBER_OF_GRIDS - 1) - y;
+    int gx=63-x;
+    int gy=63-y;
 
     // delete grid map, but don't delete if it is from parent map (and thus only reference)
     //+++if (GridMaps[gx][gy]) don't check for GridMaps[gx][gy], we might have to unload vmaps
@@ -1594,35 +1390,34 @@ void Map::UpdateObjectVisibility( WorldObject* obj, Cell cell, CellPair cellpair
     MaNGOS::VisibleChangesNotifier notifier(*obj);
     TypeContainerVisitor<MaNGOS::VisibleChangesNotifier, WorldTypeMapContainer > player_notifier(notifier);
     CellLock<GridReadGuard> cell_lock(cell, cellpair);
-    cell_lock->Visit(cell_lock, player_notifier, *this, *obj, GetVisibilityDistance());
+    cell_lock->Visit(cell_lock, player_notifier, *this);
 }
 
 void Map::UpdatePlayerVisibility( Player* player, Cell cell, CellPair cellpair )
 {
     cell.data.Part.reserved = ALL_DISTRICT;
 
-    MaNGOS::Player2PlayerNotifier    pl_notifier(*player, true);
-    TypeContainerVisitor<MaNGOS::Player2PlayerNotifier, WorldTypeMapContainer > player_notifier(pl_notifier);
+    MaNGOS::PlayerNotifier pl_notifier(*player);
+    TypeContainerVisitor<MaNGOS::PlayerNotifier, WorldTypeMapContainer > player_notifier(pl_notifier);
 
     CellLock<ReadGuard> cell_lock(cell, cellpair);
-    cell_lock->Visit(cell_lock, player_notifier, *this, *player, GetVisibilityDistance());
-    pl_notifier.SendToSelf();
+    cell_lock->Visit(cell_lock, player_notifier, *this);
 }
 
 void Map::UpdateObjectsVisibilityFor( Player* player, Cell cell, CellPair cellpair )
 {
-    MaNGOS::VisibleNotifier notifier(*player, true);
+    MaNGOS::VisibleNotifier notifier(*player);
 
     cell.data.Part.reserved = ALL_DISTRICT;
     cell.SetNoCreate();
     TypeContainerVisitor<MaNGOS::VisibleNotifier, WorldTypeMapContainer > world_notifier(notifier);
     TypeContainerVisitor<MaNGOS::VisibleNotifier, GridTypeMapContainer  > grid_notifier(notifier);
     CellLock<GridReadGuard> cell_lock(cell, cellpair);
-    cell_lock->Visit(cell_lock, world_notifier, *this, *player, GetVisibilityDistance());
-    cell_lock->Visit(cell_lock, grid_notifier,  *this, *player, GetVisibilityDistance());
+    cell_lock->Visit(cell_lock, world_notifier, *this);
+    cell_lock->Visit(cell_lock, grid_notifier,  *this);
 
     // send data
-    notifier.SendToSelf();
+    notifier.Notify();
 }
 
 void Map::PlayerRelocationNotify( Player* player, Cell cell, CellPair cellpair )
@@ -1630,13 +1425,12 @@ void Map::PlayerRelocationNotify( Player* player, Cell cell, CellPair cellpair )
     CellLock<ReadGuard> cell_lock(cell, cellpair);
     MaNGOS::PlayerRelocationNotifier relocationNotifier(*player);
     cell.data.Part.reserved = ALL_DISTRICT;
-    //cell.SetNoCreate();
 
     TypeContainerVisitor<MaNGOS::PlayerRelocationNotifier, GridTypeMapContainer >  p2grid_relocation(relocationNotifier);
     TypeContainerVisitor<MaNGOS::PlayerRelocationNotifier, WorldTypeMapContainer > p2world_relocation(relocationNotifier);
 
-    cell_lock->Visit(cell_lock, p2grid_relocation, *this, *player, MAX_CREATURE_ATTACK_RADIUS);
-    cell_lock->Visit(cell_lock, p2world_relocation, *this, *player, MAX_CREATURE_ATTACK_RADIUS);
+    cell_lock->Visit(cell_lock, p2grid_relocation, *this);
+    cell_lock->Visit(cell_lock, p2world_relocation, *this);
 }
 
 void Map::CreatureRelocationNotify(Creature *creature, Cell cell, CellPair cellpair)
@@ -1649,8 +1443,8 @@ void Map::CreatureRelocationNotify(Creature *creature, Cell cell, CellPair cellp
     TypeContainerVisitor<MaNGOS::CreatureRelocationNotifier, WorldTypeMapContainer > c2world_relocation(relocationNotifier);
     TypeContainerVisitor<MaNGOS::CreatureRelocationNotifier, GridTypeMapContainer >  c2grid_relocation(relocationNotifier);
 
-    cell_lock->Visit(cell_lock, c2world_relocation, *this, *creature, MAX_CREATURE_ATTACK_RADIUS);
-    cell_lock->Visit(cell_lock, c2grid_relocation, *this, *creature, MAX_CREATURE_ATTACK_RADIUS);
+    cell_lock->Visit(cell_lock, c2world_relocation, *this);
+    cell_lock->Visit(cell_lock, c2grid_relocation, *this);
 }
 
 void Map::SendInitSelf( Player * player )
@@ -1827,20 +1621,12 @@ void Map::SendToPlayers(WorldPacket const* data) const
 
 bool Map::ActiveObjectsNearGrid(uint32 x, uint32 y) const
 {
-    ASSERT(x < MAX_NUMBER_OF_GRIDS);
-    ASSERT(y < MAX_NUMBER_OF_GRIDS);
-
     CellPair cell_min(x*MAX_NUMBER_OF_CELLS, y*MAX_NUMBER_OF_CELLS);
     CellPair cell_max(cell_min.x_coord + MAX_NUMBER_OF_CELLS, cell_min.y_coord+MAX_NUMBER_OF_CELLS);
-
-    //we must find visible range in cells so we unload only non-visible cells...
-    float viewDist = GetVisibilityDistance();
-    int cell_range = (int)ceilf(viewDist / SIZE_OF_GRID_CELL) + 1;
-
-    cell_min << cell_range;
-    cell_min -= cell_range;
-    cell_max >> cell_range;
-    cell_max += cell_range;
+    cell_min << 2;
+    cell_min -= 2;
+    cell_max >> 2;
+    cell_max += 2;
 
     for(MapRefManager::const_iterator iter = m_mapRefManager.begin(); iter != m_mapRefManager.end(); ++iter)
     {
@@ -1936,19 +1722,6 @@ InstanceMap::~InstanceMap()
         delete i_data;
         i_data = NULL;
     }
-}
-
-void InstanceMap::InitVisibilityDistance()
-{
-    //init visibility distance for instances
-    m_VisibleDistance = sWorld.GetMaxVisibleDistanceInInstances();
-}
-
-void InstanceMap::InitializeNotifyTimers()
-{
-	m_PlayerVisibilityNotifyTimer.SetPeriodic(0.5*sWorld.GetVisibilityNotifyPeriodInInstances(), 0.25*sWorld.GetVisibilityNotifyPeriodInInstances());
-	m_ObjectVisibilityNotifyTimer.SetPeriodic(sWorld.GetVisibilityNotifyPeriodInInstances(), 0 * sWorld.GetVisibilityNotifyPeriodInInstances());
-	m_RelocationNotifyTimer.SetPeriodic(sWorld.GetVisibilityNotifyPeriodInInstances(),0.5*sWorld.GetVisibilityNotifyPeriodInInstances());
 }
 
 /*
@@ -2277,19 +2050,6 @@ BattleGroundMap::BattleGroundMap(uint32 id, time_t expiry, uint32 InstanceId)
 
 BattleGroundMap::~BattleGroundMap()
 {
-}
-
-void BattleGroundMap::InitVisibilityDistance()
-{
-    //init visibility distance for BG/Arenas
-    m_VisibleDistance = sWorld.GetMaxVisibleDistanceInBGArenas();
-}
-
-void BattleGroundMap::InitializeNotifyTimers()
-{
-	m_PlayerVisibilityNotifyTimer.SetPeriodic(0.5*sWorld.GetVisibilityNotifyPeriodInBGArenas(), 0.25*sWorld.GetVisibilityNotifyPeriodInBGArenas());
-	m_ObjectVisibilityNotifyTimer.SetPeriodic(sWorld.GetVisibilityNotifyPeriodInBGArenas(), 0 * sWorld.GetVisibilityNotifyPeriodInBGArenas());
-	m_RelocationNotifyTimer.SetPeriodic(sWorld.GetVisibilityNotifyPeriodInBGArenas(),0.5*sWorld.GetVisibilityNotifyPeriodInBGArenas());
 }
 
 bool BattleGroundMap::CanEnter(Player * player)
