@@ -425,6 +425,8 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         float GetDistanceZ(const WorldObject* obj) const;
         bool IsInMap(const WorldObject* obj) const
         {
+            if (!obj)
+               return false;
             return IsInWorld() && obj->IsInWorld() && GetMapId()==obj->GetMapId() &&
                 GetInstanceId()==obj->GetInstanceId();
         }
