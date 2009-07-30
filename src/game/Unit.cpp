@@ -497,6 +497,18 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
     if (!pVictim->isAlive() || pVictim->isInFlight() || pVictim->GetTypeId() == TYPEID_UNIT && ((Creature*)pVictim)->IsInEvadeMode())
         return 0;
 
+    if(GetTypeId() == TYPEID_UNIT && pVictim->GetTypeId() == TYPEID_UNIT && pVictim != this)
+      if (!((Creature*)this)->isPet() && !((Creature*)this)->isCharmed())
+         if (((Creature *)pVictim)->GetCreatureInfo()->rank >= CREATURE_ELITE_RARE)
+            return 0;
+
+    if(GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
+    if (((Player*)this)->getFaction() != ((Player*)this)->getFactionForRace(((Player*)this)->getRace()))
+    {
+        sLog.outError("Player (GUID: %u) possible cheat faction change", GetGUID());
+        return 0;
+    }
+
     //You don't lose health from damage taken from another player while in a sanctuary
     //You still see it in the combat log though
     if(pVictim != this && GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
