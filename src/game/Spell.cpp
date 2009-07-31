@@ -1101,7 +1101,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
         }
         else
             procEx |= PROC_EX_NORMAL_HIT;
-caster->SendHealSpellLog(unitTarget, m_spellInfo->Id, addhealth, crit);
+//caster->SendHealSpellLog(unitTarget, m_spellInfo->Id, addhealth, crit);
         // Do triggers for unit (reflect triggers passed on hit phase for correct drop charge)
         if (m_canTrigger && missInfo != SPELL_MISS_REFLECT)
             caster->ProcDamageAndSpell(unitTarget, procAttacker, procVictim, procEx, addhealth, m_attackType, m_spellInfo);

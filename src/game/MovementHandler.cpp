@@ -378,12 +378,12 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
             timedelta = CurrentMStimeDelta;
             GetPlayer()->m_anti_mistiming_count++;
 
-            sLog.outError("Movement anticheat: %s is mistaming exception. Exception count: %d, mistiming: %d ms ", GetPlayer()->GetName(), GetPlayer()->m_anti_mistiming_count, sync_time);
-            if (GetPlayer()->m_anti_mistiming_count > World::GetMistimingAlarms())
-            {
-                GetPlayer()->GetSession()->KickPlayer();
+            //sLog.outError("Movement anticheat: %s is mistaming exception. Exception count: %d, mistiming: %d ms ", GetPlayer()->GetName(), GetPlayer()->m_anti_mistiming_count, sync_time);
+            //if (GetPlayer()->m_anti_mistiming_count > World::GetMistimingAlarms())
+            //{
+                //GetPlayer()->GetSession()->KickPlayer();
                 ///sLog.outError("Movement anticheat: %s is mistaming exception. Exception count: %d, mistiming: %d ms ", GetPlayer()->GetName(), GetPlayer()->m_anti_mistiming_count, sync_time);
-            }
+            //}
             check_passed = false;
         }
 
