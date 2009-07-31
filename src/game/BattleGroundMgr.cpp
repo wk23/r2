@@ -493,8 +493,8 @@ bool BattleGroundQueue::BuildSelectionPool(BattleGroundTypeId bgTypeId, uint32 q
     }
 
     // inititate the groups eligible to create the bg
-    if(!queue_id)
-            return false;
+    //if(!queue_id)
+            //return false;
     m_EligibleGroups.Init(&(m_QueuedGroups[queue_id]), bgTypeId, side, MaxPlayers, ArenaType, isRated, MinRating, MaxRating, DisregardTime, excludeTeam);
     // init the selected groups (clear)
     m_SelectionPools[mode].Init();
