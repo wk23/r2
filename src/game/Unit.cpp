@@ -5844,7 +5844,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                     sLog.outError("Unit::HandleProcTriggerSpell: Spell %u have wrong effect in RM",triggeredByAura->GetSpellProto()->Id);
                     return false;
                 }
-                triggered_spell_id = auraSpellInfo->EffectTriggerSpell[1];
+                trigger_spell_id = auraSpellInfo->EffectTriggerSpell[1];
                 break;                                      // fall through to normal cast
             }
             break;
