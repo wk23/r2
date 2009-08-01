@@ -5832,20 +5832,23 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                     }
                 }
                 break;
-            case SPELLFAMILY_WARRIOR:
-     // Rampage
-     if (auraSpellInfo->SpellIconID == 2006 && auraSpellInfo->SpellFamilyFlags==0x100000)
-     {
-         switch(auraSpellInfo->Id)
-         {
-             case 29801: trigger_spell_id = 30029; break;       // Rank 1
-             case 30030: trigger_spell_id = 30031; break;       // Rank 2
-             case 30033: trigger_spell_id = 30032; break;       // Rank 3
-             default:
-                 sLog.outError("Unit::HandleProcTriggerSpell: Spell %u not handled in Rampage",auraSpellInfo->Id);
-             return false;
-         }
-     }
+        case SPELLFAMILY_WARRIOR:
+        {
+            //Rampage
+            if((auraSpellInfo->SpellFamilyFlags & UI64LIT(0x100000)) && auraSpellInfo->SpellIconID==2006)
+            {
+                //all ranks have effect[0]==AURA (Proc Trigger Spell, non-existed)
+                //and effect[1]==TriggerSpell
+                if(auraSpellInfo->Effect[1]!=SPELL_EFFECT_TRIGGER_SPELL)
+                {
+                    sLog.outError("Unit::HandleProcTriggerSpell: Spell %u have wrong effect in RM",triggeredByAura->GetSpellProto()->Id);
+                    return false;
+                }
+                triggered_spell_id = auraSpellInfo->EffectTriggerSpell[1];
+                break;                                      // fall through to normal cast
+            }
+            break;
+        }
             case SPELLFAMILY_WARLOCK:
             {
                 // Pyroclasm
