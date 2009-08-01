@@ -505,7 +505,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
     if(GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
     if (((Player*)this)->getFaction() != ((Player*)this)->getFactionForRace(((Player*)this)->getRace()))
     {
-        sLog.outError("Player (GUID: %u) possible cheat faction change", GetGUID());
+        sLog.outError("Player (aGUID: %u) attack (vGUID: %u) at map %u, possible cheat faction change", GetGUID(), pVictim->GetGUID(), GetMapId());
         return 0;
     }
 
@@ -1407,6 +1407,14 @@ void Unit::CalculateMeleeDamage(Unit *pVictim, uint32 damage, CalcDamageInfo *da
                 uint32 resilienceReduction = ((Player*)pVictim)->GetMeleeCritDamageReduction(damageInfo->damage);
                 damageInfo->damage      -= resilienceReduction;
                 damageInfo->cleanDamage += resilienceReduction;
+            }
+
+            ModifyAuraState(AURA_STATE_CRIT, true);
+            StartReactiveTimer( REACTIVE_CRIT );
+            if(getClass()==CLASS_HUNTER)
+            {
+                ModifyAuraState(AURA_STATE_HUNTER_CRIT_STRIKE, true);
+                StartReactiveTimer( REACTIVE_HUNTER_CRIT );
             }
             break;
         }
