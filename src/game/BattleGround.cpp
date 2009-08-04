@@ -1024,10 +1024,12 @@ void BattleGround::AddPlayer(Player *plr)
 
             plr->SetHealth(plr->GetMaxHealth());
             plr->SetPower(POWER_MANA, plr->GetMaxPower(POWER_MANA));
+ObjectAccessor::UpdateVisibilityForPlayer(plr);
         }
     }
     else
     {
+ObjectAccessor::UpdateVisibilityForPlayer(plr);
         if(GetStatus() == STATUS_WAIT_JOIN)                 // not started yet
             plr->CastSpell(plr, SPELL_PREPARATION, true);   // reduces all mana cost of spells.
     }
