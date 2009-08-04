@@ -498,7 +498,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         return 0;
 
     if(GetTypeId() == TYPEID_UNIT && pVictim->GetTypeId() == TYPEID_UNIT && pVictim != this)
-      if (!(((Creature*)this)->isPet() || (Creature*)this)->isCharmed()))
+      if ( !( ((Creature*)this)->isPet() || ((Creature*)this)->isCharmed() ) )
          if (((Creature *)pVictim)->GetCreatureInfo()->rank >= CREATURE_ELITE_RARE)
             return 0;
 
