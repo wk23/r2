@@ -425,10 +425,10 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         float GetDistanceZ(const WorldObject* obj) const;
         bool IsInMap(const WorldObject* obj) const
         {
-            if (!obj)
-               return false;
+            if(obj)
             return IsInWorld() && obj->IsInWorld() && GetMapId()==obj->GetMapId() &&
                 GetInstanceId()==obj->GetInstanceId();
+            else return false;
         }
         bool IsWithinDist3d(float x, float y, float z, float dist2compare) const;
         bool IsWithinDist2d(float x, float y, float dist2compare) const;

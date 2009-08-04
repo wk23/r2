@@ -493,8 +493,8 @@ bool BattleGroundQueue::BuildSelectionPool(BattleGroundTypeId bgTypeId, uint32 q
     }
 
     // inititate the groups eligible to create the bg
-    if(!queue_id)
-            return false;
+    //if(!queue_id)
+            //return false;
     m_EligibleGroups.Init(&(m_QueuedGroups[queue_id]), bgTypeId, side, MaxPlayers, ArenaType, isRated, MinRating, MaxRating, DisregardTime, excludeTeam);
     // init the selected groups (clear)
     m_SelectionPools[mode].Init();
@@ -1024,8 +1024,8 @@ bool BGQueueRemoveEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
     sLog.outDebug("Battleground: removing player %u from bg queue for instance %u because of not pressing enter battle in time.",plr->GetGUIDLow(),m_BgInstanceGUID);
 
     uint32 bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(bg->GetTypeID(), bg->GetArenaType());
-    if (!bgQueueTypeId)
-        return true;
+    //if (!bgQueueTypeId)
+        //return true;
     uint32 queueSlot = plr->GetBattleGroundQueueIndex(bgQueueTypeId);
     if (queueSlot < PLAYER_MAX_BATTLEGROUND_QUEUES) // player is in queue
     {

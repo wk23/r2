@@ -121,6 +121,7 @@ void MapInstanced::UnloadAll(bool pForce)
 */
 Map* MapInstanced::GetInstance(const WorldObject* obj)
 {
+    if (!obj) return NULL;
     uint32 CurInstanceId = obj->GetInstanceId();
     Map* map = NULL;
 

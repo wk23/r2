@@ -498,12 +498,12 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         return 0;
 
     if(GetTypeId() == TYPEID_UNIT && pVictim->GetTypeId() == TYPEID_UNIT && pVictim != this)
-      if (!((Creature*)this)->isPet() && !((Creature*)this)->isCharmed())
+      if (!(((Creature*)this)->isPet() || (Creature*)this)->isCharmed()))
          if (((Creature *)pVictim)->GetCreatureInfo()->rank >= CREATURE_ELITE_RARE)
             return 0;
 
     if(GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
-    if (((Player*)this)->getFaction() != ((Player*)this)->getFactionForRace(((Player*)this)->getRace()))
+    if (((Player*)this)->getFaction() != ((Player*)this)->getFactionForRace(((Player*)this)->getRace()) && !((Player*)this)->isGameMaster())
     {
         sLog.outError("Player (aGUID: %u) attack (vGUID: %u) at map %u, possible cheat faction change", GetGUID(), pVictim->GetGUID(), GetMapId());
         return 0;
@@ -4528,6 +4528,25 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     // Need remove one 24659 aura
                     RemoveSingleAuraFromStack(24659, 0);
                     RemoveSingleAuraFromStack(24659, 1);
+                    return true;
+                }
+                //sunwell
+                case 45248: 
+                case 45329: 
+                case 45256: 
+                case 45270:
+                {
+                    // Need remove  aura dark flame
+                    if (HasAura(45348,0))
+                       RemoveAurasDueToSpell(45348);
+                    return true;
+                }
+                case 45342:
+                case 46771:
+                {
+                    // Need remove  aura dark touch
+                    if (HasAura(45347,0))
+                       RemoveAurasDueToSpell(45347);
                     return true;
                 }
                 // Restless Strength
