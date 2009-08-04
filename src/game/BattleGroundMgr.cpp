@@ -507,6 +507,7 @@ bool BattleGroundQueue::BuildSelectionPool(BattleGroundTypeId bgTypeId, uint32 q
             // get the maximal not yet checked group
             GroupQueueInfo * MaxGroup = (*itr);
             // if it fits in the maxplayer size, add it
+            if(MaxGroup)
             if( (m_SelectionPools[mode].GetPlayerCount() + MaxGroup->Players.size()) <= MaxPlayers )
             {
                 m_SelectionPools[mode].AddGroup(MaxGroup);

@@ -149,13 +149,7 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
                 ((Creature*)Temp)->AI()->AttackStart(who);
         }
     }
-    void DamageTaken(Unit* done_by, uint32 &damage)
-    {
-        Unit* Temp =  Unit::GetUnit((*m_creature),pInstance->GetData64(DATA_ALYTHESS));
-        if (Temp)
-           if(done_by == Temp)
-            return;
-    }
+
     void MoveInLineOfSight(Unit *who)    {    }
     void KilledUnit(Unit *victim)
     {
@@ -414,7 +408,7 @@ struct MANGOS_DLL_DECL boss_alythessAI : public Scripted_NoMovementAI
     void Aggro(Unit *who) 
 {
 
-        DoZoneInCombat();
+        //DoZoneInCombat();
         if(pInstance)
         {
             Unit* Temp =  Unit::GetUnit((*m_creature),pInstance->GetData64(DATA_SACROLASH));
@@ -423,13 +417,7 @@ struct MANGOS_DLL_DECL boss_alythessAI : public Scripted_NoMovementAI
        }
 
 }
-    void DamageTaken(Unit* done_by, uint32 &damage)
-    {
-        Unit* Temp =  Unit::GetUnit((*m_creature),pInstance->GetData64(DATA_SACROLASH));
-        if (Temp)
-           if(done_by == Temp)
-            return;
-    }
+
 /*
 void AttackStart(Unit *who)
 {
