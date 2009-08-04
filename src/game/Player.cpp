@@ -1201,11 +1201,6 @@ void Player::Update( uint32 p_time )
         RegenerateAll();
     }
 
-    if (!isAlive() && !HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
-    {
-        SetHealth(0);
-    }
-
     if (m_deathState == JUST_DIED)
     {
         KillPlayer();
@@ -5397,6 +5392,7 @@ void Player::removeActionButton(uint8 button)
 
 bool Player::SetPosition(float x, float y, float z, float orientation, bool teleport)
 {
+    if (!IsInWorld()) return false;
     // prevent crash when a bad coord is sent by the client
     if(!MaNGOS::IsValidMapCoord(x,y,z,orientation))
     {
@@ -5405,7 +5401,7 @@ bool Player::SetPosition(float x, float y, float z, float orientation, bool tele
     }
 
     Map *m = GetMap();
-
+    if (!m) return false;
     const float old_x = GetPositionX();
     const float old_y = GetPositionY();
     const float old_z = GetPositionZ();
@@ -5423,6 +5419,7 @@ bool Player::SetPosition(float x, float y, float z, float orientation, bool tele
 
         // reread after Map::Relocation
         m = GetMap();
+        if (!m) return false;
         x = GetPositionX();
         y = GetPositionY();
         z = GetPositionZ();
