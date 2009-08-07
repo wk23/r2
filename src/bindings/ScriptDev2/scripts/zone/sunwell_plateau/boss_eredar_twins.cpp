@@ -109,6 +109,7 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
     void Reset() 
     {
         InCombat = false;
+        enrage_timer = 360000;
         if(pInstance)
         {
             Unit* Temp =  Unit::GetUnit((*m_creature),pInstance->GetData64(DATA_ALYTHESS));
@@ -232,11 +233,12 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
             {
                 Unit* Temp = NULL; 
                 Temp = Unit::GetUnit((*m_creature),pInstance->GetData64(DATA_ALYTHESS));
-            if (!m_creature->IsWithinDistInMap(Temp, 40))
-            {
-                EnterEvadeMode();
-                return;
-            }
+                if (Temp)
+                if (!m_creature->IsWithinDistInMap(Temp, 40))
+                   {
+                       EnterEvadeMode();
+                       return;
+                    }
                 if (Temp && Temp->isDead())
                 {
                     DoYell(YELL_SISTER_ALYTHESS_DEAD ,LANG_UNIVERSAL,NULL);
@@ -327,7 +329,7 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
             m_creature->InterruptSpell(CURRENT_GENERIC_SPELL);
             DoYell(YELL_ENRAGE ,LANG_UNIVERSAL,NULL);
             DoCast(m_creature,SPELL_ENRAGE);
-            enrage_timer = 300000;
+            enrage_timer = 360000;
         }else enrage_timer -= diff;
 
         if( m_creature->isAttackReady() && !m_creature->IsNonMeleeSpellCasted(false))
@@ -375,7 +377,7 @@ struct MANGOS_DLL_DECL boss_alythessAI : public Scripted_NoMovementAI
     void Reset() 
     {
         InCombat = false;
-
+        enrage_timer = 360000;
         if(pInstance)
         {
             Unit* Temp =  Unit::GetUnit((*m_creature),pInstance->GetData64(DATA_SACROLASH));
@@ -644,14 +646,17 @@ InCombat = true;
                 blaze_timer = 3800;
             }
         }else blaze_timer -= diff;
-
+        if( !m_creature->IsWithinDistInMap(m_creature->getVictim(), 35))
+            {
+                DoStartMovement(m_creature->getVictim());
+            }
         if (enrage_timer < diff)
         {
             m_creature->InterruptSpell(CURRENT_GENERIC_SPELL);
             DoPlaySoundToSet(m_creature,SOUND_BERSERK);
             DoYell(YELL_BERSERK ,LANG_UNIVERSAL,NULL);
             DoCast(m_creature,SPELL_ENRAGE);
-            enrage_timer = 300000;
+            enrage_timer = 360000;
         }else enrage_timer -= diff;
     }
 };
