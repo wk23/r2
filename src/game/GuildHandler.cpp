@@ -1113,6 +1113,8 @@ void WorldSession::HandleGuildBankSwapItems( WorldPacket & recv_data )
     uint32 GuildId = GetPlayer()->GetGuildId();
     if (GuildId == 0)
         return;
+    if (!GuildId)
+        return;
 
     Guild *pGuild = objmgr.GetGuildById(GuildId);
     if(!pGuild)

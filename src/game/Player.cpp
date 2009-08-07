@@ -1539,7 +1539,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         return false;
     }
     //reset falltimer at teleport
-    m_anti_justteleported = 0;
+    m_anti_justteleported = 1;
     // preparing unsummon pet if lost (we must get pet before teleportation or will not find it later)
     Pet* pet = GetPet();
 

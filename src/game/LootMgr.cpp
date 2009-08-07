@@ -361,18 +361,17 @@ bool LootItem::AllowedForPlayer(Player const * player) const
 // Inserts the item into the loot (called by LootTemplate processors)
 void Loot::AddItem(LootStoreItem const & item)
 {
+    int tempcount=urand(1, sWorld.getRate(RATE_DROP_ITEM_POOR));
+    for (int i = 0; i < tempcount; ++i) {
     if (item.needs_quest)                                   // Quest drop
     {
+        if (i>=1) continue;
         if (quest_items.size() < MAX_NR_QUEST_ITEMS)
             quest_items.push_back(LootItem(item));
     }
     else if (items.size() < MAX_NR_LOOT_ITEMS)              // Non-quest drop
     {
-        //1
-        int tempcount=urand(1, sWorld.getRate(RATE_DROP_ITEM_POOR));
-        for (int i = 0; i < tempcount; ++i)
-              items.push_back(LootItem(item));
-        //items.push_back(LootItem(item));
+        items.push_back(LootItem(item));
 
         // non-conditional one-player only items are counted here,
         // free for all items are counted in FillFFALoot(),
@@ -384,6 +383,7 @@ void Loot::AddItem(LootStoreItem const & item)
                 ++unlootedCount;
         }
     }
+    }//for
 }
 
 // Calls processor of corresponding LootTemplate (which handles everything including references)

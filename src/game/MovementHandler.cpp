@@ -402,7 +402,8 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
         } else allowed_delta = current_speed;
         allowed_delta = allowed_delta * time_delta;
         allowed_delta = allowed_delta * allowed_delta + 2;
-
+        if (tg_z > 2.2)
+            allowed_delta = allowed_delta + (delta_z*delta_z)/2.37; // mountain fall allowed speed
        // static char const* move_type_name[MAX_MOVE_TYPE] = {  "Walk", "Run", "Walkback", "Swim", "Swimback", "Turn", "Fly", "Flyback" };
        // sLog.outBasic("%s newcoord: tm:%d ftm:%d | %f,%f,%fo(%f) [%X][%s]$%s",GetPlayer()->GetName(),movementInfo.time,movementInfo.fallTime,movementInfo.x,movementInfo.y,movementInfo.z,movementInfo.o,MovementFlags, LookupOpcodeName(opcode),move_type_name[move_type]);
        // sLog.outBasic("%f",tg_z);
@@ -417,7 +418,10 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
             #endif
             check_passed = false;
         }
-
+        if((delta_z > 4.3f || delta_z < -4.3f) && (delta_z < GetPlayer()->m_anti_last_vspeed) && opcode!=MSG_MOVE_HEARTBEAT) {
+            sLog.outError("Movement anticheat: %s is Nudge/Blink cheater at MAP %u. ", GetPlayer()->GetName(), GetPlayer()->GetMapId());
+            check_passed = false;
+        }
         if (opcode == MSG_MOVE_JUMP && !GetPlayer()->IsInWater()){
             if (GetPlayer()->m_anti_justjumped >= 1){
                 ///GetPlayer()->m_anti_justjumped = 0;
@@ -484,9 +488,11 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
             #endif
             check_passed = false;
         }
-        if( movementInfo.z < 0.0001f && movementInfo.z > -0.0001f
-            && ( movementInfo.HasMovementFlag(MOVEMENTFLAG_SWIMMING) || movementInfo.HasMovementFlag(MOVEMENTFLAG_CAN_FLY)
-                 ||movementInfo.HasMovementFlag(MOVEMENTFLAG_FLYING) || movementInfo.HasMovementFlag(MOVEMENTFLAG_FLYING2) )
+//sLog.outError("_z: %f, _x: %f ",delta_z, delta_x);
+//sLog.outError(".z: %f  MovementFlags: %u", movementInfo.z, movementInfo.flags);
+        if( (movementInfo.z <= 0.00001f && movementInfo.z >= -0.00001f) && (delta_z <= 0.00001f && delta_z >= -0.00001f)
+            //&& ( movementInfo.HasMovementFlag(MOVEMENTFLAG_SWIMMING) || movementInfo.HasMovementFlag(MOVEMENTFLAG_CAN_FLY)
+                 //||movementInfo.HasMovementFlag(MOVEMENTFLAG_FLYING) || movementInfo.HasMovementFlag(MOVEMENTFLAG_FLYING2) )
             && !GetPlayer()->isGameMaster() )
         {
             // Prevent using TeleportToPlan.
@@ -504,7 +510,7 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
                     if (GetPlayer()->m_anti_teletoplane_count > World::GetTeleportToPlaneAlarms())
                     {
                         GetPlayer()->GetSession()->KickPlayer();
-                        sLog.outError("Movement anticheat: %s is teleport to plan exception. Exception count: %d ", GetPlayer()->GetName(), GetPlayer()->m_anti_teletoplane_count);
+                        sLog.outError("Movement anticheat: %s is teleport to plan exception. Exception count: %d  at map: %u", GetPlayer()->GetName(), GetPlayer()->m_anti_teletoplane_count, GetPlayer()->GetMapId());
                     }
                 }
             }
