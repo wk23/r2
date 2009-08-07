@@ -58,11 +58,11 @@ struct MANGOS_DLL_DECL npc_medivh_bmAI : public ScriptedAI
 {
     npc_medivh_bmAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance *pInstance;
+    ScriptedInstance* m_pInstance;
 
     uint32 SpellCorrupt_Timer;
     uint32 Check_Timer;
@@ -80,10 +80,10 @@ struct MANGOS_DLL_DECL npc_medivh_bmAI : public ScriptedAI
         Life50 = true;
         Life25 = true;
 
-        if (!pInstance)
+        if (!m_pInstance)
             return;
 
-        if (pInstance->GetData(TYPE_MEDIVH) == IN_PROGRESS)
+        if (m_pInstance->GetData(TYPE_MEDIVH) == IN_PROGRESS)
             m_creature->CastSpell(m_creature,SPELL_CHANNEL,true);
         else if (m_creature->HasAura(SPELL_CHANNEL,0))
             m_creature->RemoveAura(SPELL_CHANNEL,0);
@@ -93,31 +93,31 @@ struct MANGOS_DLL_DECL npc_medivh_bmAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit *who)
     {
-        if (!pInstance)
+        if (!m_pInstance)
             return;
 
         if (who->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(who, 10.0f))
         {
-            if (pInstance->GetData(TYPE_MEDIVH) == IN_PROGRESS || pInstance->GetData(TYPE_MEDIVH) == DONE)
+            if (m_pInstance->GetData(TYPE_MEDIVH) == IN_PROGRESS || m_pInstance->GetData(TYPE_MEDIVH) == DONE)
                 return;
 
             DoScriptText(SAY_INTRO, m_creature);
-            pInstance->SetData(TYPE_MEDIVH,IN_PROGRESS);
+            m_pInstance->SetData(TYPE_MEDIVH,IN_PROGRESS);
             m_creature->CastSpell(m_creature,SPELL_CHANNEL,false);
             Check_Timer = 5000;
         }
         else if (who->GetTypeId() == TYPEID_UNIT && m_creature->IsWithinDistInMap(who, 15.0f))
         {
-            if (pInstance->GetData(TYPE_MEDIVH) != IN_PROGRESS)
+            if (m_pInstance->GetData(TYPE_MEDIVH) != IN_PROGRESS)
                 return;
 
             uint32 entry = who->GetEntry();
-            if (entry == C_ASSAS || entry == C_WHELP || entry == C_CHRON || entry == C_EXECU || entry == C_VANQU)
+            if (entry == NPC_ASSAS || entry == NPC_WHELP || entry == NPC_CHRON || entry == NPC_EXECU || entry == NPC_VANQU)
             {
                 who->StopMoving();
                 who->CastSpell(m_creature,SPELL_CORRUPT,false);
             }
-            else if (entry == C_AEONUS)
+            else if (entry == NPC_AEONUS)
             {
                 who->StopMoving();
                 who->CastSpell(m_creature,SPELL_CORRUPT_AEONUS,false);
@@ -127,7 +127,7 @@ struct MANGOS_DLL_DECL npc_medivh_bmAI : public ScriptedAI
 
     void AttackStart(Unit *who)
     {
-        //if (pInstance && pInstance->GetData(TYPE_MEDIVH) == IN_PROGRESS)
+        //if (m_pInstance && m_pInstance->GetData(TYPE_MEDIVH) == IN_PROGRESS)
             //return;
 
         //ScriptedAI::AttackStart(who);
@@ -155,14 +155,14 @@ struct MANGOS_DLL_DECL npc_medivh_bmAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
-        if (!pInstance)
+        if (!m_pInstance)
             return;
 
         if (SpellCorrupt_Timer)
         {
             if (SpellCorrupt_Timer <= diff)
             {
-                pInstance->SetData(TYPE_MEDIVH,SPECIAL);
+                m_pInstance->SetData(TYPE_MEDIVH,SPECIAL);
 
                 if (m_creature->HasAura(SPELL_CORRUPT_AEONUS,0))
                     SpellCorrupt_Timer = 1000;
@@ -177,7 +177,7 @@ struct MANGOS_DLL_DECL npc_medivh_bmAI : public ScriptedAI
         {
             if (Check_Timer <= diff)
             {
-                uint32 pct = pInstance->GetData(DATA_SHIELD);
+                uint32 pct = m_pInstance->GetData(DATA_SHIELD);
 
                 Check_Timer = 5000;
 
@@ -198,7 +198,7 @@ struct MANGOS_DLL_DECL npc_medivh_bmAI : public ScriptedAI
                 }
 
                 //if we reach this it means event was running but at some point reset.
-                if (pInstance->GetData(TYPE_MEDIVH) == NOT_STARTED)
+                if (m_pInstance->GetData(TYPE_MEDIVH) == NOT_STARTED)
                 {
                     m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
                     m_creature->RemoveCorpse();
@@ -206,7 +206,7 @@ struct MANGOS_DLL_DECL npc_medivh_bmAI : public ScriptedAI
                     return;
                 }
 
-                if (pInstance->GetData(TYPE_RIFT) == DONE)
+                if (m_pInstance->GetData(TYPE_RIFT) == DONE)
                 {
                     DoScriptText(SAY_WIN, m_creature);
                     Check_Timer = 0;
@@ -215,7 +215,7 @@ struct MANGOS_DLL_DECL npc_medivh_bmAI : public ScriptedAI
                         m_creature->RemoveAura(SPELL_CHANNEL,0);
 
                     //TODO: start the post-event here
-                    pInstance->SetData(TYPE_MEDIVH,DONE);
+                    m_pInstance->SetData(TYPE_MEDIVH,DONE);
                 }
             }else Check_Timer -= diff;
         }
@@ -239,20 +239,20 @@ struct Wave
 
 static Wave PortalWaves[]=
 {
-    {C_ASSAS, C_WHELP, C_CHRON, 0},
-    {C_EXECU, C_CHRON, C_WHELP, C_ASSAS},
-    {C_EXECU, C_VANQU, C_CHRON, C_ASSAS}
+    {NPC_ASSAS, NPC_WHELP, NPC_CHRON, 0},
+    {NPC_EXECU, NPC_CHRON, NPC_WHELP, NPC_ASSAS},
+    {NPC_EXECU, NPC_VANQU, NPC_CHRON, NPC_ASSAS}
 };
 
 struct MANGOS_DLL_DECL npc_time_riftAI : public ScriptedAI
 {
     npc_time_riftAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance *pInstance;
+    ScriptedInstance* m_pInstance;
 
     uint32 TimeRiftWave_Timer;
     uint8 mRiftWaveCount;
@@ -264,10 +264,10 @@ struct MANGOS_DLL_DECL npc_time_riftAI : public ScriptedAI
         TimeRiftWave_Timer = 15000;
         mRiftWaveCount = 0;
 
-        if (!pInstance)
+        if (!m_pInstance)
             return;
 
-        mPortalCount = pInstance->GetData(DATA_PORTAL_COUNT);
+        mPortalCount = m_pInstance->GetData(DATA_PORTAL_COUNT);
 
         if (mPortalCount < 6)
             mWaveId = 0;
@@ -282,7 +282,7 @@ struct MANGOS_DLL_DECL npc_time_riftAI : public ScriptedAI
         if (!creature_entry)
             return;
 
-        if (pInstance->GetData(TYPE_MEDIVH) != IN_PROGRESS)
+        if (m_pInstance->GetData(TYPE_MEDIVH) != IN_PROGRESS)
         {
             m_creature->InterruptNonMeleeSpells(true);
             m_creature->RemoveAllAuras();
@@ -300,9 +300,8 @@ struct MANGOS_DLL_DECL npc_time_riftAI : public ScriptedAI
 
         if (Summon)
         {
-            if (Unit *temp = Unit::GetUnit(*m_creature,pInstance->GetData64(DATA_MEDIVH)))
-                Summon->AddThreat(temp,0.0f);
-                Summon->SetActiveObjectState(true);
+            if (Unit *temp = Unit::GetUnit(*m_creature, m_pInstance->GetData64(DATA_MEDIVH))) {
+                Summon->AddThreat(temp,0.0f); Summon->SetActiveObjectState(true); }
         }
     }
 
@@ -318,16 +317,16 @@ struct MANGOS_DLL_DECL npc_time_riftAI : public ScriptedAI
 
         ++mRiftWaveCount;
 
-        if (entry == C_WHELP)
+        if (entry == NPC_WHELP)
         {
-            for(uint8 i = 0; i < 3; i++)
+            for(uint8 i = 0; i < 3; ++i)
                 DoSummonAtRift(entry);
         }else DoSummonAtRift(entry);
     }
 
     void UpdateAI(const uint32 diff)
     {
-        if (!pInstance)
+        if (!m_pInstance)
             return;
 
         if (TimeRiftWave_Timer < diff)
@@ -342,8 +341,8 @@ struct MANGOS_DLL_DECL npc_time_riftAI : public ScriptedAI
         debug_log("SD2: npc_time_rift: not casting anylonger, i need to die.");
         m_creature->setDeathState(JUST_DIED);
 
-        if (pInstance->GetData(TYPE_RIFT) == IN_PROGRESS)
-            pInstance->SetData(TYPE_RIFT,SPECIAL);
+        if (m_pInstance->GetData(TYPE_RIFT) == IN_PROGRESS)
+            m_pInstance->SetData(TYPE_RIFT,SPECIAL);
     }
 };
 

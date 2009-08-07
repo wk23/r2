@@ -41,13 +41,13 @@ struct MANGOS_DLL_DECL boss_temporusAI : public ScriptedAI
 {
     boss_temporusAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsHeroicMode = pCreature->GetMap()->IsHeroic();
         Reset();
     }
 
-    ScriptedInstance *pInstance;
-    bool HeroicMode;
+    ScriptedInstance* m_pInstance;
+    bool m_bIsHeroicMode;
 
     uint32 Haste_Timer;
     uint32 SpellReflection_Timer;
@@ -56,9 +56,6 @@ struct MANGOS_DLL_DECL boss_temporusAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
-        m_creature->ApplySpellImmune(0, IMMUNITY_EFFECT,SPELL_EFFECT_ATTACK_ME, true);
-
         Haste_Timer = 15000+rand()%8000;
         SpellReflection_Timer = 30000;
         MortalWound_Timer = 8000;
@@ -83,14 +80,14 @@ struct MANGOS_DLL_DECL boss_temporusAI : public ScriptedAI
     {
         DoScriptText(SAY_DEATH, m_creature);
 
-        if (pInstance)
-            pInstance->SetData(TYPE_RIFT,SPECIAL);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_RIFT,SPECIAL);
     }
 
     void MoveInLineOfSight(Unit *who)
     {
         //Despawn Time Keeper
-        if (who->GetTypeId() == TYPEID_UNIT && who->GetEntry() == C_TIME_KEEPER)
+        if (who->GetTypeId() == TYPEID_UNIT && who->GetEntry() == NPC_TIME_KEEPER)
         {
             if (m_creature->IsWithinDistInMap(who,20.0f))
             {
@@ -125,11 +122,11 @@ struct MANGOS_DLL_DECL boss_temporusAI : public ScriptedAI
         //Wing ruffet
         if (WingBuffet_Timer < diff)
         {
-            DoCast(m_creature,HeroicMode ? H_SPELL_WING_BUFFET : SPELL_WING_BUFFET);
+            DoCast(m_creature, m_bIsHeroicMode ? H_SPELL_WING_BUFFET : SPELL_WING_BUFFET);
             WingBuffet_Timer = 20000+rand()%10000;
         }else WingBuffet_Timer -= diff;
 
-        if (HeroicMode)
+        if (m_bIsHeroicMode)
         {
             if (SpellReflection_Timer < diff)
             {
