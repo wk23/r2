@@ -126,7 +126,7 @@ bool SqlQueryHolder::SetPQuery(size_t index, const char *format, ...)
     va_end(ap);
 
     //if(res==-1)
-    if(res < 0)
+    if(!res || res < 0)
     {
         sLog.outError("SQL Query truncated (and not execute) for format: %s",format);
         return false;

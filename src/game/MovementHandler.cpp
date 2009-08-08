@@ -418,7 +418,9 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
             #endif
             check_passed = false;
         }
-        if((delta_z > 4.3f || delta_z < -4.3f) && (delta_z < GetPlayer()->m_anti_last_vspeed) && opcode!=MSG_MOVE_HEARTBEAT) {
+        if((delta_z > 4.3f || delta_z < -4.3f) && (delta_z < GetPlayer()->m_anti_last_vspeed) && opcode!=MSG_MOVE_HEARTBEAT 
+&& !(GetPlayer()->HasAuraType(SPELL_AURA_FLY) || GetPlayer()->HasAuraType(SPELL_AURA_MOD_INCREASE_FLIGHT_SPEED))
+) {
             sLog.outError("Movement anticheat: %s is Nudge/Blink cheater at MAP %u. ", GetPlayer()->GetName(), GetPlayer()->GetMapId());
             check_passed = false;
         }
