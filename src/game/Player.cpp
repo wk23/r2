@@ -674,7 +674,10 @@ bool Player::Create( uint32 guidlow, const std::string& name, uint8 race, uint8 
                 continue;
             }
 
-            uint32 count = iProto->Stackable;               // max stack by default (mostly 1)
+            // BuyCount by default
+            uint32 count = iProto->BuyCount;
+
+            // special amount for foor/drink
             if(iProto->Class==ITEM_CLASS_CONSUMABLE && iProto->SubClass==ITEM_SUBCLASS_FOOD)
             {
                 switch(iProto->Spells[0].SpellCategory)
@@ -15028,8 +15031,7 @@ void Player::SaveToDB()
     uint32 tmp_displayid = GetDisplayId();
 
     // Set player sit state to standing on save, also stealth and shifted form
-    SetStandState(UNIT_STAND_STATE_STAND);                  // stand state
-    RemoveStandFlags(UNIT_STAND_FLAGS_ALL);                 // stand flags?
+    SetByteValue(UNIT_FIELD_BYTES_1, 0, UNIT_STAND_STATE_STAND);
     SetByteValue(UNIT_FIELD_BYTES_2, 3, 0);                 // shapeshift
     SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);                 // stand flags?
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);

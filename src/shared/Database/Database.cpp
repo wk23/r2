@@ -73,7 +73,8 @@ bool Database::PExecuteLog(const char * format,...)
     int res = vsnprintf( szQuery, MAX_QUERY_LEN, format, ap );
     va_end(ap);
 
-    if(res==-1)
+    //if(res==-1)
+    if(res < 0)
     {
         sLog.outError("SQL Query truncated (and not execute) for format: %s",format);
         return false;
@@ -122,7 +123,8 @@ QueryResult* Database::PQuery(const char *format,...)
     int res = vsnprintf( szQuery, MAX_QUERY_LEN, format, ap );
     va_end(ap);
 
-    if(res==-1)
+    //if(res==-1)
+    if(res < 0)
     {
         sLog.outError("SQL Query truncated (and not execute) for format: %s",format);
         return false;
@@ -141,7 +143,8 @@ QueryNamedResult* Database::PQueryNamed(const char *format,...)
     int res = vsnprintf( szQuery, MAX_QUERY_LEN, format, ap );
     va_end(ap);
 
-    if(res==-1)
+    //if(res==-1)
+    if(res < 0)
     {
         sLog.outError("SQL Query truncated (and not execute) for format: %s",format);
         return false;
@@ -161,7 +164,8 @@ bool Database::PExecute(const char * format,...)
     int res = vsnprintf( szQuery, MAX_QUERY_LEN, format, ap );
     va_end(ap);
 
-    if(res==-1)
+    //if(res==-1)
+    if(res < 0)
     {
         sLog.outError("SQL Query truncated (and not execute) for format: %s",format);
         return false;
@@ -181,7 +185,8 @@ bool Database::DirectPExecute(const char * format,...)
     int res = vsnprintf( szQuery, MAX_QUERY_LEN, format, ap );
     va_end(ap);
 
-    if(res==-1)
+    //if(res==-1)
+    if(res < 0)
     {
         sLog.outError("SQL Query truncated (and not execute) for format: %s",format);
         return false;

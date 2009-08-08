@@ -3048,12 +3048,17 @@ void Spell::EffectSummonType(uint32 i)
         case SUMMON_TYPE_GUARDIAN:
         case SUMMON_TYPE_POSESSED:
         case SUMMON_TYPE_POSESSED2:
-            EffectSummonGuardian(i);
+            // Jewelery statue case (totem like)
+            if(m_spellInfo->SpellIconID == 2056)
+                EffectSummonTotem(i);
+            else
+                EffectSummonGuardian(i);
             break;
         case SUMMON_TYPE_WILD:
             EffectSummonWild(i);
             break;
         case SUMMON_TYPE_DEMON:
+        case SUMMON_TYPE_INFERNO:
             EffectSummonDemon(i);
             break;
         case SUMMON_TYPE_SUMMON:
@@ -3098,6 +3103,16 @@ void Spell::EffectSummon(uint32 i)
 
     if(m_caster->GetTypeId()==TYPEID_PLAYER && spawnCreature->LoadPetFromDB((Player*)m_caster,pet_entry))
     {
+        // Summon in dest location
+        float x, y, z;
+        if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+        {
+            x = m_targets.m_destX;
+            y = m_targets.m_destY;
+            z = m_targets.m_destZ;
+            spawnCreature->Relocate(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, -m_caster->GetOrientation());
+        }
+
         // set timer for unsummon
         int32 duration = GetSpellDuration(m_spellInfo);
         if(duration > 0)
@@ -3484,13 +3499,6 @@ void Spell::EffectSummonGuardian(uint32 i)
     if(!pet_entry)
         return;
 
-    // Jewelery statue case (totem like)
-    if(m_spellInfo->SpellIconID == 2056)
-    {
-        EffectSummonTotem(i);
-        return;
-    }
-
     // set timer for unsummon
     int32 duration = GetSpellDuration(m_spellInfo);
 
@@ -3526,6 +3534,9 @@ void Spell::EffectSummonGuardian(uint32 i)
     float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
 
     int32 amount = damage > 0 ? damage : 1;
+
+    if (m_spellInfo->EffectMiscValueB[i] == SUMMON_TYPE_INFERNO)
+        amount = 1;
 
     for(int32 count = 0; count < amount; ++count)
     {
@@ -4397,39 +4408,40 @@ void Spell::EffectSummonObjectWild(uint32 i)
     }
 
     int32 duration = GetSpellDuration(m_spellInfo);
+
     pGameObj->SetRespawnTime(duration > 0 ? duration/IN_MILISECONDS : 0);
     pGameObj->SetSpellId(m_spellInfo->Id);
 
-    if(pGameObj->GetGoType() != GAMEOBJECT_TYPE_FLAGDROP)   // make dropped flag clickable for other players (not set owner guid (created by) for this)...
-        m_caster->AddGameObject(pGameObj);
+    // Wild object not have owner and check clickable by players
     map->Add(pGameObj);
 
-    if(pGameObj->GetMapId() == 489 && pGameObj->GetGoType() == GAMEOBJECT_TYPE_FLAGDROP)  //WS
+    if(pGameObj->GetGoType() == GAMEOBJECT_TYPE_FLAGDROP && m_caster->GetTypeId() == TYPEID_PLAYER)
     {
-        if(m_caster->GetTypeId() == TYPEID_PLAYER)
+        Player *pl = (Player*)m_caster;
+        BattleGround* bg = ((Player *)m_caster)->GetBattleGround();
+
+        switch(pGameObj->GetMapId())
         {
-            Player *pl = (Player*)m_caster;
-            BattleGround* bg = ((Player *)m_caster)->GetBattleGround();
-            if(bg && bg->GetTypeID()==BATTLEGROUND_WS && bg->GetStatus() == STATUS_IN_PROGRESS)
+            case 489:                                       //WS
             {
-                 uint32 team = ALLIANCE;
+                if(bg && bg->GetTypeID()==BATTLEGROUND_WS && bg->GetStatus() == STATUS_IN_PROGRESS)
+                {
+                    uint32 team = ALLIANCE;
 
-                 if(pl->GetTeam() == team)
-                     team = HORDE;
+                    if(pl->GetTeam() == team)
+                        team = HORDE;
 
-                ((BattleGroundWS*)bg)->SetDroppedFlagGUID(pGameObj->GetGUID(),team);
+                    ((BattleGroundWS*)bg)->SetDroppedFlagGUID(pGameObj->GetGUID(),team);
+                }
+                break;
             }
-        }
-    }
-
-    if(pGameObj->GetMapId() == 566 && pGameObj->GetGoType() == GAMEOBJECT_TYPE_FLAGDROP)  //EY
-    {
-        if(m_caster->GetTypeId() == TYPEID_PLAYER)
-        {
-            BattleGround* bg = ((Player *)m_caster)->GetBattleGround();
-            if(bg && bg->GetTypeID()==BATTLEGROUND_EY && bg->GetStatus() == STATUS_IN_PROGRESS)
+            case 566:                                       //EY
             {
-                ((BattleGroundEY*)bg)->SetDroppedFlagGUID(pGameObj->GetGUID());
+                if(bg && bg->GetTypeID()==BATTLEGROUND_EY && bg->GetStatus() == STATUS_IN_PROGRESS)
+                {
+                    ((BattleGroundEY*)bg)->SetDroppedFlagGUID(pGameObj->GetGUID());
+                }
+                break;
             }
         }
     }
@@ -4443,7 +4455,7 @@ void Spell::EffectSummonObjectWild(uint32 i)
             linkedGO->SetRespawnTime(duration > 0 ? duration/IN_MILISECONDS : 0);
             linkedGO->SetSpellId(m_spellInfo->Id);
 
-            m_caster->AddGameObject(linkedGO);
+            // Wild object not have owner and check clickable by players
             map->Add(linkedGO);
         }
         else
@@ -5809,7 +5821,7 @@ void Spell::EffectSummonDeadPet(uint32 /*i*/)
 
     pet->AIM_Initialize();
 
-    _player->PetSpellInitialize();
+    // _player->PetSpellInitialize(); -- action bar not removed at death and not required send at revive
     pet->SavePetToDB(PET_SAVE_AS_CURRENT);
 }
 
@@ -6081,8 +6093,9 @@ void Spell::EffectSummonDemon(uint32 i)
         // Enslave demon effect, without mana cost and cooldown
         m_caster->CastSpell(Charmed, 20882, true);          // FIXME: enslave does not scale with level, level 62+ minions cannot be enslaved
 
-        // Inferno effect
-        Charmed->CastSpell(Charmed, 22703, true, 0);
+            // Inferno effect for non player calls
+            if (m_spellInfo->EffectMiscValueB[i]!=SUMMON_TYPE_INFERNO)
+                Charmed->CastSpell(Charmed, 22703, true, 0);
     }
 }
 
