@@ -122,7 +122,7 @@ void Pet::RemoveFromWorld()
 bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool current )
 {
     m_loading = true;
-    if(!owner) return;
+    if(!owner) return false;
     uint32 ownerid = owner->GetGUIDLow();
 
     QueryResult *result;
