@@ -315,10 +315,7 @@ void WorldSession::SendPetitionQueryOpcode(uint64 petitionguid)
     uint8 signs = 0;
 
     QueryResult *result = CharacterDatabase.PQuery(
-        "SELECT ownerguid, name, "
-        "  (SELECT COUNT(playerguid) FROM petition_sign WHERE petition_sign.petitionguid = '%u') AS signs, "
-        "  type "
-        "FROM petition WHERE petitionguid = '%u'", GUID_LOPART(petitionguid), GUID_LOPART(petitionguid));
+        "SELECT ownerguid, name, (SELECT COUNT(playerguid) FROM petition_sign WHERE petition_sign.petitionguid = '%u') AS signs,  type FROM petition WHERE petitionguid = '%u'", GUID_LOPART(petitionguid), GUID_LOPART(petitionguid));
 
     if(result)
     {
@@ -453,10 +450,7 @@ void WorldSession::HandlePetitionSignOpcode(WorldPacket & recv_data)
     recv_data >> unk;
 
     QueryResult *result = CharacterDatabase.PQuery(
-        "SELECT ownerguid, "
-        "  (SELECT COUNT(playerguid) FROM petition_sign WHERE petition_sign.petitionguid = '%u') AS signs, "
-        "  type "
-        "FROM petition WHERE petitionguid = '%u'", GUID_LOPART(petitionguid), GUID_LOPART(petitionguid));
+        "SELECT ownerguid,  (SELECT COUNT(playerguid) FROM petition_sign WHERE petition_sign.petitionguid = '%u') AS signs,  type FROM petition WHERE petitionguid = '%u'", GUID_LOPART(petitionguid), GUID_LOPART(petitionguid));
 
     if(!result)
     {
