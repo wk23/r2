@@ -505,12 +505,12 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
                     GetPlayer()->m_anti_teletoplane_count++;
                     check_passed = false;
                     #ifdef MOVEMENT_ANTICHEAT_DEBUG
-                    sLog.outError("Movement anticheat: %s is teleport to plan exception. plane_z: %f ", GetPlayer()->GetName(), plane_z);
+                    sLog.outErrorDb("Movement anticheat: %s is teleport to plan exception. plane_z: %f ", GetPlayer()->GetName(), plane_z);
                     #endif
                     if (GetPlayer()->m_anti_teletoplane_count > World::GetTeleportToPlaneAlarms())
                     {
                         GetPlayer()->GetSession()->KickPlayer();
-                        sLog.outError("Movement anticheat: %s is teleport to plan exception. Exception count: %d  at map: %u", GetPlayer()->GetName(), GetPlayer()->m_anti_teletoplane_count, GetPlayer()->GetMapId());
+                        sLog.outErrorDb("Movement anticheat: %s is teleport to plan exception. Exception count: %d  at map: %u", GetPlayer()->GetName(), GetPlayer()->m_anti_teletoplane_count, GetPlayer()->GetMapId());
                     }
                 }
             }
