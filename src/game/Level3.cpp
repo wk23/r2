@@ -780,7 +780,7 @@ bool ChatHandler::HandleAccountSetGmLevelCommand(const char* args)
             return false;
 
         targetAccountName = arg1;
-        if(!AccountMgr::normilizeString(targetAccountName))
+        if (!AccountMgr::normalizeString(targetAccountName))
         {
             PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,targetAccountName.c_str());
             SetSentErrorMessage(true);
@@ -845,7 +845,7 @@ bool ChatHandler::HandleAccountSetPasswordCommand(const char* args)
         return false;
 
     std::string account_name = szAccount;
-    if(!AccountMgr::normilizeString(account_name))
+    if (!AccountMgr::normalizeString(account_name))
     {
         PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,account_name.c_str());
         SetSentErrorMessage(true);
@@ -977,27 +977,12 @@ bool ChatHandler::HandleUnLearnCommand(const char* args)
         return false;
 
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r
-    uint32 min_id = extractSpellIdFromLink((char*)args);
-    if(!min_id)
+    uint32 spell_id = extractSpellIdFromLink((char*)args);
+    if(!spell_id)
         return false;
 
-    // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r
-    char* tail = strtok(NULL,"");
-
-    uint32 max_id = extractSpellIdFromLink(tail);
-
-    if (!max_id)
-    {
-        // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r
-        max_id =  min_id+1;
-    }
-    else
-    {
-        if (max_id < min_id)
-            std::swap(min_id,max_id);
-
-        max_id=max_id+1;
-    }
+    char const* allStr = strtok(NULL," ");
+    bool allRanks = allStr ? (strncmp(allStr, "all", strlen(allStr)) == 0) : false;
 
     Player* target = getSelectedPlayer();
     if(!target)
@@ -1007,13 +992,13 @@ bool ChatHandler::HandleUnLearnCommand(const char* args)
         return false;
     }
 
-    for(uint32 spell=min_id;spell<max_id;spell++)
-    {
-        if (target->HasSpell(spell))
-            target->removeSpell(spell);
-        else
-            SendSysMessage(LANG_FORGET_SPELL);
-    }
+    if(allRanks)
+        spell_id = spellmgr.GetFirstSpellInChain (spell_id);
+
+    if (target->HasSpell(spell_id))
+        target->removeSpell(spell_id);
+    else
+        SendSysMessage(LANG_FORGET_SPELL);
 
     return true;
 }
@@ -1771,16 +1756,6 @@ bool ChatHandler::HandleLearnAllMySpellsCommand(const char* /*args*/)
     return true;
 }
 
-static void learnAllHighRanks(Player* player, uint32 spellid)
-{
-    SpellChainMapNext const& nextMap = spellmgr.GetSpellChainNext();
-    for(SpellChainMapNext::const_iterator itr = nextMap.lower_bound(spellid); itr != nextMap.upper_bound(spellid); ++itr)
-    {
-        player->learnSpell(itr->second);
-        learnAllHighRanks(player,itr->second);
-    }
-}
-
 bool ChatHandler::HandleLearnAllMyTalentsCommand(const char* /*args*/)
 {
     Player* player = m_session->GetPlayer();
@@ -1818,11 +1793,8 @@ bool ChatHandler::HandleLearnAllMyTalentsCommand(const char* /*args*/)
         if(!spellInfo || !SpellMgr::IsSpellValid(spellInfo,m_session->GetPlayer(),false))
             continue;
 
-        // learn highest rank of talent
-        player->learnSpell(spellid);
-
-        // and learn all non-talent spell ranks (recursive by tree)
-        learnAllHighRanks(player,spellid);
+        // learn highest rank of talent and learn all non-talent spell ranks (recursive by tree)
+        player->learnSpellHighRank(spellid);
     }
 
     SendSysMessage(LANG_COMMAND_LEARN_CLASS_TALENTS);
@@ -1868,15 +1840,8 @@ bool ChatHandler::HandleLearnCommand(const char* args)
     if(!spell || !sSpellStore.LookupEntry(spell))
         return false;
 
-    if (targetPlayer->HasSpell(spell))
-    {
-        if(targetPlayer == m_session->GetPlayer())
-            SendSysMessage(LANG_YOU_KNOWN_SPELL);
-        else
-            PSendSysMessage(LANG_TARGET_KNOWN_SPELL,GetNameLink(targetPlayer).c_str());
-        SetSentErrorMessage(true);
-        return false;
-    }
+    char const* allStr = strtok(NULL," ");
+    bool allRanks = allStr ? (strncmp(allStr, "all", strlen(allStr)) == 0) : false;
 
     SpellEntry const* spellInfo = sSpellStore.LookupEntry(spell);
     if(!spellInfo || !SpellMgr::IsSpellValid(spellInfo,m_session->GetPlayer()))
@@ -1886,7 +1851,20 @@ bool ChatHandler::HandleLearnCommand(const char* args)
         return false;
     }
 
-    targetPlayer->learnSpell(spell);
+    if (!allRanks && targetPlayer->HasSpell(spell))
+    {
+        if(targetPlayer == m_session->GetPlayer())
+            SendSysMessage(LANG_YOU_KNOWN_SPELL);
+        else
+            PSendSysMessage(LANG_TARGET_KNOWN_SPELL,targetPlayer->GetName());
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if(allRanks)
+        targetPlayer->learnSpellHighRank(spell);
+    else
+        targetPlayer->learnSpell(spell);
 
     return true;
 }
@@ -2794,7 +2772,7 @@ bool ChatHandler::HandleLookupQuestCommand(const char* args)
                         }
 
                         if (m_session)
-                            PSendSysMessage(LANG_QUEST_LIST_CHAT,qinfo->GetQuestId(),qinfo->GetQuestId(),title.c_str(),statusStr);
+                            PSendSysMessage(LANG_QUEST_LIST_CHAT,qinfo->GetQuestId(),qinfo->GetQuestId(),qinfo->GetQuestLevel(),title.c_str(),statusStr);
                         else
                             PSendSysMessage(LANG_QUEST_LIST_CONSOLE,qinfo->GetQuestId(),title.c_str(),statusStr);
                         ++counter;
@@ -2828,7 +2806,7 @@ bool ChatHandler::HandleLookupQuestCommand(const char* args)
             }
 
             if (m_session)
-                PSendSysMessage(LANG_QUEST_LIST_CHAT,qinfo->GetQuestId(),qinfo->GetQuestId(),title.c_str(),statusStr);
+                PSendSysMessage(LANG_QUEST_LIST_CHAT,qinfo->GetQuestId(),qinfo->GetQuestId(),qinfo->GetQuestLevel(),title.c_str(),statusStr);
             else
                 PSendSysMessage(LANG_QUEST_LIST_CONSOLE,qinfo->GetQuestId(),title.c_str(),statusStr);
 
@@ -4509,7 +4487,7 @@ bool ChatHandler::HandleQuestAdd(const char* args)
     }
 
     // .addquest #entry'
-    // number or [name] Shift-click form |color|Hquest:quest_id|h[name]|h|r
+    // number or [name] Shift-click form |color|Hquest:quest_id:quest_level|h[name]|h|r
     char* cId = extractKeyFromLink((char*)args,"Hquest");
     if(!cId)
         return false;
@@ -4563,7 +4541,7 @@ bool ChatHandler::HandleQuestRemove(const char* args)
     }
 
     // .removequest #entry'
-    // number or [name] Shift-click form |color|Hquest:quest_id|h[name]|h|r
+    // number or [name] Shift-click form |color|Hquest:quest_id:quest_level|h[name]|h|r
     char* cId = extractKeyFromLink((char*)args,"Hquest");
     if(!cId)
         return false;
@@ -4613,7 +4591,7 @@ bool ChatHandler::HandleQuestComplete(const char* args)
     }
 
     // .quest complete #entry
-    // number or [name] Shift-click form |color|Hquest:quest_id|h[name]|h|r
+    // number or [name] Shift-click form |color|Hquest:quest_id:quest_level|h[name]|h|r
     char* cId = extractKeyFromLink((char*)args,"Hquest");
     if(!cId)
         return false;
@@ -4729,7 +4707,7 @@ bool ChatHandler::HandleBanHelper(BanMode mode, const char* args)
     switch(mode)
     {
         case BAN_ACCOUNT:
-            if(!AccountMgr::normilizeString(nameOrIP))
+            if (!AccountMgr::normalizeString(nameOrIP))
             {
                 PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,nameOrIP.c_str());
                 SetSentErrorMessage(true);
@@ -4809,7 +4787,7 @@ bool ChatHandler::HandleUnBanHelper(BanMode mode, const char* args)
     switch(mode)
     {
         case BAN_ACCOUNT:
-            if(!AccountMgr::normilizeString(nameOrIP))
+            if (!AccountMgr::normalizeString(nameOrIP))
             {
                 PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,nameOrIP.c_str());
                 SetSentErrorMessage(true);
@@ -4844,11 +4822,11 @@ bool ChatHandler::HandleBanInfoAccountCommand(const char* args)
         return false;
 
     char* cname = strtok((char*)args, "");
-    if(!cname)
+    if (!cname)
         return false;
 
     std::string account_name = cname;
-    if(!AccountMgr::normilizeString(account_name))
+    if (!AccountMgr::normalizeString(account_name))
     {
         PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,account_name.c_str());
         SetSentErrorMessage(true);
@@ -4856,7 +4834,7 @@ bool ChatHandler::HandleBanInfoAccountCommand(const char* args)
     }
 
     uint32 accountid = accmgr.GetId(account_name);
-    if(!accountid)
+    if (!accountid)
     {
         PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,account_name.c_str());
         return true;
@@ -4869,13 +4847,13 @@ bool ChatHandler::HandleBanInfoCharacterCommand(const char* args)
 {
     Player* target;
     uint64 target_guid;
-    if(!extractPlayerTarget((char*)args,&target,&target_guid))
+    if (!extractPlayerTarget((char*)args,&target,&target_guid))
         return false;
 
     uint32 accountid = target ? target->GetSession()->GetAccountId() : objmgr.GetPlayerAccountIdByGUID(target_guid);
 
     std::string accountname;
-    if(!accmgr.GetName(accountid,accountname))
+    if (!accmgr.GetName(accountid,accountname))
     {
         PSendSysMessage(LANG_BANINFO_NOCHARACTER);
         return true;
@@ -5213,15 +5191,15 @@ bool ChatHandler::HandlePDumpLoadCommand(const char *args)
         return false;
 
     char * file = strtok((char*)args, " ");
-    if(!file)
+    if (!file)
         return false;
 
     char * account = strtok(NULL, " ");
-    if(!account)
+    if (!account)
         return false;
 
     std::string account_name = account;
-    if(!AccountMgr::normilizeString(account_name))
+    if (!AccountMgr::normalizeString(account_name))
     {
         PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,account_name.c_str());
         SetSentErrorMessage(true);
@@ -5229,10 +5207,10 @@ bool ChatHandler::HandlePDumpLoadCommand(const char *args)
     }
 
     uint32 account_id = accmgr.GetId(account_name);
-    if(!account_id)
+    if (!account_id)
     {
         account_id = atoi(account);                             // use original string
-        if(!account_id)
+        if (!account_id)
         {
             PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,account_name.c_str());
             SetSentErrorMessage(true);
@@ -5240,7 +5218,7 @@ bool ChatHandler::HandlePDumpLoadCommand(const char *args)
         }
     }
 
-    if(!accmgr.GetName(account_id,account_name))
+    if (!accmgr.GetName(account_id,account_name))
     {
         PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,account_name.c_str());
         SetSentErrorMessage(true);
@@ -5897,10 +5875,10 @@ bool ChatHandler::HandleAccountSetAddonCommand(const char* args)
     std::string account_name;
     uint32 account_id;
 
-    if(!szExp)
+    if (!szExp)
     {
         Player* player = getSelectedPlayer();
-        if(!player)
+        if (!player)
             return false;
 
         account_id = player->GetSession()->GetAccountId();
@@ -5911,7 +5889,7 @@ bool ChatHandler::HandleAccountSetAddonCommand(const char* args)
     {
         ///- Convert Account name to Upper Format
         account_name = szAcc;
-        if(!AccountMgr::normilizeString(account_name))
+        if (!AccountMgr::normalizeString(account_name))
         {
             PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,account_name.c_str());
             SetSentErrorMessage(true);
@@ -5919,7 +5897,7 @@ bool ChatHandler::HandleAccountSetAddonCommand(const char* args)
         }
 
         account_id = accmgr.GetId(account_name);
-        if(!account_id)
+        if (!account_id)
         {
             PSendSysMessage(LANG_ACCOUNT_NOT_EXIST,account_name.c_str());
             SetSentErrorMessage(true);

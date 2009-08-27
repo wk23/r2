@@ -825,7 +825,7 @@ struct MANGOS_DLL_DECL mob_greyheart_spellbinderAI : public ScriptedAI
 
 	void CastChanneling()
 	{
-		if (!m_creature->isInCombat() && !m_creature->m_currentSpells[CURRENT_CHANNELED_SPELL])
+		if (!m_creature->isInCombat() && !m_creature->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
 		   if (leotherasGUID)
 		      {
 		           Creature *leotheras = (Creature *)Unit::GetUnit(*m_creature, leotherasGUID);
@@ -886,7 +886,7 @@ struct MANGOS_DLL_DECL mob_greyheart_spellbinderAI : public ScriptedAI
                 {
 				    bool isCasting = false;
 				    for(uint8 i = 0; i < CURRENT_MAX_SPELL; ++i)
-					    if(i_pl->m_currentSpells[i])
+if (Spell* spell = i_pl->GetCurrentSpell(CurrentSpellTypes(i)))
 						    isCasting = true;
 
 				    if(isCasting)

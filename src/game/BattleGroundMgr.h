@@ -219,6 +219,7 @@ class BattleGroundMgr
 
         BGFreeSlotQueueType BGFreeSlotQueue[MAX_BATTLEGROUND_TYPE_ID];
 
+        void ScheduleQueueUpdate(uint32 bgQueueTypeId, BattleGroundTypeId bgTypeId, uint32 queue_id);
         uint32 GetMaxRatingDifference() const;
         uint32 GetRatingDiscardTimer()  const;
         uint32 GetPrematureFinishTime() const;
@@ -250,6 +251,7 @@ class BattleGroundMgr
 
         /* Battlegrounds */
         BattleGroundSet m_BattleGrounds;
+        std::vector<uint32>m_QueueUpdateScheduler;
         uint32 m_NextRatingDiscardUpdate;
         time_t m_NextAutoDistributionTime;
         uint32 m_AutoDistributionTimeChecker;

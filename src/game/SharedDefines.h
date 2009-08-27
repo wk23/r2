@@ -249,7 +249,7 @@ enum ItemQualities
 #define SPELL_ATTR_EX_NEGATIVE                    0x00000080            // 7
 #define SPELL_ATTR_EX_NOT_IN_COMBAT_TARGET        0x00000100            // 8 Spell req target not to be in combat state
 #define SPELL_ATTR_EX_UNK9                        0x00000200            // 9
-#define SPELL_ATTR_EX_UNK10                       0x00000400            // 10
+#define SPELL_ATTR_EX_NO_INITIAL_AGGRO            0x00000400            // 10 no generates threat on cast 100%
 #define SPELL_ATTR_EX_UNK11                       0x00000800            // 11
 #define SPELL_ATTR_EX_UNK12                       0x00001000            // 12
 #define SPELL_ATTR_EX_UNK13                       0x00002000            // 13
@@ -300,10 +300,10 @@ enum ItemQualities
 #define SPELL_ATTR_EX2_UNK25                      0x02000000            // 25
 #define SPELL_ATTR_EX2_UNK26                      0x04000000            // 26 unaffected by school immunity
 #define SPELL_ATTR_EX2_UNK27                      0x08000000            // 27
-#define SPELL_ATTR_EX2_UNK28                      0x10000000            // 28
+#define SPELL_ATTR_EX2_UNK28                      0x10000000            // 28 no breaks stealth if it fails??
 #define SPELL_ATTR_EX2_CANT_CRIT                  0x20000000            // 29 Spell can't crit
 #define SPELL_ATTR_EX2_UNK30                      0x40000000            // 30
-#define SPELL_ATTR_EX2_UNK31                      0x80000000            // 31
+#define SPELL_ATTR_EX2_FOOD_BUFF                  0x80000000            // 31 Food or Drink Buff (like Well Fed)
 
 #define SPELL_ATTR_EX3_UNK0                       0x00000001            // 0
 #define SPELL_ATTR_EX3_UNK1                       0x00000002            // 1
@@ -321,8 +321,8 @@ enum ItemQualities
 #define SPELL_ATTR_EX3_UNK13                      0x00002000            // 13
 #define SPELL_ATTR_EX3_UNK14                      0x00004000            // 14 "Honorless Target" only this spells have this flag
 #define SPELL_ATTR_EX3_UNK15                      0x00008000            // 15 Auto Shoot, Shoot, Throw,  - this is autoshot flag
-#define SPELL_ATTR_EX3_UNK16                      0x00010000            // 16
-#define SPELL_ATTR_EX3_NO_INITIAL_AGGRO           0x00020000            // 17 no initial aggro
+#define SPELL_ATTR_EX3_UNK16                      0x00010000            // 16 no triggers effects that trigger on casting a spell??
+#define SPELL_ATTR_EX3_UNK17                      0x00020000            // 17 no triggers effects that trigger on casting a spell??
 #define SPELL_ATTR_EX3_UNK18                      0x00040000            // 18
 #define SPELL_ATTR_EX3_UNK19                      0x00080000            // 19
 #define SPELL_ATTR_EX3_DEATH_PERSISTENT           0x00100000            // 20 Death persistent spells
@@ -330,7 +330,7 @@ enum ItemQualities
 #define SPELL_ATTR_EX3_REQ_WAND                   0x00400000            // 22 Req wand
 #define SPELL_ATTR_EX3_UNK23                      0x00800000            // 23
 #define SPELL_ATTR_EX3_REQ_OFFHAND                0x01000000            // 24 Req offhand weapon
-#define SPELL_ATTR_EX3_UNK25                      0x02000000            // 25
+#define SPELL_ATTR_EX3_UNK25                      0x02000000            // 25 no cause spell pushback ?
 #define SPELL_ATTR_EX3_UNK26                      0x04000000            // 26
 #define SPELL_ATTR_EX3_UNK27                      0x08000000            // 27
 #define SPELL_ATTR_EX3_UNK28                      0x10000000            // 28
@@ -342,7 +342,7 @@ enum ItemQualities
 #define SPELL_ATTR_EX4_UNK1                       0x00000002            // 1 proc on finishing move?
 #define SPELL_ATTR_EX4_UNK2                       0x00000004            // 2
 #define SPELL_ATTR_EX4_UNK3                       0x00000008            // 3
-#define SPELL_ATTR_EX4_UNK4                       0x00000010            // 4
+#define SPELL_ATTR_EX4_UNK4                       0x00000010            // 4 This will no longer cause guards to attack on use??
 #define SPELL_ATTR_EX4_UNK5                       0x00000020            // 5
 #define SPELL_ATTR_EX4_NOT_STEALABLE              0x00000040            // 6 although such auras might be dispellable, they cannot be stolen
 #define SPELL_ATTR_EX4_UNK7                       0x00000080            // 7
@@ -878,7 +878,7 @@ enum Mechanics
 {
     MECHANIC_NONE             = 0,
     MECHANIC_CHARM            = 1,
-    MECHANIC_CONFUSED         = 2,
+    MECHANIC_DISORIENTED      = 2,
     MECHANIC_DISARM           = 3,
     MECHANIC_DISTRACT         = 4,
     MECHANIC_FEAR             = 5,
@@ -911,7 +911,7 @@ enum Mechanics
 
 // Used for spell 42292 Immune Movement Impairment and Loss of Control (0x49967da6)
 #define IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK ( \
-    (1<<MECHANIC_CHARM   )|(1<<MECHANIC_CONFUSED )|(1<<MECHANIC_FEAR  )| \
+    (1<<MECHANIC_CHARM   )|(1<<MECHANIC_DISORIENTED )|(1<<MECHANIC_FEAR  )| \
     (1<<MECHANIC_ROOT    )|(1<<MECHANIC_PACIFY   )|(1<<MECHANIC_SLEEP )| \
     (1<<MECHANIC_SNARE   )|(1<<MECHANIC_STUN     )|(1<<MECHANIC_FREEZE)| \
     (1<<MECHANIC_KNOCKOUT)|(1<<MECHANIC_POLYMORPH)|(1<<MECHANIC_BANISH)| \
@@ -920,7 +920,7 @@ enum Mechanics
 
 // Daze and all croud control spells except polymorph are not removed
 #define MECHANIC_NOT_REMOVED_BY_SHAPESHIFT ( \
-    (1<<MECHANIC_CHARM )|(1<<MECHANIC_FEAR  )|(1<<MECHANIC_PACIFY )| \
+    (1<<MECHANIC_CHARM )|(1<<MECHANIC_DISORIENTED)|(1<<MECHANIC_FEAR  )|(1<<MECHANIC_PACIFY )| \
     (1<<MECHANIC_STUN  )|(1<<MECHANIC_FREEZE     )|(1<<MECHANIC_BANISH)|(1<<MECHANIC_SHACKLE)| \
     (1<<MECHANIC_HORROR)|(1<<MECHANIC_TURN       )|(1<<MECHANIC_DAZE  )|(1<<MECHANIC_SAPPED ) )
 
@@ -1011,6 +1011,14 @@ enum Targets
     TARGET_LOCATION_RANDOM_IN_AREA     = 74,
     TARGET_DYNAMIC_OBJECT_COORDINATES  = 76,
     TARGET_SINGLE_ENEMY                = 77,
+    TARGET_POINT_AT_NORTH              = 78,                // 78-85 possible _COORDINATES at radius with pi/4 step around target in unknown order, N?
+    TARGET_POINT_AT_SOUTH              = 79,                // S?
+    TARGET_POINT_AT_EAST               = 80,                // 80/81 must be symmetric from line caster->target, E (base at 82/83, 84/85 order) ?
+    TARGET_POINT_AT_WEST               = 81,                // 80/81 must be symmetric from line caster->target, W (base at 82/83, 84/85 order) ?
+    TARGET_POINT_AT_NE                 = 82,                // from spell desc: "(NE)"
+    TARGET_POINT_AT_NW                 = 83,                // from spell desc: "(NW)"
+    TARGET_POINT_AT_SE                 = 84,                // from spell desc: "(SE)"
+    TARGET_POINT_AT_SW                 = 85,                // from spell desc: "(SW)"
     TARGET_LOCATION_AROUND_DEST        = 86,
     TARGET_LOCATION_AT_DEST            = 87,
     TARGET_NONCOMBAT_PET               = 90,
@@ -1734,9 +1742,26 @@ enum CreatureFamily
 
 enum CreatureTypeFlags
 {
-    CREATURE_TYPEFLAGS_TAMEABLE        = 0x0001,
-    CREATURE_TYPEFLAGS_HERBLOOT        = 0x0100,
-    CREATURE_TYPEFLAGS_MININGLOOT      = 0x0200
+    CREATURE_TYPEFLAGS_TAMEABLE        = 0x00001,           //tameable by any hunter
+    CREATURE_TYPEFLAGS_UNK2            = 0x00002,           //? Related to spirits/ghosts in any form? Allow gossip interaction if player is also ghost? Visibility?
+    CREATURE_TYPEFLAGS_UNK3            = 0x00004,
+    CREATURE_TYPEFLAGS_UNK4            = 0x00008,
+    CREATURE_TYPEFLAGS_UNK5            = 0x00010,
+    CREATURE_TYPEFLAGS_UNK6            = 0x00020,
+    CREATURE_TYPEFLAGS_UNK7            = 0x00040,
+    CREATURE_TYPEFLAGS_UNK8            = 0x00080,
+    CREATURE_TYPEFLAGS_HERBLOOT        = 0x00100,           //can be looted by herbalist
+    CREATURE_TYPEFLAGS_MININGLOOT      = 0x00200,           //can be looted by miner
+    CREATURE_TYPEFLAGS_UNK11           = 0x00400,
+    CREATURE_TYPEFLAGS_UNK12           = 0x00800,           //? Related to mounts in some way. If mounted, fight mounted, mount appear as independant when rider dies?
+    CREATURE_TYPEFLAGS_UNK13           = 0x01000,           //? Can aid any player in combat if in range?
+    CREATURE_TYPEFLAGS_UNK14           = 0x02000,
+    CREATURE_TYPEFLAGS_UNK15           = 0x04000,           //? Possibly not in use
+    CREATURE_TYPEFLAGS_ENGINEERLOOT    = 0x08000,           //can be looted by engineer
+    CREATURE_TYPEFLAGS_EXOTIC          = 0x10000,           //can be tamed by hunter as exotic pet
+    CREATURE_TYPEFLAGS_UNK18           = 0x20000,           //? Related to veichles/pvp?
+    CREATURE_TYPEFLAGS_UNK19           = 0x40000,           //? Related to veichle/siege weapons?
+    CREATURE_TYPEFLAGS_UNK20           = 0x80000
 };
 
 enum CreatureEliteType

@@ -114,6 +114,7 @@ Thread::Thread(Runnable* instance) : m_task(instance), m_iThreadId(0), m_hThread
 Thread::~Thread()
 {
     //Wait();
+
     // deleted runnable object (if no other references)
     if (m_task)
         m_task->decReference();

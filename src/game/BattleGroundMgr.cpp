@@ -1046,7 +1046,11 @@ bool BGQueueRemoveEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
             }
             plr->RemoveBattleGroundQueueId(bgQueueTypeId);
             sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId].RemovePlayer(m_PlayerGuid, true);
-            sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId].Update(bg->GetTypeID(),bg->GetQueueType());
+//ScheduleQueueUpdate(m_BgQueueTypeId, m_BgTypeId, bg->GetQueueId());
+//-                sBattleGroundMgr.m_BattleGroundQueues[m_BgQueueTypeId].Update(m_BgTypeId, bg->GetQueueId());
+//+                sBattleGroundMgr.ScheduleQueueUpdate(m_BgQueueTypeId, m_BgTypeId, bg->GetQueueId());
+sBattleGroundMgr.ScheduleQueueUpdate(bgQueueTypeId, bg->GetTypeID(), bg->GetQueueType());
+            //sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId].Update(bg->GetTypeID(),bg->GetQueueType());
             WorldPacket data;
             sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, m_PlayersTeam, queueSlot, STATUS_NONE, 0, 0);
             plr->GetSession()->SendPacket(&data);
@@ -1117,6 +1121,22 @@ void BattleGroundMgr::Update(uint32 diff)
             delete bg;
         }
     }
+
+    // update scheduled queues
+    if (!m_QueueUpdateScheduler.empty())
+    {
+        //copy vector and clear the other
+        std::vector<uint32> scheduled(m_QueueUpdateScheduler);
+        m_QueueUpdateScheduler.clear();
+        for (uint8 i = 0; i < scheduled.size(); i++)
+        {
+            BattleGroundQueueTypeId bgQueueTypeId = BattleGroundQueueTypeId(scheduled[i] / 65536);
+            BattleGroundTypeId bgTypeId = BattleGroundTypeId((scheduled[i] % 65536) / 256);
+            uint32 queue_id = uint32(scheduled[i] % 256);
+            m_BattleGroundQueues[bgQueueTypeId].Update(bgTypeId, queue_id);
+        }
+    }
+
     // if rating difference counts, maybe force-update queues
     if(sWorld.getConfig(CONFIG_ARENA_MAX_RATING_DIFFERENCE))
     {
@@ -1895,6 +1915,24 @@ void BattleGroundMgr::ToggleArenaTesting()
         sWorld.SendWorldText(LANG_DEBUG_ARENA_ON);
     else
         sWorld.SendWorldText(LANG_DEBUG_ARENA_OFF);
+}
+
+void BattleGroundMgr::ScheduleQueueUpdate(uint32 bgQueueTypeId, BattleGroundTypeId bgTypeId, uint32 queue_id)
+{
+    //This method must be atomic!
+    //we will use only 1 number created of bgTypeId and queue_id
+    uint32 schedule_id = (bgQueueTypeId * 65536) + (bgTypeId * 256) + queue_id;
+    bool found = false;
+    for (uint8 i = 0; i < m_QueueUpdateScheduler.size(); i++)
+    {
+        if (m_QueueUpdateScheduler[i] == schedule_id)
+        {
+            found = true;
+            break;
+        }
+    }
+    if (!found)
+        m_QueueUpdateScheduler.push_back(schedule_id);
 }
 
 uint32 BattleGroundMgr::GetMaxRatingDifference() const

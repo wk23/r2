@@ -36,18 +36,20 @@
 // |color|Harea:area_id|h[name]|h|r
 // |color|Hcreature:creature_guid|h[name]|h|r
 // |color|Hcreature_entry:creature_id|h[name]|h|r
+// |color|Henchant:recipe_spell_id|h[prof_name: recipe_name]|h|r          - client, at shift click in recipes list dialog
 // |color|Hgameevent:id|h[name]|h|r
 // |color|Hgameobject:go_guid|h[name]|h|r
 // |color|Hgameobject_entry:go_id|h[name]|h|r
-// |color|Hitem:item_id:perm_ench_id:0:0|h[name]|h|r
+// |color|Hitem:item_id:perm_ench_id:gem1:gem2:gem3:0:0:0:0|h[name]|h|r     - client, item icon shift click
 // |color|Hitemset:itemset_id|h[name]|h|r
 // |color|Hplayer:name|h[name]|h|r                                        - client, in some messages, at click copy only name instead link
-// |color|Hquest:quest_id|h[name]|h|r
+// |color|Hquest:quest_id:quest_level|h[name]|h|r                         - client, quest list name shift-click
 // |color|Hskill:skill_id|h[name]|h|r
 // |color|Hspell:spell_id|h[name]|h|r                                     - client, spellbook spell icon shift-click
 // |color|Htalent:talent_id,rank|h[name]|h|r                              - client, talent icon shift-click
 // |color|Htaxinode:id|h[name]|h|r
 // |color|Htele:id|h[name]|h|r
+
 bool ChatHandler::load_command_table = true;
 
 ChatCommand * ChatHandler::getCommandTable()
@@ -1332,41 +1334,60 @@ GameObject* ChatHandler::GetObjectGlobalyWithGuidOrNearWithDbGuid(uint32 lowguid
     return obj;
 }
 
-static char const* const spellTalentKeys[] = {
-    "Hspell",
-    "Htalent",
+enum SpellLinkType
+{
+    SPELL_LINK_SPELL   = 0,
+    SPELL_LINK_TALENT  = 1,
+    SPELL_LINK_ENCHANT = 2,
+};
+
+static char const* const spellKeys[] =
+{
+    "Hspell",                                               // normal spell
+    "Htalent",                                              // talent spell
+    "Henchant",                                             // enchanting recipe spell
     0
 };
 
 uint32 ChatHandler::extractSpellIdFromLink(char* text)
 {
+    // number or [name] Shift-click form |color|Henchant:recipe_spell_id|h[prof_name: recipe_name]|h|r
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r
     // number or [name] Shift-click form |color|Htalent:talent_id,rank|h[name]|h|r
     int type = 0;
-    char* rankS = NULL;
-    char* idS = extractKeyFromLink(text,spellTalentKeys,&type,&rankS);
+    char* param1_str = NULL;
+    char* idS = extractKeyFromLink(text,spellKeys,&type,&param1_str);
     if(!idS)
         return 0;
 
     uint32 id = (uint32)atol(idS);
 
-    // spell
-    if(type==0)
-        return id;
+    switch(type)
+    {
+        case SPELL_LINK_SPELL:
+            return id;
+        case SPELL_LINK_TALENT:
+        {
+            // talent
+            TalentEntry const* talentEntry = sTalentStore.LookupEntry(id);
+            if(!talentEntry)
+                return 0;
 
-    // talent
-    TalentEntry const* talentEntry = sTalentStore.LookupEntry(id);
-    if(!talentEntry)
-        return 0;
+            int32 rank = param1_str ? (uint32)atol(param1_str) : 0;
+            if(rank >= 5)
+                return 0;
 
-    int32 rank = rankS ? (uint32)atol(rankS) : 0;
-    if(rank >= 5)
-        return 0;
+            if(rank < 0)
+                rank = 0;
 
-    if(rank < 0)
-        rank = 0;
+            return talentEntry->RankID[rank];
+        }
+        case SPELL_LINK_ENCHANT:
+            return id;
+    }
 
-    return talentEntry->RankID[rank];
+    // unknown type?
+    return 0;
 }
 
 GameTele const* ChatHandler::extractGameTeleFromLink(char* text)

@@ -37,8 +37,6 @@ class Player;
 class Spell;
 struct SpellModifier;
 
-extern SQLStorage sSpellThreatStore;
-
 // only used in code
 enum SpellCategories
 {
@@ -98,7 +96,13 @@ enum SpellSpecific
     SPELL_JUDGEMENT         = 13,
     SPELL_BATTLE_ELIXIR     = 14,
     SPELL_GUARDIAN_ELIXIR   = 15,
-    SPELL_FLASK_ELIXIR      = 16
+    SPELL_FLASK_ELIXIR      = 16,
+    //SPELL_PRESENCE          = 17,                         // used in 3.x
+    //SPELL_HAND              = 18,                         // used in 3.x
+    SPELL_WELL_FED          = 19,
+    SPELL_FOOD              = 20,
+    SPELL_DRINK             = 21,
+    SPELL_FOOD_AND_DRINK    = 22,
 };
 
 SpellSpecific GetSpellSpecific(uint32 spellId);
@@ -114,7 +118,7 @@ int32 GetSpellMaxDuration(SpellEntry const *spellInfo);
 
 inline bool IsSpellHaveEffect(SpellEntry const *spellInfo, SpellEffects effect)
 {
-    for(int i= 0; i < 3; ++i)
+    for(int i = 0; i < 3; ++i)
         if(SpellEffects(spellInfo->Effect[i])==effect)
             return true;
     return false;
@@ -122,10 +126,18 @@ inline bool IsSpellHaveEffect(SpellEntry const *spellInfo, SpellEffects effect)
 
 inline bool IsSpellHaveAura(SpellEntry const *spellInfo, AuraType aura)
 {
-    for(int i= 0; i < 3; ++i)
+    for(int i = 0; i < 3; ++i)
         if(AuraType(spellInfo->EffectApplyAuraName[i])==aura)
             return true;
     return false;
+}
+
+inline bool IsSpellLastAuraEffect(SpellEntry const *spellInfo, int effecIdx)
+{
+    for(int i = effecIdx+1; i < 3; ++i)
+        if(spellInfo->EffectApplyAuraName[i])
+            return false;
+    return true;
 }
 
 bool IsNoStackAuraDueToAura(uint32 spellId_1, uint32 effIndex_1, uint32 spellId_2, uint32 effIndex_2);
@@ -144,8 +156,12 @@ inline bool IsElementalShield(SpellEntry const *spellInfo)
 }
 
 int32 CompareAuraRanks(uint32 spellId_1, uint32 effIndex_1, uint32 spellId_2, uint32 effIndex_2);
-bool IsSingleFromSpellSpecificPerCaster(SpellSpecific spellSpec1,SpellSpecific spellSpec2);
-bool IsSingleFromSpellSpecificRanksPerTarget(SpellSpecific spellId_spec, SpellSpecific i_spellId_spec);
+
+// order from less to more strict
+bool IsSingleFromSpellSpecificPerTargetPerCaster(SpellSpecific spellSpec1,SpellSpecific spellSpec2);
+bool IsSingleFromSpellSpecificSpellRanksPerTarget(SpellSpecific spellSpec1,SpellSpecific spellSpec2);
+bool IsSingleFromSpellSpecificPerTarget(SpellSpecific spellSpec1,SpellSpecific spellSpec2);
+
 bool IsPassiveSpell(uint32 spellId);
 
 inline bool IsDeathPersistentSpell(SpellEntry const *spellInfo)
@@ -197,10 +213,45 @@ inline bool IsCasterSourceTarget(uint32 target)
 inline bool IsSpellWithCasterSourceTargetsOnly(SpellEntry const* spellInfo)
 {
     for(int i = 0; i < 3; ++i)
-        if(uint32 target = spellInfo->EffectImplicitTargetA[i])
-            if(!IsCasterSourceTarget(target))
-                return false;
+    {
+        uint32 targetA = spellInfo->EffectImplicitTargetA[i];
+        if(targetA && !IsCasterSourceTarget(targetA))
+            return false;
+
+        uint32 targetB = spellInfo->EffectImplicitTargetB[i];
+        if(targetB && !IsCasterSourceTarget(targetB))
+            return false;
+
+        if(!targetA && !targetB)
+            return false;
+    }
     return true;
+}
+
+inline bool IsPointEffectTarget( Targets target )
+{
+    switch (target )
+    {
+        case TARGET_INNKEEPER_COORDINATES:
+        case TARGET_TABLE_X_Y_Z_COORDINATES:
+        case TARGET_CASTER_COORDINATES:
+        case TARGET_SCRIPT_COORDINATES:
+        case TARGET_CURRENT_ENEMY_COORDINATES:
+        case TARGET_DUELVSPLAYER_COORDINATES:
+        case TARGET_DYNAMIC_OBJECT_COORDINATES:
+        case TARGET_POINT_AT_NORTH:
+        case TARGET_POINT_AT_SOUTH:
+        case TARGET_POINT_AT_EAST:
+        case TARGET_POINT_AT_WEST:
+        case TARGET_POINT_AT_NE:
+        case TARGET_POINT_AT_NW:
+        case TARGET_POINT_AT_SE:
+        case TARGET_POINT_AT_SW:
+            return true;
+        default:
+            break;
+    }
+    return false;
 }
 
 inline bool IsAreaEffectTarget( Targets target )
@@ -415,13 +466,15 @@ struct SpellProcEventEntry
 
 typedef UNORDERED_MAP<uint32, SpellProcEventEntry> SpellProcEventMap;
 
-#define ELIXIR_BATTLE_MASK    0x1
-#define ELIXIR_GUARDIAN_MASK  0x2
+#define ELIXIR_BATTLE_MASK    0x01
+#define ELIXIR_GUARDIAN_MASK  0x02
 #define ELIXIR_FLASK_MASK     (ELIXIR_BATTLE_MASK|ELIXIR_GUARDIAN_MASK)
-#define ELIXIR_UNSTABLE_MASK  0x4
-#define ELIXIR_SHATTRATH_MASK 0x8
+#define ELIXIR_UNSTABLE_MASK  0x04
+#define ELIXIR_SHATTRATH_MASK 0x08
+#define ELIXIR_WELL_FED       0x10                          // Some foods have SPELLFAMILY_POTION
 
 typedef std::map<uint32, uint8> SpellElixirMap;
+typedef std::map<uint32, uint16> SpellThreatMap;
 
 // Spell script target related declarations (accessed using SpellMgr functions)
 enum SpellTargetType
@@ -621,8 +674,19 @@ class SpellMgr
                 return SPELL_BATTLE_ELIXIR;
             else if(mask & ELIXIR_GUARDIAN_MASK)
                 return SPELL_GUARDIAN_ELIXIR;
+            else if(mask & ELIXIR_WELL_FED)
+                return SPELL_WELL_FED;
             else
                 return SPELL_NORMAL;
+        }
+
+        uint16 GetSpellThreat(uint32 spellid) const
+        {
+            SpellThreatMap::const_iterator itr = mSpellThreatMap.find(spellid);
+            if(itr==mSpellThreatMap.end())
+                return 0;
+
+            return itr->second;
         }
 
         // Spell proc events
@@ -838,6 +902,7 @@ class SpellMgr
         SpellTargetPositionMap mSpellTargetPositions;
         SpellAffectMap     mSpellAffectMap;
         SpellElixirMap     mSpellElixirs;
+        SpellThreatMap     mSpellThreatMap;
         SpellProcEventMap  mSpellProcEventMap;
         SkillLineAbilityMap mSkillLineAbilityMap;
         SpellPetAuraMap     mSpellPetAuraMap;

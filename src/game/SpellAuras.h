@@ -271,17 +271,23 @@ class MANGOS_DLL_SPEC Aura
         bool IsRemovedOnShapeLost() const { return m_isRemovedOnShapeLost; }
         bool IsInUse() const { return m_in_use;}
         bool IsStacking() const { return m_stacking;}
+        bool IsDeleted() const { return m_deleted;}
 
-        virtual void Update(uint32 diff);
+        void SetInUse(bool state)
+        {
+            if(state)
+                ++m_in_use;
+            else
+            {
+                if(m_in_use)
+                    --m_in_use;
+            }
+        }
         void ApplyModifier(bool apply, bool Real = false);
 
+        void UpdateAura(uint32 diff) { SetInUse(true); Update(diff); SetInUse(false); }
         void _AddAura();
-        void _RemoveAura();
-
-        void TriggerSpell();
-
-        bool IsUpdated() { return m_updated; }
-        void SetUpdated(bool val) { m_updated = val; }
+        bool _RemoveAura();
 
         bool IsSingleTarget() {return m_isSingleTargetAura;}
         void SetIsSingleTarget(bool val) { m_isSingleTargetAura = val;}
@@ -296,15 +302,23 @@ class MANGOS_DLL_SPEC Aura
 
         // add/remove SPELL_AURA_MOD_SHAPESHIFT (36) linked auras
         void HandleShapeshiftBoosts(bool apply);
+        void HandleSpellSpecificBoosts(bool apply);
 
         // Allow Apply Aura Handler to modify and access m_AuraDRGroup
         void setDiminishGroup(DiminishingGroup group) { m_AuraDRGroup = group; }
         DiminishingGroup getDiminishGroup() const { return m_AuraDRGroup; }
 
-        void PeriodicTick();
-        void PeriodicDummyTick();
+        void TriggerSpell();
+
     protected:
         Aura(SpellEntry const* spellproto, uint32 eff, int32 *currentBasePoints, Unit *target, Unit *caster = NULL, Item* castItem = NULL);
+
+        // must be called only from Aura::UpdateAura
+        virtual void Update(uint32 diff);
+
+        // must be called only from Aura*::Update
+        void PeriodicTick();
+        void PeriodicDummyTick();
 
         Modifier m_modifier;
         SpellModifier *m_spellmod;
@@ -332,14 +346,15 @@ class MANGOS_DLL_SPEC Aura
         bool m_isPersistent:1;
         bool m_isDeathPersist:1;
         bool m_isRemovedOnShapeLost:1;
-        bool m_updated:1;
-        bool m_in_use:1;                                    // true while in Aura::ApplyModifier call
+        bool m_deleted:1;                                   // true if RemoveAura(iterator) called while in Aura::ApplyModifier call (added to Unit::m_deletedAuras)
         bool m_isSingleTargetAura:1;                        // true if it's a single target spell and registered at caster - can change at spell steal for example
         bool m_stacking:1;                                  // Aura is not overwritten, but effects are not cumulative with similar effects
 
         int32 m_periodicTimer;
         uint32 m_PeriodicEventId;
         DiminishingGroup m_AuraDRGroup;
+
+        uint32 m_in_use;                                    // > 0 while in Aura::ApplyModifier call/Aura::Update/etc
     private:
         void CleanupTriggeredSpells();
         void SetAura(uint32 slot, bool remove) { m_target->SetUInt32Value(UNIT_FIELD_AURA + slot, remove ? 0 : GetId()); }
@@ -353,6 +368,7 @@ class MANGOS_DLL_SPEC AreaAura : public Aura
     public:
         AreaAura(SpellEntry const* spellproto, uint32 eff, int32 *currentBasePoints, Unit *target, Unit *caster = NULL, Item* castItem = NULL);
         ~AreaAura();
+    protected:
         void Update(uint32 diff);
     private:
         float m_radius;
@@ -364,6 +380,7 @@ class MANGOS_DLL_SPEC PersistentAreaAura : public Aura
     public:
         PersistentAreaAura(SpellEntry const* spellproto, uint32 eff, int32 *currentBasePoints, Unit *target, Unit *caster = NULL, Item* castItem = NULL);
         ~PersistentAreaAura();
+    protected:
         void Update(uint32 diff);
 };
 

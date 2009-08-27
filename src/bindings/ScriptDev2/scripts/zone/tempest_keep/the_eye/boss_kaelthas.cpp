@@ -260,10 +260,12 @@ struct MANGOS_DLL_DECL advisorbase_ai : public ScriptedAI
                     Target = m_creature->getVictim();
 
                 DoResetThreat();
+
+                if(Target){
                 AttackStart(Target);
                 m_creature->GetMotionMaster()->Clear();
                 m_creature->GetMotionMaster()->MoveChase(Target);
-                m_creature->AddThreat(Target, 0.0f);
+                m_creature->AddThreat(Target, 0.0f); }
             }else DelayRes_Timer -= diff;
         }
     }
@@ -392,6 +394,8 @@ struct MANGOS_DLL_DECL boss_kaelthasAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit *who)
     {
+        if(!who) return;
+
         if (!m_creature->hasUnitState(UNIT_STAT_STUNNED) && who->isTargetableForAttack() &&
             m_creature->IsHostileTo(who) && who->isInAccessablePlaceFor(m_creature))
         {
@@ -1398,7 +1402,8 @@ struct MANGOS_DLL_DECL mob_phoenix_egg_tkAI : public ScriptedAI
 
     void JustSummoned(Creature* summoned)
     {
-        summoned->AddThreat(m_creature->getVictim(), 0.0f);
+        if (m_creature->getVictim())
+           summoned->AddThreat(m_creature->getVictim(), 0.0f);
         summoned->CastSpell(summoned,SPELL_REBIRTH,false);
     }
 
