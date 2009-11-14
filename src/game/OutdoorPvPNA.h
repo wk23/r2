@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2005-2008 MaNGOS <http://www.mangosproject.org/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 #ifndef OUTDOOR_PVP_NA_
 #define OUTDOOR_PVP_NA_
 
@@ -222,8 +240,8 @@ class Creature;
 class OutdoorPvPNA;
 class OutdoorPvPObjectiveNA : public OutdoorPvPObjective
 {
-friend class OutdoorPvPNA;
-public:
+    friend class OutdoorPvPNA;
+    public:
     OutdoorPvPObjectiveNA(OutdoorPvP * pvp);
     bool Update(uint32 diff);
     void FillInitialWorldStates(WorldPacket & data);
@@ -233,7 +251,7 @@ public:
     bool HandleCustomSpell(Player *plr, uint32 spellId, GameObject * go);
     int32 HandleOpenGo(Player *plr, uint64 guid);
     uint32 GetAliveGuardsCount();
-protected:
+    protected:
     // called when a faction takes control
     void FactionTakeOver(uint32 team);
 
@@ -246,7 +264,7 @@ protected:
     void UpdateHalaaWorldState();
 
     bool HandleCapturePointEvent(Player * plr, uint32 eventId);
-private:
+    private:
     bool m_capturable;
     uint32 m_GuardsAlive;
     uint32 m_ControllingFaction;
@@ -261,8 +279,8 @@ private:
 
 class OutdoorPvPNA : public OutdoorPvP
 {
-friend class OutdoorPvPObjectiveNA;
-public:
+    friend class OutdoorPvPObjectiveNA;
+    public:
     OutdoorPvPNA();
     bool SetupOutdoorPvP();
     void HandlePlayerEnterZone(Player *plr, uint32 zone);
@@ -272,7 +290,7 @@ public:
     void SendRemoveWorldStates(Player * plr);
     void HandleKillImpl(Player * plr, Unit * killed);
     void BuffTeam(uint32 team);
-private:
+    private:
     OutdoorPvPObjectiveNA * m_obj;
 };
 

@@ -27,7 +27,7 @@
 
 OutdoorPvPObjectiveAI::OutdoorPvPObjectiveAI(Creature *c) : CreatureAI(c)
 {
-	sLog.outDebug("OutdoorPvP objective AI assigned to creature guid %u", c->GetGUIDLow());
+    sLog.outDebug("OutdoorPvP objective AI assigned to creature guid %u", c->GetGUIDLow());
 }
 
 void OutdoorPvPObjectiveAI::MoveInLineOfSight(Unit *u)
@@ -55,8 +55,8 @@ void OutdoorPvPObjectiveAI::AttackStart(Unit *)
 
 void OutdoorPvPObjectiveAI::EnterEvadeMode()
 {
-     m_creature->DeleteThreatList();
-     m_creature->CombatStop();
+    m_creature->DeleteThreatList();
+    m_creature->CombatStop();
 }
 
 void OutdoorPvPObjectiveAI::UpdateAI(const uint32 diff)
@@ -65,5 +65,5 @@ void OutdoorPvPObjectiveAI::UpdateAI(const uint32 diff)
 
 Creature& OutdoorPvPObjectiveAI::getCreature()
 {
-   return static_cast<Creature&>(*m_creature);
+    return static_cast<Creature&>(*m_creature);
 }

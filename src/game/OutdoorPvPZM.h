@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2005-2008 MaNGOS <http://www.getmangos.com/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 #ifndef OUTDOOR_PVP_ZM_
 #define OUTDOOR_PVP_ZM_
 
@@ -132,8 +150,8 @@ enum ZM_TowerStateMask{
 class OutdoorPvPZM;
 class OutdoorPvPObjectiveZM_Beacon : public OutdoorPvPObjective
 {
-friend class OutdoorPvPZM;
-public:
+    friend class OutdoorPvPZM;
+    public:
     OutdoorPvPObjectiveZM_Beacon(OutdoorPvP * pvp, ZM_BeaconType type);
     bool Update(uint32 diff);
     void FillInitialWorldStates(WorldPacket & data);
@@ -141,9 +159,9 @@ public:
     bool HandlePlayerEnter(Player * plr);
     void HandlePlayerLeave(Player * plr);
     void UpdateTowerState();
-protected:
+    protected:
     bool HandleCapturePointEvent(Player * plr, uint32 eventId);
-protected:
+    protected:
     ZM_BeaconType m_TowerType;
     uint32 m_TowerState;
 };
@@ -156,8 +174,8 @@ enum ZM_GraveYardState{
 
 class OutdoorPvPObjectiveZM_GraveYard : public OutdoorPvPObjective
 {
-friend class OutdoorPvPZM;
-public:
+    friend class OutdoorPvPZM;
+    public:
     OutdoorPvPObjectiveZM_GraveYard(OutdoorPvP * pvp);
     bool Update(uint32 diff);
     void FillInitialWorldStates(WorldPacket & data);
@@ -167,17 +185,17 @@ public:
     bool HandleGossipOption(Player * plr, uint64 guid, uint32 gossipid);
     bool HandleDropFlag(Player * plr, uint32 spellId);
     bool CanTalkTo(Player * plr, Creature * c, GossipOption &gso);
-private:
+    private:
     uint32 m_GraveYardState;
-protected:
+    protected:
     uint32 m_BothControllingFaction;
     uint64 m_FlagCarrierGUID;
 };
 
 class OutdoorPvPZM : public OutdoorPvP
 {
-friend class OutdoorPvPObjectiveZM_Beacon;
-public:
+    friend class OutdoorPvPObjectiveZM_Beacon;
+    public:
     OutdoorPvPZM();
     bool SetupOutdoorPvP();
     void HandlePlayerEnterZone(Player *plr, uint32 zone);
@@ -187,7 +205,7 @@ public:
     void SendRemoveWorldStates(Player * plr);
     void HandleKillImpl(Player * plr, Unit * killed);
     void BuffTeam(uint32 team);
-private:
+    private:
     OutdoorPvPObjectiveZM_GraveYard * m_GraveYard;
     uint32 m_AllianceTowersControlled;
     uint32 m_HordeTowersControlled;

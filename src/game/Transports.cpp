@@ -57,7 +57,7 @@ void MapManager::LoadTransports()
         std::string name = fields[1].GetCppString();
         t->m_period = fields[2].GetUInt32();
 
-        const GameObjectInfo *goinfo = objmgr.GetGameObjectInfo(entry);
+        const GameObjectInfo *goinfo = ObjectMgr::GetGameObjectInfo(entry);
 
         if(!goinfo)
         {
@@ -102,7 +102,7 @@ void MapManager::LoadTransports()
             m_TransportsByMap[*i].insert(t);
 
         //If we someday decide to use the grid to track transports, here:
-        //MapManager::Instance().LoadGrid(mapid,x,y,true);
+        //sMapMgr.LoadGrid(mapid,x,y,true);
         //t->GetMap()->Add<GameObject>((GameObject *)t);
         ++count;
     } while(result->NextRow());
@@ -151,7 +151,7 @@ bool Transport::Create(uint32 guidlow, uint32 mapid, float x, float y, float z, 
 
     Object::_Create(guidlow, 0, HIGHGUID_MO_TRANSPORT);
 
-    GameObjectInfo const* goinfo = objmgr.GetGameObjectInfo(guidlow);
+    GameObjectInfo const* goinfo = ObjectMgr::GetGameObjectInfo(guidlow);
 
     if (!goinfo)
     {
@@ -205,7 +205,7 @@ struct keyFrame
 bool Transport::GenerateWaypoints(uint32 pathid, std::set<uint32> &mapids)
 {
     TransportPath path;
-    objmgr.GetTransportPathNodes(pathid, path);
+    sObjectMgr.GetTransportPathNodes(pathid, path);
 
     if (path.Empty())
         return false;

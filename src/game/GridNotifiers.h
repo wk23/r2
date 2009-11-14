@@ -20,7 +20,6 @@
 #define MANGOS_GRIDNOTIFIERS_H
 
 #include "ObjectGridLoader.h"
-#include "ByteBuffer.h"
 #include "UpdateData.h"
 #include <iostream>
 
@@ -37,25 +36,29 @@ class Player;
 
 namespace MaNGOS
 {
-    // creates UpdateData for i_player
-    struct MANGOS_DLL_DECL VisibleNotifier
-    {
-        bool force;
-        Player &i_player;
-        UpdateData i_data;
-        std::set<Unit*> i_visibleNow;
-        Player::ClientGUIDs vis_guids;
 
-        explicit VisibleNotifier(Player &player, bool forced) :
-            i_player(player), vis_guids(player.m_clientGUIDs), force(forced) {}
-        explicit VisibleNotifier(Player &player) :
-            i_player(player), vis_guids(player.m_clientGUIDs), force(player.isNeedNotify(NOTIFY_VISIBILITY_ACTIVE)) {}
-        template<class T> void Visit(GridRefManager<T> &m);
-        void Visit(PlayerMapType &m) {}
-        void SendToSelf(void);
+    struct MANGOS_DLL_DECL PlayerNotifier
+    {
+        explicit PlayerNotifier(Player &pl) : i_player(pl) {}
+        void Visit(PlayerMapType &);
+        template<class SKIP> void Visit(GridRefManager<SKIP> &) {}
+        Player &i_player;
     };
 
-    // send object's update to every player in cell
+    struct MANGOS_DLL_DECL VisibleNotifier
+    {
+        Player &i_player;
+        UpdateData i_data;
+        UpdateDataMapType i_data_updates;
+        Player::ClientGUIDs i_clientGUIDs;
+        std::set<WorldObject*> i_visibleNow;
+
+        explicit VisibleNotifier(Player &player) : i_player(player),i_clientGUIDs(player.m_clientGUIDs) {}
+        template<class T> void Visit(GridRefManager<T> &m);
+        void Visit(PlayerMapType &);
+        void Notify(void);
+    };
+
     struct MANGOS_DLL_DECL VisibleChangesNotifier
     {
         WorldObject &i_object;
@@ -63,23 +66,6 @@ namespace MaNGOS
         explicit VisibleChangesNotifier(WorldObject &object) : i_object(object) {}
         template<class T> void Visit(GridRefManager<T> &) {}
         void Visit(PlayerMapType &);
-    };
-
-    struct MANGOS_DLL_DECL Player2PlayerNotifier
-    {
-		bool force;
-        Player &i_player;
-        UpdateData i_data;
-        std::set<Unit*> i_visibleNow;
-        Player::ClientGUIDs vis_guids;
-
-        explicit Player2PlayerNotifier(Player &player) :
-			i_player(player), force(false), vis_guids(player.m_clientGUIDs) {}
-        explicit Player2PlayerNotifier(Player &player, bool forced) :
-			i_player(player), force(forced), vis_guids(player.m_clientGUIDs) {}
-        template<class T> void Visit(GridRefManager<T> &) {}
-        void Visit(PlayerMapType &);
-        void SendToSelf(void);
     };
 
     struct MANGOS_DLL_DECL GridUpdater
@@ -197,30 +183,6 @@ namespace MaNGOS
         #ifdef WIN32
         template<> void Visit(PlayerMapType &);
         #endif
-    };
-
-    // mass creature relocation
-    struct MANGOS_DLL_DECL DelayedUnitRelocation
-    {
-        typedef GridReadGuard ReadGuard;
-        Map &i_map;
-        CellLock<ReadGuard> &i_lock;
-        const float i_radius;
-        DelayedUnitRelocation(CellLock<ReadGuard> &lock, Map &map, float radius) :
-            i_lock(lock), i_map(map), i_radius(radius) {}
-        template<class T> void Visit(GridRefManager<T> &) {}
-        void Visit(CreatureMapType &);
-        void Visit(PlayerMapType &);
-    };
-
-    struct MANGOS_DLL_DECL ResetNotifier
-    {
-        uint16 reset_mask;
-        ResetNotifier(uint16 notifies) : reset_mask(notifies) {}
-        template<class T> void Visit(GridRefManager<T> &) {}
-        template<class T> void resetNotify(GridRefManager<T> &);
-        void Visit(CreatureMapType &m) { resetNotify<Creature>(m);}
-        void Visit(PlayerMapType &m) { resetNotify<Player>(m);}
     };
 
     struct MANGOS_DLL_DECL DynamicObjectUpdater
@@ -671,7 +633,7 @@ namespace MaNGOS
             bool operator()(Unit* u)
             {
                 if(u->isAlive() && u->isInCombat() && !i_obj->IsHostileTo(u) && i_obj->IsWithinDistInMap(u, i_range) &&
-                    (u->isFeared() || u->isCharmed() || u->isFrozen() || u->hasUnitState(UNIT_STAT_STUNNED) || u->hasUnitState(UNIT_STAT_CONFUSED)))
+                    (u->isFeared() || u->isCharmed() || u->isFrozen() || u->hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_CONFUSED | UNIT_STAT_DIED)))
                 {
                     return true;
                 }
@@ -711,6 +673,25 @@ namespace MaNGOS
                     return true;
                 else
                     return false;
+            }
+        private:
+            WorldObject const* i_obj;
+            Unit const* i_funit;
+            float i_range;
+    };
+
+    class AnyUnfriendlyVisibleUnitInObjectRangeCheck
+    {
+        public:
+            AnyUnfriendlyVisibleUnitInObjectRangeCheck(WorldObject const* obj, Unit const* funit, float range)
+                : i_obj(obj), i_funit(funit), i_range(range) {}
+
+            bool operator()(Unit* u)
+            {
+                return u->isAlive()
+                    && i_obj->IsWithinDistInMap(u, i_range)
+                    && !i_funit->IsFriendlyTo(u)
+                    && u->isVisibleForOrDetect(i_funit,i_funit,false);
             }
         private:
             WorldObject const* i_obj;
@@ -759,7 +740,7 @@ namespace MaNGOS
             bool operator()(Unit* u)
             {
                 if( u->isTargetableForAttack() && i_obj->IsWithinDistInMap(u, i_range) &&
-                    !i_funit->IsFriendlyTo(u) && u->isVisibleForOrDetect(i_funit,false)  )
+                    !i_funit->IsFriendlyTo(u) && u->isVisibleForOrDetect(i_funit,i_funit,false)  )
                 {
                     i_range = i_obj->GetDistance(u);        // use found unit range as new range limit for next check
                     return true;
@@ -795,7 +776,7 @@ namespace MaNGOS
                     return false;
                 if(u->GetTypeId()==TYPEID_UNIT && ((Creature*)u)->isTotem())
                     return false;
-                if (!i_hitHidden && !u->isVisibleForOrDetect(i_funit, false))
+                if (!i_hitHidden && !u->isVisibleForOrDetect(i_funit, i_funit, false))
                     return false;
 
                 if(( i_targetForPlayer ? !i_funit->IsFriendlyTo(u) : i_funit->IsHostileTo(u) )&& i_obj->IsWithinDistInMap(u, i_range))

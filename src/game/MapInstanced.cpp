@@ -121,7 +121,6 @@ void MapInstanced::UnloadAll(bool pForce)
 */
 Map* MapInstanced::GetInstance(const WorldObject* obj)
 {
-    if (!obj) return NULL;
     uint32 CurInstanceId = obj->GetInstanceId();
     Map* map = NULL;
 
@@ -135,7 +134,7 @@ Map* MapInstanced::GetInstance(const WorldObject* obj)
             // hence the map must be loaded. For Creatures, GameObjects etc the map must exist
             // prior to calling GetMap, they are not allowed to create maps for themselves.
             sLog.outError("GetInstance: object %s(%d), typeId %d, in world %d, should be in map %d,%d but that's not loaded yet.", obj->GetName(), obj->GetGUIDLow(), obj->GetTypeId(), obj->IsInWorld(), obj->GetMapId(), obj->GetInstanceId());
-            //assert(false);
+            assert(false);
         }
         return(map);
     }
@@ -161,21 +160,7 @@ Map* MapInstanced::GetInstance(const WorldObject* obj)
                 assert(NewInstanceId);
                 map = _FindMap(NewInstanceId);
                 if(!map)
-                {
-                    map = CreateBattleGround(NewInstanceId);
-                    ((BattleGroundMap*)map)->SetBG(player->GetBattleGround());
-                }
-                if(!((BattleGroundMap*)map)->GetBG())
-                {
-                    sLog.outError("The bg-class couldn't be assigned (very early) to the battlegroundmap, it's possible, that some db-spawned creatures are now not handled right this is related to battleground alterac valley (av) - please post bugreport, and add information how this bg was created (if you don't have information, report it also) Player: %s (%u) in map:%u requested map:%u", player->GetName(), player->GetGUIDLow(), player->GetMapId(), GetId());
-                    if(player->GetBattleGround())
-                    {
-                        sLog.outError("somehow the battleground was found, but please report also - i end this bg now..");
-                        ((BattleGroundMap*)map)->SetBG(player->GetBattleGround());
-                        player->GetBattleGround()->EndBattleGround(0); //to avoid the assert
-                    }
-                    //assert(false);
-                }
+                    map = CreateBattleGroundMap(NewInstanceId, player->GetBattleGround());
                 return map;
             }
 
@@ -207,7 +192,7 @@ Map* MapInstanced::GetInstance(const WorldObject* obj)
             {
                 // if no instanceId via group members or instance saves is found
                 // the instance will be created for the first time
-                NewInstanceId = MapManager::Instance().GenerateInstanceId();
+                NewInstanceId = sMapMgr.GenerateInstanceId();
                 return CreateInstance(NewInstanceId, NULL, player->GetDifficulty());
             }
         }
@@ -221,25 +206,25 @@ InstanceMap* MapInstanced::CreateInstance(uint32 InstanceId, InstanceSave *save,
 
     // make sure we have a valid map id
     const MapEntry* entry = sMapStore.LookupEntry(GetId());
-    if(!entry)
+    if (!entry)
     {
         sLog.outError("CreateInstance: no entry for map %d", GetId());
         assert(false);
     }
-    const InstanceTemplate * iTemplate = objmgr.GetInstanceTemplate(GetId());
-    if(!iTemplate)
+    if (!ObjectMgr::GetInstanceTemplate(GetId()))
     {
         sLog.outError("CreateInstance: no instance template for map %d", GetId());
         assert(false);
     }
 
     // some instances only have one difficulty
-    if (entry && !entry->SupportsHeroicMode()) difficulty = DIFFICULTY_NORMAL;
+    if (entry && !entry->SupportsHeroicMode())
+        difficulty = DIFFICULTY_NORMAL;
 
-    sLog.outDebug("MapInstanced::CreateInstance: %smap instance %d for %d created with difficulty %s", save?"":"new ", InstanceId, GetId(), difficulty?"heroic":"normal");
+    sLog.outDebug("MapInstanced::CreateInstance: %s map instance %d for %d created with difficulty %s", save?"":"new ", InstanceId, GetId(), difficulty?"heroic":"normal");
 
     InstanceMap *map = new InstanceMap(GetId(), GetGridExpiry(), InstanceId, difficulty);
-    assert(map->IsDungeon());
+    ASSERT(map->IsDungeon());
 
     bool load_data = save != NULL;
     map->CreateInstanceData(load_data);
@@ -248,15 +233,17 @@ InstanceMap* MapInstanced::CreateInstance(uint32 InstanceId, InstanceSave *save,
     return map;
 }
 
-BattleGroundMap* MapInstanced::CreateBattleGround(uint32 InstanceId)
+BattleGroundMap* MapInstanced::CreateBattleGroundMap(uint32 InstanceId, BattleGround* bg)
 {
     // load/create a map
     Guard guard(*this);
 
-    sLog.outDebug("MapInstanced::CreateBattleGround: map bg %d for %d created.", InstanceId, GetId());
+    sLog.outDebug("MapInstanced::CreateBattleGroundMap: instance:%d for map:%d and bgType:%d created.", InstanceId, GetId(), bg->GetTypeID());
 
     BattleGroundMap *map = new BattleGroundMap(GetId(), GetGridExpiry(), InstanceId);
-    assert(map->IsBattleGroundOrArena());
+    ASSERT(map->IsBattleGroundOrArena());
+    map->SetBG(bg);
+    bg->SetBgMap(map);
 
     m_InstancedMaps[InstanceId] = map;
     return map;

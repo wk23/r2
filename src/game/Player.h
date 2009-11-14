@@ -155,7 +155,7 @@ struct ActionButton
     void SetActionAndType(uint32 action, ActionButtonType type)
     {
         uint32 newData = action | (uint32(type) << 24);
-        if (newData != packedData)
+        if (newData != packedData || uState == ACTIONBUTTON_DELETED)
         {
             packedData = newData;
             if (uState != ACTIONBUTTON_NEW)
@@ -167,8 +167,6 @@ struct ActionButton
 #define  MAX_ACTION_BUTTONS 132                             //checked in 2.3.0
 
 typedef std::map<uint8,ActionButton> ActionButtonList;
-
-typedef std::pair<uint16, uint8> CreateSpellPair;
 
 struct PlayerCreateInfoItem
 {
@@ -201,7 +199,7 @@ struct PlayerLevelInfo
     uint8 stats[MAX_STATS];
 };
 
-typedef std::list<CreateSpellPair> PlayerCreateInfoSpells;
+typedef std::list<uint32> PlayerCreateInfoSpells;
 
 struct PlayerCreateInfoAction
 {
@@ -907,6 +905,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool CanInteractWithNPCs(bool alive = true) const;
         GameObject* GetGameObjectIfCanInteractWith(uint64 guid, GameobjectTypes type) const;
 
+        void UpdateVisibilityForPlayer();
+
         bool ToggleAFK();
         bool ToggleDND();
         bool isAFK() const { return HasFlag(PLAYER_FLAGS,PLAYER_FLAGS_AFK); };
@@ -1143,6 +1143,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void CompleteQuest( uint32 quest_id );
         void IncompleteQuest( uint32 quest_id );
         void RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver, bool announce = true );
+
         void FailQuest( uint32 quest_id );
         bool SatisfyQuestSkillOrClass( Quest const* qInfo, bool msg );
         bool SatisfyQuestLevel( Quest const* qInfo, bool msg );
@@ -1259,6 +1260,8 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         bool m_mailsLoaded;
         bool m_mailsUpdated;
+
+        void SendPetTameFailure(PetTameFailureReason reason);
 
         void SetBindPoint(uint64 guid);
         void SendTalentWipeConfirm(uint64 guid);
@@ -1770,9 +1773,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         BattleGround* GetBattleGround() const;
         bool InArena() const;
 
-        static uint32 GetMinLevelForBattleGroundQueueId(uint32 queue_id, BattleGroundTypeId bgTypeId);
-        static uint32 GetMaxLevelForBattleGroundQueueId(uint32 queue_id, BattleGroundTypeId bgTypeId);
-        uint32 GetBattleGroundQueueIdFromLevel(BattleGroundTypeId bgTypeId) const;
+        static uint32 GetMinLevelForBattleGroundQueueId(uint32 queue_id);
+        static uint32 GetMaxLevelForBattleGroundQueueId(uint32 queue_id);
+        uint32 GetBattleGroundQueueIdFromLevel() const;
 
         bool InBattleGroundQueue() const
         {
@@ -1864,8 +1867,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         void ClearAfkReports() { m_bgAfkReporter.clear(); }
 
         bool GetBGAccessByLevel(BattleGroundTypeId bgTypeId) const;
-        bool isAllowUseBattleGroundObject();
-        bool isTotalImmunity();
+        bool CanUseBattleGroundObject();
+        bool CanCaptureTowerPoint();
 
         /*********************************************************/
         /***               OUTDOOR PVP SYSTEM                  ***/
@@ -1888,7 +1891,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         /***              ENVIROMENTAL SYSTEM                  ***/
         /*********************************************************/
 
-        void EnvironmentalDamage(EnviromentalDamage type, uint32 damage);
+        uint32 EnvironmentalDamage(EnviromentalDamage type, uint32 damage);
 
         /*********************************************************/
         /***               FLOOD FILTER SYSTEM                 ***/
@@ -1913,8 +1916,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         }
         void HandleFall(MovementInfo const& movementInfo);
 
-        RedirectThreatMap* getRedirectThreatMap() { return &m_redirectMap; }
-
         void BuildTeleportAckMsg( WorldPacket *data, float x, float y, float z, float ang) const;
 
         bool isMoving() const { return m_movementInfo.HasMovementFlag(movementFlagsMask); }
@@ -1926,7 +1927,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SetClientControl(Unit* target, uint8 allowMove);
 
         uint64 GetFarSight() const { return GetUInt64Value(PLAYER_FARSIGHT); }
-        void SetFarSightGUID(uint64 guid) { SetUInt64Value(PLAYER_FARSIGHT, guid); }
+        void SetFarSightGUID(uint64 guid);
 
         // Transports
         Transport * GetTransport() const { return m_transport; }
@@ -1963,13 +1964,14 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         bool HaveAtClient(WorldObject const* u) { return u==this || m_clientGUIDs.find(u->GetGUID())!=m_clientGUIDs.end(); }
 
+        WorldObject const* GetViewPoint() const;
         bool IsVisibleInGridForPlayer(Player* pl) const;
         bool IsVisibleGloballyFor(Player* pl) const;
 
-        void UpdateVisibilityOf(WorldObject* target);
+        void UpdateVisibilityOf(WorldObject const* viewPoint, WorldObject* target);
 
         template<class T>
-            void UpdateVisibilityOf(T* target, UpdateData& data, std::set<Unit*>& visibleNow);
+            void UpdateVisibilityOf(WorldObject const* viewPoint,T* target, UpdateData& data, UpdateDataMapType& data_updates, std::set<WorldObject*>& visibleNow);
 
         // Stealth detection system
         void HandleStealthedUnitsDetection();
@@ -1990,10 +1992,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool IsPetNeedBeTemporaryUnsummoned() const { return !IsInWorld() || !isAlive() || IsMounted() /*+in flight*/; }
 
         void SendCinematicStart(uint32 CinematicSequenceId);
-
-        // last used pet number (for BG's)
-        uint32 GetLastPetNumber() const { return m_lastpetnumber; }
-        void SetLastPetNumber(uint32 petnumber) { m_lastpetnumber = petnumber; }
 
         /*********************************************************/
         /***                 INSTANCE SYSTEM                   ***/
@@ -2317,12 +2315,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 m_temporaryUnsummonedPetNumber;
         uint32 m_oldpetspell;
 
-       // last used pet number (for BG's)
-       uint32 m_lastpetnumber;
         ReputationMgr  m_reputationMgr;
-
-        // Map used to control threat redirection effects
-        RedirectThreatMap m_redirectMap;
 };
 
 void AddItemsSetItem(Player*player,Item *item);

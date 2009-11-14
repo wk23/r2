@@ -51,10 +51,10 @@ pkgdata_DATA = \
 	019_7622_03_mangos_creature_ai_texts.sql \
 	020_7643_01_mangos_db_version.sql \
 	020_7643_02_mangos_mangos_string.sql \
-	021_01_mangos_spell_proc_event.sql \
-	022_01_mangos_spell_proc_event.sql \
-	023_01_mangos_spell_proc_event.sql \
-	024_01_mangos_spell_proc_event.sql \
+	021_xxxx_01_mangos_spell_proc_event.sql \
+	022_xxxx_01_mangos_spell_proc_event.sql \
+	023_xxxx_01_mangos_spell_proc_event.sql \
+	024_xxxx_01_mangos_spell_proc_event.sql \
 	025_7705_01_mangos_command.sql \
 	026_7706_01_mangos_command.sql \
 	027_7714_01_mangos_command.sql \
@@ -100,6 +100,30 @@ pkgdata_DATA = \
 	058_7546_02_realmd_uptime.sql \
 	059_7168_01_mangos_command.sql \
 	060_8412_01_mangos_mangos_string.sql \
+	061_7067_01_mangos_playercreateinfo_spell.sql \
+	061_7067_02_mangos_spell_learn_spell.sql \
+	061_7067_03_characters_character_spell.sql \
+	062_xxxx_01_mangos_spell_learn_spell.sql \
+	063_8444_01_mangos_mangos_string.sql \
+	064_8462_01_mangos_creature_ai_texts.sql \
+	065_8469_01_characters_character_spell.sql \
+	066_8402_01_characters_guild_eventlog.sql \
+	066_8402_02_characters_guild_bank_eventlog.sql \
+	066_8409_01_characters_guild.sql \
+	067_8573_01_mangos_mangos_string.sql \
+	068_8600_01_mangos_command.sql \
+	069_8548_01_mangos_creature_battleground.sql \
+	070_8548_02_mangos_gameobject_battleground.sql \
+	071_8549_03_mangos_battleground_events.sql \
+	072_8607_01_mangos_string.sql \
+	073_8607_02_mangos_command.sql \
+	074_xxxx_01_mangos_spell_proc_event.sql \
+	075_8608_01_mangos_mangos_string.sql \
+	075_8608_02_mangos_battleground_events.sql \
+	076_8702_01_characters_character_reputation.sql \
+	077_8728_01_realmd_account.sql \
+	078_8749_01_mangos_mail_loot_template.sql \
+	079_8721_01_characters_guild.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -130,10 +154,10 @@ EXTRA_DIST = \
 	019_7622_03_mangos_creature_ai_texts.sql \
 	020_7643_01_mangos_db_version.sql \
 	020_7643_02_mangos_mangos_string.sql \
-	021_01_mangos_spell_proc_event.sql \
-	022_01_mangos_spell_proc_event.sql \
-	023_01_mangos_spell_proc_event.sql \
-	024_01_mangos_spell_proc_event.sql \
+	021_xxxx_01_mangos_spell_proc_event.sql \
+	022_xxxx_01_mangos_spell_proc_event.sql \
+	023_xxxx_01_mangos_spell_proc_event.sql \
+	024_xxxx_01_mangos_spell_proc_event.sql \
 	025_7705_01_mangos_command.sql \
 	026_7706_01_mangos_command.sql \
 	027_7714_01_mangos_command.sql \
@@ -179,4 +203,28 @@ EXTRA_DIST = \
 	058_7546_02_realmd_uptime.sql \
 	059_7168_01_mangos_command.sql \
 	060_8412_01_mangos_mangos_string.sql \
+	061_7067_01_mangos_playercreateinfo_spell.sql \
+	061_7067_02_mangos_spell_learn_spell.sql \
+	061_7067_03_characters_character_spell.sql \
+	062_xxxx_01_mangos_spell_learn_spell.sql \
+	063_8444_01_mangos_mangos_string.sql \
+	064_8462_01_mangos_creature_ai_texts.sql \
+	065_8469_01_characters_character_spell.sql \
+	066_8402_01_characters_guild_eventlog.sql \
+	066_8402_02_characters_guild_bank_eventlog.sql \
+	066_8409_01_characters_guild.sql \
+	067_8573_01_mangos_mangos_string.sql \
+	068_8600_01_mangos_command \
+	069_8548_01_mangos_creature_battleground.sql \
+	070_8548_02_mangos_gameobject_battleground.sql \
+	071_8549_03_mangos_battleground_events.sql \
+	072_8607_01_mangos_string.sql \
+	073_8607_02_mangos_command.sql \
+	074_xxxx_01_mangos_spell_proc_event.sql \
+	075_8608_01_mangos_mangos_string.sql \
+	075_8608_02_mangos_battleground_events.sql \
+	076_8702_01_characters_character_reputation.sql \
+	077_8728_01_realmd_account.sql \
+	078_8749_01_mangos_mail_loot_template.sql \
+	079_8721_01_characters_guild.sql \
 	README

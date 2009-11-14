@@ -29,11 +29,8 @@
 #include "GossipDef.h"
 #include "UpdateMask.h"
 #include "ScriptCalls.h"
-#include "ObjectAccessor.h"
 #include "Creature.h"
 #include "Pet.h"
-#include "BattleGroundMgr.h"
-#include "BattleGround.h"
 #include "Guild.h"
 
 void WorldSession::HandleTabardVendorActivateOpcode( WorldPacket & recv_data )
@@ -160,9 +157,9 @@ void WorldSession::SendTrainerList( uint64 guid, const std::string& strTitle )
 
         ++count;
 
-        bool primary_prof_first_rank = spellmgr.IsPrimaryProfessionFirstRankSpell(tSpell->spell);
+        bool primary_prof_first_rank = sSpellMgr.IsPrimaryProfessionFirstRankSpell(tSpell->spell);
 
-        SpellChainNode const* chain_node = spellmgr.GetSpellChainNode(tSpell->spell);
+        SpellChainNode const* chain_node = sSpellMgr.GetSpellChainNode(tSpell->spell);
 
         data << uint32(tSpell->spell);
         data << uint8(_player->GetTrainerSpellState(tSpell));
@@ -268,17 +265,8 @@ void WorldSession::HandleGossipHelloOpcode( WorldPacket & recv_data )
         unit->StopMoving();
     }
 
-    // If spiritguide, no need for gossip menu, just put player into resurrect queue
     if (unit->isSpiritGuide())
-    {
-        BattleGround *bg = _player->GetBattleGround();
-        if(bg)
-        {
-            bg->AddPlayerToResurrectQueue(unit->GetGUID(), _player->GetGUID());
-            sBattleGroundMgr.SendAreaSpiritHealerQueryOpcode(_player, bg, unit->GetGUID());
-            return;
-        }
-    }
+        unit->SendAreaSpiritHealerQueryOpcode(_player);
 
     if(!Script->GossipHello( _player, unit ))
     {
@@ -361,7 +349,7 @@ void WorldSession::SendSpiritResurrect()
     WorldSafeLocsEntry const *corpseGrave = NULL;
     Corpse *corpse = _player->GetCorpse();
     if(corpse)
-        corpseGrave = objmgr.GetClosestGraveYard(
+        corpseGrave = sObjectMgr.GetClosestGraveYard(
             corpse->GetPositionX(), corpse->GetPositionY(), corpse->GetPositionZ(), corpse->GetMapId(), _player->GetTeam() );
 
     // now can spawn bones
@@ -370,18 +358,18 @@ void WorldSession::SendSpiritResurrect()
     // teleport to nearest from corpse graveyard, if different from nearest to player ghost
     if(corpseGrave)
     {
-        WorldSafeLocsEntry const *ghostGrave = objmgr.GetClosestGraveYard(
+        WorldSafeLocsEntry const *ghostGrave = sObjectMgr.GetClosestGraveYard(
             _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetMapId(), _player->GetTeam() );
 
         if(corpseGrave != ghostGrave)
             _player->TeleportTo(corpseGrave->map_id, corpseGrave->x, corpseGrave->y, corpseGrave->z, _player->GetOrientation());
         // or update at original position
         else
-            ObjectAccessor::UpdateVisibilityForPlayer(_player);
+            _player->UpdateVisibilityForPlayer();
     }
     // or update at original position
     else
-        ObjectAccessor::UpdateVisibilityForPlayer(_player);
+        _player->UpdateVisibilityForPlayer();
 
     _player->SaveToDB();
 }
@@ -640,7 +628,7 @@ void WorldSession::HandleUnstablePet( WorldPacket & recv_data )
         return;
     }
 
-    CreatureInfo const* creatureInfo = objmgr.GetCreatureTemplate(creature_id);
+    CreatureInfo const* creatureInfo = ObjectMgr::GetCreatureTemplate(creature_id);
     if(!creatureInfo || !creatureInfo->isTameable())
     {
         WorldPacket data(SMSG_STABLE_RESULT, 1);
@@ -767,7 +755,7 @@ void WorldSession::HandleStableSwapPet( WorldPacket & recv_data )
         return;
     }
 
-    CreatureInfo const* creatureInfo = objmgr.GetCreatureTemplate(creature_id);
+    CreatureInfo const* creatureInfo = ObjectMgr::GetCreatureTemplate(creature_id);
     if(!creatureInfo || !creatureInfo->isTameable())
     {
         WorldPacket data(SMSG_STABLE_RESULT, 1);
@@ -836,7 +824,7 @@ void WorldSession::HandleRepairItemOpcode( WorldPacket & recv_data )
         uint32 GuildId = _player->GetGuildId();
         if (!GuildId)
             return;
-        Guild *pGuild = objmgr.GetGuildById(GuildId);
+        Guild *pGuild = sObjectMgr.GetGuildById(GuildId);
         if (!pGuild)
             return;
         pGuild->LogBankEvent(GUILD_BANK_LOG_REPAIR_MONEY, 0, _player->GetGUIDLow(), TotalCost);

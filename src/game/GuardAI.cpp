@@ -108,7 +108,7 @@ void GuardAI::EnterEvadeMode()
 void GuardAI::UpdateAI(const uint32 /*diff*/)
 {
     // update i_victimGuid if i_creature.getVictim() !=0 and changed
-    if (!m_creature->SelectHostilTarget() || !m_creature->getVictim())
+    if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
         return;
 
     i_victimGuid = m_creature->getVictim()->GetGUID();
@@ -126,7 +126,7 @@ void GuardAI::UpdateAI(const uint32 /*diff*/)
 bool GuardAI::IsVisible(Unit *pl) const
 {
     return m_creature->IsWithinDist(pl,sWorld.getConfig(CONFIG_SIGHT_GUARDER))
-        && pl->isVisibleForOrDetect(m_creature,true);
+        && pl->isVisibleForOrDetect(m_creature,m_creature,true);
 }
 
 void GuardAI::AttackStart(Unit *u)
@@ -138,7 +138,7 @@ void GuardAI::AttackStart(Unit *u)
     if(m_creature->Attack(u,true))
     {
         i_victimGuid = u->GetGUID();
-        m_creature->AddThreat(u, 0.0f);
+        m_creature->AddThreat(u);
         m_creature->SetInCombatWith(u);
         u->SetInCombatWith(m_creature);
 

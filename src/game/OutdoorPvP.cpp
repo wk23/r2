@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2005-2008 MaNGOS <http://www.mangosproject.org/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 #include "OutdoorPvP.h"
 #include "OutdoorPvPMgr.h"
 #include "ObjectAccessor.h"
@@ -8,10 +26,10 @@
 #include "Group.h"
 #include "WorldPacket.h"
 
-OutdoorPvPObjective::OutdoorPvPObjective(OutdoorPvP * pvp)
+    OutdoorPvPObjective::OutdoorPvPObjective(OutdoorPvP * pvp)
 : m_PvP(pvp), m_AllianceActivePlayerCount(0), m_HordeActivePlayerCount(0),
-m_ShiftTimer(0), m_ShiftPhase(0), m_ShiftMaxPhase(0), m_OldPhase(0),
-m_State(0), m_OldState(0), m_CapturePoint(0), m_NeutralValue(0), m_ShiftMaxCaptureSpeed(0), m_CapturePointCreature(0)
+    m_ShiftTimer(0), m_ShiftPhase(0), m_ShiftMaxPhase(0), m_OldPhase(0),
+    m_State(0), m_OldState(0), m_CapturePoint(0), m_NeutralValue(0), m_ShiftMaxCaptureSpeed(0), m_CapturePointCreature(0)
 {
 }
 
@@ -57,13 +75,13 @@ void OutdoorPvPObjective::HandlePlayerActivityChanged(Player * plr)
 
 bool OutdoorPvPObjective::AddObject(uint32 type, uint32 entry, uint32 map, float x, float y, float z, float o, float rotation0, float rotation1, float rotation2, float rotation3)
 {
-    GameObjectInfo const* goinfo = objmgr.GetGameObjectInfo(entry);
+    GameObjectInfo const* goinfo = sObjectMgr.GetGameObjectInfo(entry);
     if (!goinfo)
         return false;
 
-    uint32 guid = objmgr.GenerateLowGuid(HIGHGUID_GAMEOBJECT);
+    uint32 guid = sObjectMgr.GenerateLowGuid(HIGHGUID_GAMEOBJECT);
 
-    GameObjectData& data = objmgr.NewGOData(guid);
+    GameObjectData& data = sObjectMgr.NewGOData(guid);
 
     data.id             = entry;
     data.mapid          = map;
@@ -80,7 +98,7 @@ bool OutdoorPvPObjective::AddObject(uint32 type, uint32 entry, uint32 map, float
     data.spawnMask      = 1;
     data.go_state       = GO_STATE_READY;
 
-    objmgr.AddGameobjectToGrid(guid, &data);
+    sObjectMgr.AddGameobjectToGrid(guid, &data);
 
     // 2 way registering
     m_Objects[type] = MAKE_NEW_GUID(guid, entry, HIGHGUID_GAMEOBJECT);
@@ -98,7 +116,7 @@ bool OutdoorPvPObjective::AddObject(uint32 type, uint32 entry, uint32 map, float
     }
 
     go->SetRespawnTime(0);
-    objmgr.SaveGORespawnTime(go->GetDBTableGUIDLow(),0,0);
+    sObjectMgr.SaveGORespawnTime(go->GetDBTableGUIDLow(),0,0);
     pMap->Add(go);
 
     return true;
@@ -106,14 +124,14 @@ bool OutdoorPvPObjective::AddObject(uint32 type, uint32 entry, uint32 map, float
 
 bool OutdoorPvPObjective::AddCreature(uint32 type, uint32 entry, uint32 teamval, uint32 map, float x, float y, float z, float o, uint32 spawntimedelay)
 {
-    CreatureInfo const *cinfo = objmgr.GetCreatureTemplate(entry);
+    CreatureInfo const *cinfo = sObjectMgr.GetCreatureTemplate(entry);
     if(!cinfo)
     {
         return false;
     }
 
-    uint32 displayId = objmgr.ChooseDisplayId(teamval, cinfo, NULL);
-    CreatureModelInfo const *minfo = objmgr.GetCreatureModelRandomGender(displayId);
+    uint32 displayId = sObjectMgr.ChooseDisplayId(teamval, cinfo, NULL);
+    CreatureModelInfo const *minfo = sObjectMgr.GetCreatureModelRandomGender(displayId);
     if (!minfo)
     {
         return false;
@@ -121,9 +139,9 @@ bool OutdoorPvPObjective::AddCreature(uint32 type, uint32 entry, uint32 teamval,
     else
         displayId = minfo->modelid;                        // it can be different (for another gender)
 
-    uint32 guid = objmgr.GenerateLowGuid(HIGHGUID_UNIT);
+    uint32 guid = sObjectMgr.GenerateLowGuid(HIGHGUID_UNIT);
 
-    CreatureData& data = objmgr.NewOrExistCreatureData(guid);
+    CreatureData& data = sObjectMgr.NewOrExistCreatureData(guid);
 
     data.id = entry;
     data.mapid = map;
@@ -142,7 +160,7 @@ bool OutdoorPvPObjective::AddCreature(uint32 type, uint32 entry, uint32 teamval,
     data.movementType = cinfo->MovementType;
     data.spawnMask = 1;
 
-    objmgr.AddCreatureToGrid(guid, &data);
+    sObjectMgr.AddCreatureToGrid(guid, &data);
 
     m_Creatures[type] = MAKE_NEW_GUID(guid, entry, HIGHGUID_UNIT);
     m_CreatureTypes[m_Creatures[type]] = type;
@@ -181,20 +199,20 @@ bool OutdoorPvPObjective::AddCapturePoint(uint32 entry, uint32 map, float x, flo
     sLog.outDebug("creating capture point %u and capture point creature",entry);
 
     // check info existence
-    GameObjectInfo const* goinfo = objmgr.GetGameObjectInfo(entry);
+    GameObjectInfo const* goinfo = sObjectMgr.GetGameObjectInfo(entry);
     if (!goinfo)
         return false;
 
-    CreatureInfo const *cinfo = objmgr.GetCreatureTemplate(OPVP_TRIGGER_CREATURE_ENTRY);
+    CreatureInfo const *cinfo = sObjectMgr.GetCreatureTemplate(OPVP_TRIGGER_CREATURE_ENTRY);
     if(!cinfo)
         return false;
 
     // create capture point creature
-    uint32 displayId = objmgr.ChooseDisplayId(0, cinfo, NULL);
+    uint32 displayId = sObjectMgr.ChooseDisplayId(0, cinfo, NULL);
 
-    uint32 creature_guid = objmgr.GenerateLowGuid(HIGHGUID_UNIT);
+    uint32 creature_guid = sObjectMgr.GenerateLowGuid(HIGHGUID_UNIT);
 
-    CreatureData& cdata = objmgr.NewOrExistCreatureData(creature_guid);
+    CreatureData& cdata = sObjectMgr.NewOrExistCreatureData(creature_guid);
 
     cdata.id = OPVP_TRIGGER_CREATURE_ENTRY;
     cdata.mapid = map;
@@ -213,13 +231,13 @@ bool OutdoorPvPObjective::AddCapturePoint(uint32 entry, uint32 map, float x, flo
     cdata.movementType = cinfo->MovementType;
     cdata.spawnMask = 1;
 
-    objmgr.AddCreatureToGrid(creature_guid, &cdata);
+    sObjectMgr.AddCreatureToGrid(creature_guid, &cdata);
     m_CapturePointCreature = MAKE_NEW_GUID(creature_guid, OPVP_TRIGGER_CREATURE_ENTRY, HIGHGUID_UNIT);
 
     // create capture point go
-    uint32 guid = objmgr.GenerateLowGuid(HIGHGUID_GAMEOBJECT);
+    uint32 guid = sObjectMgr.GenerateLowGuid(HIGHGUID_GAMEOBJECT);
 
-    GameObjectData& data = objmgr.NewGOData(guid);
+    GameObjectData& data = sObjectMgr.NewGOData(guid);
 
     data.id             = entry;
     data.mapid          = map;
@@ -236,7 +254,7 @@ bool OutdoorPvPObjective::AddCapturePoint(uint32 entry, uint32 map, float x, flo
     data.spawnMask      = 1;
     data.go_state       = GO_STATE_READY;
 
-    objmgr.AddGameobjectToGrid(guid, &data);
+    sObjectMgr.AddGameobjectToGrid(guid, &data);
 
     m_CapturePoint = MAKE_NEW_GUID(guid, entry, HIGHGUID_GAMEOBJECT);
 
@@ -259,7 +277,7 @@ bool OutdoorPvPObjective::AddCapturePoint(uint32 entry, uint32 map, float x, flo
     else
     {
         go->SetRespawnTime(0);
-        objmgr.SaveGORespawnTime(go->GetDBTableGUIDLow(), 0, 0);
+        sObjectMgr.SaveGORespawnTime(go->GetDBTableGUIDLow(), 0, 0);
         pMap->Add(go);
     }
     // add creature...
@@ -297,24 +315,16 @@ bool OutdoorPvPObjective::DelCreature(uint32 type)
     Creature *cr = HashMapHolder<Creature>::Find(m_Creatures[type]);
     if(!cr)
     {
-        sLog.outError("Can't find creature guid: %u",m_Creatures[type]);
+        sLog.outError("OutdoorPvPObjective: Can't find creature guid: %u", m_Creatures[type]);
         return false;
     }
-    sLog.outDebug("deleting opvp creature type %u",type);
+    sLog.outDebug("deleting opvp creature type %u", type);
     uint32 guid = cr->GetDBTableGUIDLow();
     // dont save respawn time
-    cr->SetRespawnTime(0);
-    cr->RemoveCorpse();
-    cr->CleanupsBeforeDelete();
-    // explicit removal from map
-    // beats me why this is needed, but with the recent removal "cleanup" some creatures stay in the map if "properly" deleted
-    // so this is a big fat workaround, if AddObjectToRemoveList and DoDelayedMovesAndRemoves worked correctly, this wouldn't be needed
-    if(Map * map = MapManager::Instance().FindMap(cr->GetMapId()))
-        map->Remove(cr,false);
     // delete respawn time for this creature
     WorldDatabase.PExecute("DELETE FROM creature_respawn WHERE guid = '%u'", guid);
     cr->AddObjectToRemoveList();
-    objmgr.DeleteCreatureData(guid);
+    sObjectMgr.DeleteCreatureData(guid); // i think this is needed, cause the data gets created through a hack
     m_CreatureTypes[m_Creatures[type]] = 0;
     m_Creatures[type] = 0;
     return true;
@@ -328,13 +338,14 @@ bool OutdoorPvPObjective::DelObject(uint32 type)
     GameObject *obj = HashMapHolder<GameObject>::Find(m_Objects[type]);
     if(!obj)
     {
-        sLog.outError("Can't find gobject guid: %u",m_Objects[type]);
+        sLog.outError("OutdoorPvPObjective: Can't find gobject guid: %u",m_Objects[type]);
         return false;
     }
     uint32 guid = obj->GetDBTableGUIDLow();
+
     obj->SetRespawnTime(0);                                 // not save respawn time
     obj->Delete();
-    objmgr.DeleteGOData(guid);
+    sObjectMgr.DeleteGOData(guid);
     m_ObjectTypes[m_Objects[type]] = 0;
     m_Objects[type] = 0;
     return true;
@@ -354,7 +365,7 @@ bool OutdoorPvPObjective::DelCapturePoint()
     uint32 guid = obj->GetDBTableGUIDLow();
     obj->SetRespawnTime(0);                                 // not save respawn time
     obj->Delete();
-    objmgr.DeleteGOData(guid);
+    sObjectMgr.DeleteGOData(guid);
     m_CapturePoint = 0;
     return true;
 }
@@ -524,7 +535,7 @@ void OutdoorPvP::SendUpdateWorldState(uint32 field, uint32 value)
         // send to all players present in the area
         for(std::set<uint64>::iterator itr = m_PlayerGuids[i].begin(); itr != m_PlayerGuids[i].end(); ++itr)
         {
-            Player * plr = objmgr.GetPlayer(*itr);
+            Player * plr = sObjectMgr.GetPlayer(*itr);
             if(plr)
             {
                 plr->SendUpdateWorldState(field,value);
@@ -538,7 +549,7 @@ void OutdoorPvPObjective::SendUpdateWorldState(uint32 field, uint32 value)
     // send to all players present in the area
     for(std::set<uint64>::iterator itr = m_ActivePlayerGuids.begin(); itr != m_ActivePlayerGuids.end(); ++itr)
     {
-        Player * plr = objmgr.GetPlayer(*itr);
+        Player * plr = sObjectMgr.GetPlayer(*itr);
         if(plr)
         {
             plr->SendUpdateWorldState(field,value);
@@ -551,21 +562,21 @@ void OutdoorPvPObjective::SendObjectiveComplete(uint32 id,uint64 guid)
     uint32 controlling_faction;
     switch(m_State)
     {
-    case OBJECTIVESTATE_ALLIANCE:
-        controlling_faction = ALLIANCE;
-        break;
-    case OBJECTIVESTATE_HORDE:
-        controlling_faction = HORDE;
-        break;
-    default:
-        return;
-        break;
+        case OBJECTIVESTATE_ALLIANCE:
+            controlling_faction = ALLIANCE;
+            break;
+        case OBJECTIVESTATE_HORDE:
+            controlling_faction = HORDE;
+            break;
+        default:
+            return;
+            break;
     }
 
     // send to all players present in the area
     for(std::set<uint64>::iterator itr = m_ActivePlayerGuids.begin(); itr != m_ActivePlayerGuids.end(); ++itr)
     {
-        Player * plr = objmgr.GetPlayer(*itr);
+        Player * plr = sObjectMgr.GetPlayer(*itr);
         if(plr && plr->GetTeam() == controlling_faction)
         {
             plr->KilledMonsterCredit(id,guid);

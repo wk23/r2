@@ -331,7 +331,8 @@ enum MangosStrings
     //                                    345 used in master branch
     //                                    346 used in master branch
     LANG_COMMAND_GOTAXINODENOTFOUND     = 347,
-    // Room for more level 2              348-399 not used
+    LANG_GAMEOBJECT_HAVE_INVALID_DATA   = 348,
+    // Room for more level 2              349-399 not used
 
     // level 3 chat
     LANG_SCRIPTS_RELOADED               = 400,
@@ -532,8 +533,8 @@ enum MangosStrings
     LANG_GET_UINT_FIELD                 = 570,
     LANG_GET_FLOAT                      = 571,              //log
     LANG_GET_FLOAT_FIELD                = 572,
-    LANG_SET_32BIT                      = 573,              //log
-    LANG_SET_32BIT_FIELD                = 574,
+    //                                    573,              //not used
+    //                                    574,              //not used
     LANG_CHANGE_32BIT                   = 575,              //log
     LANG_CHANGE_32BIT_FIELD             = 576,
 
@@ -738,7 +739,48 @@ enum MangosStrings
     LANG_DIST_ARENA_POINTS_TEAM_END     = 745,
     LANG_DIST_ARENA_POINTS_END          = 746,
 
-   // Room for batleground/arena strings 747-799 not used
+    LANG_BATTLEGROUND_ONLY_ALLIANCE_USE = 752, // "Only The Alliance can use that portal"
+    LANG_BATTLEGROUND_ONLY_HORDE_USE    = 753, // "Only The Horde can use that portal"
+
+    LANG_BG_AV_ALLY                     = 757,
+    LANG_BG_AV_HORDE                    = 758,
+    LANG_BG_AV_TOWER_TAKEN              = 759,
+    LANG_BG_AV_TOWER_ASSAULTED          = 760,
+    LANG_BG_AV_TOWER_DEFENDED           = 761,
+    LANG_BG_AV_GRAVE_TAKEN              = 762,
+    LANG_BG_AV_GRAVE_DEFENDED           = 763,
+    LANG_BG_AV_GRAVE_ASSAULTED          = 764,
+    LANG_BG_AV_MINE_TAKEN               = 765,
+    LANG_BG_AV_MINE_NORTH               = 766,
+    LANG_BG_AV_MINE_SOUTH               = 767,
+
+    LANG_BG_AV_NODE_GRAVE_STORM_AID     = 768,
+    LANG_BG_AV_NODE_TOWER_DUN_S         = 769,
+    LANG_BG_AV_NODE_TOWER_DUN_N         = 770,
+    LANG_BG_AV_NODE_GRAVE_STORMPIKE     = 771,
+    LANG_BG_AV_NODE_TOWER_ICEWING       = 772,
+    LANG_BG_AV_NODE_GRAVE_STONE         = 773,
+    LANG_BG_AV_NODE_TOWER_STONE         = 774,
+    LANG_BG_AV_NODE_GRAVE_SNOW          = 775,
+    LANG_BG_AV_NODE_TOWER_ICE           = 776,
+    LANG_BG_AV_NODE_GRAVE_ICE           = 777,
+    LANG_BG_AV_NODE_TOWER_POINT         = 778,
+    LANG_BG_AV_NODE_GRAVE_FROST         = 779,
+    LANG_BG_AV_NODE_TOWER_FROST_E       = 780,
+    LANG_BG_AV_NODE_TOWER_FROST_W       = 781,
+    LANG_BG_AV_NODE_GRAVE_FROST_HUT     = 782,
+
+    LANG_BG_AV_START_TWO_MINUTES        = 783,
+    LANG_BG_AV_START_ONE_MINUTE         = 784,
+    LANG_BG_AV_START_HALF_MINUTE        = 785,
+    LANG_BG_AV_HAS_BEGUN                = 786,
+    LANG_BG_AV_A_NEAR_LOSE              = 787,
+    LANG_BG_AV_H_NEAR_LOSE              = 788,
+    LANG_BG_AV_H_GENERAL_DEAD           = 789,
+    LANG_BG_AV_A_GENERAL_DEAD           = 790,
+
+
+    // Room for batleground/arena strings 790-799 not used
 
     // in game strings
     //                                  = 800, not used
@@ -807,7 +849,9 @@ enum MangosStrings
     //                                    1127 used in master branch
     LANG_TAXINODE_ENTRY_LIST_CHAT       = 1128,
     LANG_TAXINODE_ENTRY_LIST_CONSOLE    = 1129,
-    // Room for more level 3              1130-1199 not used
+    LANG_EVENT_STARTED                  = 1130,
+    LANG_EVENT_STOPPED                  = 1131,
+    // Room for more level 3              1132-1199 not used
 
     // Debug commands
     LANG_CINEMATIC_NOT_EXIST            = 1200,
@@ -817,41 +861,6 @@ enum MangosStrings
 
     // Use for not-in-offcial-sources patches
     //                                    10000-10999
-    LANG_BG_AV_ALLY                     = 10747,
-    LANG_BG_AV_HORDE                    = 10748,
-    LANG_BG_AV_TOWER_TAKEN              = 10749,
-    LANG_BG_AV_TOWER_ASSAULTED          = 10750,
-    LANG_BG_AV_TOWER_DEFENDED           = 10751,
-    LANG_BG_AV_GRAVE_TAKEN              = 10752,
-    LANG_BG_AV_GRAVE_DEFENDED           = 10753,
-    LANG_BG_AV_GRAVE_ASSAULTED          = 10754,
-    LANG_BG_AV_MINE_TAKEN               = 10755,
-    LANG_BG_AV_MINE_NORTH               = 10756,
-    LANG_BG_AV_MINE_SOUTH               = 10757,
-
-    LANG_BG_AV_NODE_GRAVE_STORM_AID     = 10758,
-    LANG_BG_AV_NODE_TOWER_DUN_S         = 10759,
-    LANG_BG_AV_NODE_TOWER_DUN_N         = 10760,
-    LANG_BG_AV_NODE_GRAVE_STORMPIKE     = 10761,
-    LANG_BG_AV_NODE_TOWER_ICEWING       = 10762,
-    LANG_BG_AV_NODE_GRAVE_STONE         = 10763,
-    LANG_BG_AV_NODE_TOWER_STONE         = 10764,
-    LANG_BG_AV_NODE_GRAVE_SNOW          = 10765,
-    LANG_BG_AV_NODE_TOWER_ICE           = 10766,
-    LANG_BG_AV_NODE_GRAVE_ICE           = 10767,
-    LANG_BG_AV_NODE_TOWER_POINT         = 10768,
-    LANG_BG_AV_NODE_GRAVE_FROST         = 10769,
-    LANG_BG_AV_NODE_TOWER_FROST_E       = 10770,
-    LANG_BG_AV_NODE_TOWER_FROST_W       = 10771,
-    LANG_BG_AV_NODE_GRAVE_FROST_HUT     = 10772,
-
-    LANG_BG_AV_ONEMINTOSTART            = 10773,
-    LANG_BG_AV_HALFMINTOSTART           = 10774,
-    LANG_BG_AV_STARTED                  = 10775,
-    LANG_BG_AV_A_NEAR_LOSE              = 10776,
-    LANG_BG_AV_H_NEAR_LOSE              = 10777,
-    LANG_BG_AV_H_CAPTAIN_DEAD           = 10778,
-    LANG_BG_AV_A_CAPTAIN_DEAD           = 10779,
 
     // Use for custom patches             11000-11999
 

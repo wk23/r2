@@ -3,7 +3,7 @@
 --
 
 DELETE FROM sd2_db_version;
-INSERT INTO sd2_db_version (version) VALUES ('ScriptDev2 (for MaNGOS 7951+) ');
+INSERT INTO sd2_db_version (version) VALUES ('ScriptDev2 (for MaNGOS 8759+) ');
 
 --
 -- Below contains data for table `script_texts` mainly used in C++ parts.
@@ -18,10 +18,11 @@ TRUNCATE script_texts;
 
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
 (-1000000,'<ScriptDev2 Text Entry Missing!>',0,0,0,0,'DEFAULT_TEXT'),
-(-1000001,'goes into a killing frenzy!',0,2,0,0,'EMOTE_GENERIC_FRENZY_KILL'),
-(-1000002,'goes into a frenzy!',0,2,0,0,'EMOTE_GENERIC_FRENZY'),
-(-1000003,'becomes enraged!',0,2,0,0,'EMOTE_GENERIC_ENRAGED'),
-(-1000004,'goes into a berserker rage!',0,2,0,0,'EMOTE_GENERIC_BERSERK');
+(-1000001,'%s goes into a killing frenzy!',0,2,0,0,'EMOTE_GENERIC_FRENZY_KILL'),
+(-1000002,'%s goes into a frenzy!',0,2,0,0,'EMOTE_GENERIC_FRENZY'),
+(-1000003,'%s becomes enraged!',0,2,0,0,'EMOTE_GENERIC_ENRAGED'),
+(-1000004,'%s goes into a berserker rage!',0,2,0,0,'EMOTE_GENERIC_BERSERK'),
+(-1000005,'%s goes into a frenzy!',0,3,0,0,'EMOTE_BOSS_GENERIC_FRENZY');
 
 --
 -- Normal text entries below. Say/Yell/Whisper/Emote for any regular world object.
@@ -59,7 +60,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000113, 'My poor family. Everything has been destroyed.',0,0,7,0,'magwin SAY_PROGRESS'),
 (-1000114, 'Father! Father! You\'re alive!',0,0,7,0,'magwin SAY_END1'),
 (-1000115, 'You can thank $N for getting me back here safely, father.',0,0,7,0,'magwin SAY_END2'),
-(-1000116, 'hugs her father.',0,2,7,0,'magwin EMOTE_HUG'),
+(-1000116, '%s hugs her father.',0,2,7,0,'magwin EMOTE_HUG'),
 
 (-1000117, 'Thank you for agreeing to help. Now, let\'s get out of here $N.',0,0,1,0,'wounded elf SAY_ELF_START'),
 (-1000118, 'Over there! They\'re following us!',0,0,1,0,'wounded elf SAY_ELF_SUMMON1'),
@@ -105,7 +106,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000153,'Contemptible wretch!',11338,1,0,0,'kazzak SAY_KILL2'),
 (-1000154,'The universe will be remade.',11339,1,0,0,'kazzak SAY_KILL3'),
 (-1000155,'The Legion... will never... fall.',11340,1,0,0,'kazzak SAY_DEATH'),
-(-1000156,'%s goes into a frenzy!',0,2,0,0,'kazzak EMOTE_FRENZY'),
+(-1000156,'REUSE ME',0,0,0,0,'REUSE ME'),
 (-1000157,'Invaders, you dangle upon the precipice of oblivion! The Burning Legion comes and with it comes your end.',0,1,0,0,'kazzak SAY_RAND1'),
 (-1000158,'Impudent whelps, you only delay the inevitable. Where one has fallen, ten shall rise. Such is the will of Kazzak...',0,1,0,0,'kazzak SAY_RAND2'),
 
@@ -141,7 +142,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000183,'I don\'t know if I can make it, please help me...',0,0,7,0,'draenei_survivor SAY_HELP4'),
 
 (-1000184,'Yes Master, all goes along as planned.',0,0,7,0,'engineer_spark SAY_TEXT'),
-(-1000185,'puts the shell to his ear.',0,2,7,0,'engineer_spark EMOTE_SHELL'),
+(-1000185,'%s puts the shell to his ear.',0,2,7,0,'engineer_spark EMOTE_SHELL'),
 (-1000186,'Now I cut you!',0,1,7,0,'engineer_spark SAY_ATTACK'),
 
 (-1000187,'Thank you, dear $C, you just saved my life.',0,0,7,0,'faulk SAY_HEAL'),
@@ -160,7 +161,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000195,'I choose the third option: KILLING YOU!',0,0,0,0,'floon SAY_FLOON_ATTACK'),
 
 (-1000196,'Belore...',0,0,1,0,'lady_sylvanas SAY_LAMENT_END'),
-(-1000197,'kneels down and pick up the amulet.',0,2,1,0,'lady_sylvanas EMOTE_LAMENT_END'),
+(-1000197,'%s kneels down and pick up the amulet.',0,2,1,0,'lady_sylvanas EMOTE_LAMENT_END'),
 
 (-1000198,'Taste blade, mongrel!',0,0,0,0,'SAY_GUARD_SIL_AGGRO1'),
 (-1000199,'Please tell me that you didn\'t just do what I think you just did. Please tell me that I\'m not going to have to hurt you...',0,0,0,0,'SAY_GUARD_SIL_AGGRO2'),
@@ -170,18 +171,18 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000202,'HOORAY! I AM SAVED!',0,0,0,0,'injured_patient SAY_DOC2'),
 (-1000203,'Sweet, sweet embrace... take me...',0,0,0,0,'injured_patient SAY_DOC3'),
 
-(-1000204,'looks up at you quizzically. Maybe you should inspect it?',0,2,0,0,'cluck EMOTE_A_HELLO'),
-(-1000205,'looks at you unexpectadly.',0,2,0,0,'cluck EMOTE_H_HELLO'),
-(-1000206,'starts pecking at the feed.',0,2,0,0,'cluck EMOTE_CLUCK_TEXT2'),
+(-1000204,'%s looks up at you quizzically. Maybe you should inspect it?',0,2,0,0,'cluck EMOTE_A_HELLO'),
+(-1000205,'%s looks at you unexpectadly.',0,2,0,0,'cluck EMOTE_H_HELLO'),
+(-1000206,'%s starts pecking at the feed.',0,2,0,0,'cluck EMOTE_CLUCK_TEXT2'),
 
 (-1000207,'You have my blessing',0,0,0,0,'ashyen_and_keleth SAY_REWARD_BLESS'),
 
-(-1000208,'UNUSED',0,0,0,0,'REUSE ME'),
+(-1000208,'Frenzyheart kill you if you come back. You no welcome here no more!',0,0,0,0,'vekjik SAY_TEXTID_VEKJIK1'),
 
 (-1000209,'Very well. Let\'s see what you have to show me, $N.',0,0,1,0,'anvilward SAY_ANVIL1'),
 (-1000210,'What manner of trick is this, $R? If you seek to ambush me, I warn you I will not go down quietly!',0,0,1,0,'anvilward SAY_ANVIL2'),
 
-(-1000211,'Warning! Emergency shutdown process initiated by $N. Shutdown will complete in two minutes.',0,2,0,0,'manaforge_control EMOTE_START'),
+(-1000211,'Warning! %s emergency shutdown process initiated by $N. Shutdown will complete in two minutes.',0,2,0,0,'manaforge_control EMOTE_START'),
 (-1000212,'Emergency shutdown will complete in one minute.',0,2,0,0,'manaforge_control EMOTE_60'),
 (-1000213,'Emergency shutdown will complete in thirty seconds.',0,2,0,0,'manaforge_control EMOTE_30'),
 (-1000214,'Emergency shutdown will complete in ten seconds.',0,2,0,0,'manaforge_control EMOTE_10'),
@@ -242,12 +243,12 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000264,'Ok, $N. Follow me to the cave where I\'ll attempt to harness the power of the rune stone into these goggles.',0,0,0,1,'phizzlethorpe SAY_PROGRESS_1'),
 (-1000265,'I discovered this cave on our first day here. I believe the energy in the stone can be used to our advantage.',0,0,0,1,'phizzlethorpe SAY_PROGRESS_2'),
 (-1000266,'I\'ll begin drawing energy from the stone. Your job, $N, is to defend me. This place is cursed... trust me.',0,0,0,1,'phizzlethorpe SAY_PROGRESS_3'),
-(-1000267,'begins tinkering with the goggles before the stone.',0,2,0,0,'phizzlethorpe EMOTE_PROGRESS_4'),
+(-1000267,'%s begins tinkering with the goggles before the stone.',0,2,0,0,'phizzlethorpe EMOTE_PROGRESS_4'),
 (-1000268,'Help!!! Get these things off me so I can get my work done!',0,0,0,0,'phizzlethorpe SAY_AGGRO'),
 (-1000269,'Almost done! Just a little longer!',0,0,0,1,'phizzlethorpe SAY_PROGRESS_5'),
 (-1000270,'I\'ve done it! I have harnessed the power of the stone into the goggles! Let\'s get out of here!',0,0,0,1,'phizzlethorpe SAY_PROGRESS_6'),
 (-1000271,'Phew! Glad to be back from that creepy cave.',0,0,0,1,'phizzlethorpe SAY_PROGRESS_7'),
-(-1000272,'hands one glowing goggles over to Doctor Draxlegauge.',0,2,0,0,'phizzlethorpe EMOTE_PROGRESS_8'),
+(-1000272,'%s hands one glowing goggles over to Doctor Draxlegauge.',0,2,0,0,'phizzlethorpe EMOTE_PROGRESS_8'),
 (-1000273,'Doctor Draxlegauge will give you further instructions, $N. Many thanks for your help!',0,0,0,1,'phizzlethorpe SAY_PROGRESS_9'),
 
 (-1000274,'Time to teach you a lesson in manners, little $Gboy:girl;!',0,0,0,0,'larry SAY_START'),
@@ -265,12 +266,12 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000285, 'We have all three of the relics, but my energy is rapidly fading. We must make our way back to Dreamwarden Lurosa! He will let you know what to do next.',0,0,0,0,'clintar SAY_RELIC3'),
 (-1000286, 'Lurosa, I am entrusting the Relics of Aviana to $N, who will take them to Morthis Whisperwing. I must return completely to the Emerald Dream now. Do not let $N fail!',0,0,0,1,'clintar SAY_END'),
 
-(-1000287,'Emergency power activated! Initializing ambulancery motor! CLUCK!',0,0,0,0,'oox17 SAY_START'),
-(-1000288,'Physical threat detected! Evasive action! CLUCK!',0,0,0,0,'oox17 SAY_AGGRO1'),
-(-1000289,'Thread analyzed! Activating combat plan beta! CLUCK!',0,0,0,0,'oox17 SAY_AGGRO2'),
-(-1000290,'CLUCK! Sensors detect spatial anomaly - danger imminent! CLUCK!',0,0,0,0,'oox17 SAY_AMBUSH'),
-(-1000291,'No one challanges the Wastewander nomads - not even robotic chickens! ATTACK!',0,0,0,0,'oox17 SAY_AMBUSH_REPLY'),
-(-1000292,'Cloaking systems online! CLUCK! Engaging cloak for transport to Booty Bay!',0,0,0,0,'oox17 SAY_END'),
+(-1000287,'Emergency power activated! Initializing ambulanory motor! CLUCK!',0,0,0,0,'oox SAY_OOX_START'),
+(-1000288,'Physical threat detected! Evasive action! CLUCK!',0,0,0,0,'oox SAY_OOX_AGGRO1'),
+(-1000289,'Thread analyzed! Activating combat plan beta! CLUCK!',0,0,0,0,'oox SAY_OOX_AGGRO2'),
+(-1000290,'CLUCK! Sensors detect spatial anomaly - danger imminent! CLUCK!',0,0,0,0,'oox SAY_OOX_AMBUSH'),
+(-1000291,'No one challanges the Wastewander nomads - not even robotic chickens! ATTACK!',0,0,0,0,'oox SAY_OOX17_AMBUSH_REPLY'),
+(-1000292,'Cloaking systems online! CLUCK! Engaging cloak for transport to Booty Bay!',0,0,0,0,'oox SAY_OOX_END'),
 
 (-1000293,'To the house! Stay close to me, no matter what! I have my gun and ammo there!',0,0,7,0,'stilwell SAY_DS_START'),
 (-1000294,'We showed that one!',0,0,7,0,'stilwell SAY_DS_DOWN_1'),
@@ -307,7 +308,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000322, 'Show $n the meaning of pain, Sunstriker!',0,1,1,0,'kelerun SayId4'),
 
 (-1000323, 'Mist! I feared I would never see you again! Yes, I am well, do not worry for me. You must rest and recover your health.',0,0,7,0,'mist SAY_AT_HOME'),
-(-1000324, 'growls in acknowledgement before straightening and making her way off into the forest.',0,2,0,0,'mist EMOTE_AT_HOME'),
+(-1000324, '%s growls in acknowledgement before straightening and making her way off into the forest.',0,2,0,0,'mist EMOTE_AT_HOME'),
 
 (-1000325, '"Threshwackonator First Mate unit prepared to follow"',0,2,0,0,'threshwackonator EMOTE_START'),
 (-1000326, 'YARRR! Swabie, what have ye done?! He\'s gone mad! Baton him down the hatches! Hoist the mast! ARRRR! Every man for hi\'self!',0,0,7,0,'threshwackonator SAY_AT_CLOSE'),
@@ -344,7 +345,230 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000352, '%s takes the Southfury moonstone and escapes into the river. Follow her!',0,3,0,0,'sprysprocket EMOTE_START'),
 (-1000353, 'Just chill!',0,4,0,0,'sprysprocket SAY_WHISPER_CHILL'),
 (-1000354, 'Stupid grenade picked a fine time to backfire! So much for high quality goblin engineering!',0,1,0,0,'sprysprocket SAY_GRENADE_FAIL'),
-(-1000355, 'All right, you win! I surrender! Just don\'t hurt me!',0,1,0,0,'sprysprocket SAY_END');
+(-1000355, 'All right, you win! I surrender! Just don\'t hurt me!',0,1,0,0,'sprysprocket SAY_END'),
+
+(-1000356,'Okay, okay... gimme a minute to rest now. You gone and beat me up good.',0,0,1,14,'calvin SAY_COMPLETE'),
+
+(-1000357,'Let\'s go before they find out I\'m free!',0,0,0,1,'KAYA_SAY_START'),
+(-1000358,'Look out! We\'re under attack!',0,0,0,0,'KAYA_AMBUSH'),
+(-1000359,'Thank you for helping me. I know my way back from here.',0,0,0,0,'KAYA_END'),
+
+(-1000360,'The strands of LIFE have been severed! The Dreamers must be avenged!',0,1,0,0,' ysondre SAY_AGGRO'),
+(-1000361,'Come forth, ye Dreamers – and claim your vengeance!',0,1,0,0,' ysondre SAY_SUMMONDRUIDS'),
+
+(-1000362,'Let\'s go $N. I am ready to reach Whitereach Post.',0,0,1,0,'paoka SAY_START'),
+(-1000363,'Now this looks familiar. If we keep heading east, I think we can... Ahh, Wyvern on the attack!',0,0,1,0,'paoka SAY_WYVERN'),
+(-1000364,'Thanks a bunch... I can find my way back to Whitereach Post from here. Be sure to talk with Motega Firemane; perhaps you can keep him from sending me home.',0,0,1,0,'paoka SAY_COMPLETE'),
+
+(-1000365,'Be on guard... Arnak has some strange power over the Grimtotem... they will not be happy to see me escape.',0,0,1,0,'lakota SAY_LAKO_START'),
+(-1000366,'Look out, the Grimtotem are upon us!',0,0,1,0,'lakota SAY_LAKO_LOOK_OUT'),
+(-1000367,'Here they come.',0,0,1,0,'lakota SAY_LAKO_HERE_COME'),
+(-1000368,'More Grimtotems are coming this way!',0,0,1,0,'lakota SAY_LAKO_MORE'),
+(-1000369,'Finally, free at last... I must be going now, thanks for helping me escape. I can get back to Freewind Post by myself.',0,0,1,0,'lakota SAY_LAKO_END'),
+
+(-1000370,'Stay close, $n. I\'ll need all the help I can get to break out of here. Let\'s go!',0,0,1,1,'gilthares SAY_GIL_START'),
+(-1000371,'At last! Free from Northwatch Hold! I need a moment to catch my breath...',0,0,1,5,'gilthares SAY_GIL_AT_LAST'),
+(-1000372,'Now i feel better. Let\'s get back to Ratchet. Come on, $n.',0,0,1,23,'gilthares SAY_GIL_PROCEED'),
+(-1000373,'Looks like the Southsea Freeboters are heavily entrenched on the coast. This could get rough.',0,0,1,25,'gilthares SAY_GIL_FREEBOOTERS'),
+(-1000374,'Help! $C attacking!',0,0,1,0,'gilthares SAY_GIL_AGGRO_1'),
+(-1000375,'$C heading this way fast! Time for revenge!',0,0,1,0,'gilthares SAY_GIL_AGGRO_2'),
+(-1000376,'$C coming right at us!',0,0,1,0,'gilthares SAY_GIL_AGGRO_3'),
+(-1000377,'Get this $C off of me!',0,0,1,0,'gilthares SAY_GIL_AGGRO_4'),
+(-1000378,'Almost back to Ratchet! Let\'s keep up the pace...',0,0,1,0,'gilthares SAY_GIL_ALMOST'),
+(-1000379,'Ah, the sweet salt air of Ratchet.',0,0,1,0,'gilthares SAY_GIL_SWEET'),
+(-1000380,'Captain Brightsun, $N here has freed me! $N, i am certain the Captain will reward your bravery.',0,0,1,66,'gilthares SAY_GIL_FREED'),
+
+(-1000381,'I sense the tortured spirits, $n. They are this way, come quickly!',0,0,0,1,'wilda SAY_WIL_START'),
+(-1000382,'Watch out!',0,0,0,0,'wilda SAY_WIL_AGGRO1'),
+(-1000383,'Naga attackers! Defend yourself!',0,0,0,0,'wilda SAY_WIL_AGGRO2'),
+(-1000384,'Grant me protection $n, i must break trough their foul magic!',0,0,0,0,'wilda SAY_WIL_PROGRESS1'),
+(-1000385,'The naga of Coilskar are exceptionally cruel to their prisoners. It is a miracle that I survived inside that watery prison for as long as I did. Earthmother be praised.',0,0,0,0,'wilda SAY_WIL_PROGRESS2'),
+(-1000386,'Now we must find the exit.',0,0,0,0,'wilda SAY_WIL_FIND_EXIT'),
+(-1000387,'Lady Vashj must answer for these atrocities. She must be brought to justice!',0,0,0,0,'wilda SAY_WIL_PROGRESS4'),
+(-1000388,'The tumultuous nature of the great waterways of Azeroth and Draenor are a direct result of tormented water spirits.',0,0,0,0,'wilda SAY_WIL_PROGRESS5'),
+(-1000389,'It shouldn\'t be much further, $n. The exit is just up ahead.',0,0,0,0,'wilda SAY_WIL_JUST_AHEAD'),
+(-1000390,'Thank you, $n. Please return to my brethren at the Altar of Damnation, near the Hand of Gul\'dan, and tell them that Wilda is safe. May the Earthmother watch over you...',0,0,0,0,'wilda SAY_WIL_END'),
+
+(-1000391,'I\'m Thirsty.',0,0,0,0,'tooga SAY_TOOG_THIRST'),
+(-1000392,'Torta must be so worried.',0,0,0,0,'tooga SAY_TOOG_WORRIED'),
+(-1000393,'Torta, my love! I have returned at long last.',0,0,0,0,'tooga SAY_TOOG_POST_1'),
+(-1000394,'You have any idea how long I\'ve been waiting here? And where\'s dinner? All that time gone and nothing to show for it?',0,0,0,0,'tooga SAY_TORT_POST_2'),
+(-1000395,'My dearest Torta. I have been gone for so long. Finally we are reunited. At long last our love can blossom again.',0,0,0,0,'tooga SAY_TOOG_POST_3'),
+(-1000396,'Enough with the rambling. I am starving! Now, get your dusty shell into that ocean and bring momma some grub.',0,0,0,0,'tooga SAY_TORT_POST_4'),
+(-1000397,'Yes Torta. Whatever your heart desires...',0,0,0,0,'tooga SAY_TOOG_POST_5'),
+(-1000398,'And try not to get lost this time...',0,0,0,0,'tooga SAY_TORT_POST_6'),
+
+(-1000399,'Peace is but a fleeting dream! Let the NIGHTMARE reign!',0,1,0,0,'taerar SAY_AGGRO'),
+(-1000400,'Children of Madness - I release you upon this world!',0,1,0,0,'taerar SAY_SUMMONSHADE'),
+
+(-1000401,'Hope is a DISEASE of the soul! This land shall wither and die!',0,1,0,0,'emeriss SAY_AGGRO'),
+(-1000402,'Taste your world\'s corruption!',0,1,0,0,'emeriss SAY_CASTCORRUPTION'),
+
+(-1000403,'Rin\'ji is free!',0,0,0,0,'SAY_RIN_FREE'),
+(-1000404,'Attack my sisters! The troll must not escape!',0,0,0,0,'SAY_RIN_BY_OUTRUNNER'),
+(-1000405,'Rin\'ji needs help!',0,0,1,0,'SAY_RIN_HELP_1'),
+(-1000406,'Rin\'ji is being attacked!',0,0,1,0,'SAY_RIN_HELP_2'),
+(-1000407,'Rin\'ji can see road now, $n. Rin\'ji knows the way home.',0,0,1,0,'SAY_RIN_COMPLETE'),
+(-1000408,'Rin\'ji will tell you secret now... $n, should go to the Overlook Cliffs. Rin\'ji hid something on island  there',0,0,1,0,'SAY_RIN_PROGRESS_1'),
+(-1000409,'You find it, you keep it! Don\'t tell no one that Rin\'ji talked to you!',0,0,1,0,'SAY_RIN_PROGRESS_2'),
+
+(-1000410,'Here they come! Defend yourself!',0,0,1,5,'kanati SAY_KAN_START'),
+
+(-1000411,'Why don\'t we deal with you now, Hendel? Lady Proudmoore will speak for you back in the tower.',0,0,7,0,'hendel SAY_PROGRESS_1_TER'),
+(-1000412,'Please... please... Miss Proudmore. I didn\'t mean to...',0,0,7,0,'hendel SAY_PROGRESS_2_HEN'),
+(-1000413,'I apologize for taking so long to get here. I wanted Lady Proudmoore to be present also.',0,0,7,0,'hendel SAY_PROGRESS_3_TER'),
+(-1000414,'We can only stay a few moments before returning to the tower. If you wish to speak to us more you may find us there.',0,0,7,0,'hendel SAY_PROGRESS_4_TER'),
+(-1000415,'%s, too injured, gives up the chase.',0,2,0,0,'hendel EMOTE_SURRENDER'),
+
+(-1000416,'Well, I\'m not sure how far I\'ll make it in this state... I\'m feeling kind of faint...',0,0,0,0,'ringo SAY_RIN_START_1'),
+(-1000417,'Remember, if I faint again, the water that Spraggle gave you will revive me.',0,0,0,0,'ringo SAY_RIN_START_2'),
+(-1000418,'The heat... I can\'t take it...',0,0,0,0,'ringo SAY_FAINT_1'),
+(-1000419,'Maybe... you could carry me?',0,0,0,0,'ringo SAY_FAINT_2'),
+(-1000420,'Uuuuuuggggghhhhh....',0,0,0,0,'ringo SAY_FAINT_3'),
+(-1000421,'I\'m not feeling so well...',0,0,0,0,'ringo SAY_FAINT_4'),
+(-1000422,'Where... Where am I?',0,0,0,0,'ringo SAY_WAKE_1'),
+(-1000423,'I am feeling a little better now, thank you.',0,0,0,0,'ringo SAY_WAKE_2'),
+(-1000424,'Yes, I must go on.',0,0,0,0,'ringo SAY_WAKE_3'),
+(-1000425,'How am I feeling? Quite soaked, thank you.',0,0,0,0,'ringo SAY_WAKE_4'),
+(-1000426,'Spraggle! I didn\'t think I\'d make it back!',0,0,0,0,'ringo SAY_RIN_END_1'),
+(-1000427,'Ringo! You\'re okay!',0,0,0,0,'ringo SAY_SPR_END_2'),
+(-1000428,'Oh... I\'m feeling faint...',0,0,0,0,'ringo SAY_RIN_END_3'),
+(-1000429,'%s collapses onto the ground.',0,2,0,0,'ringo EMOTE_RIN_END_4'),
+(-1000430,'%s stands up after a short pause.',0,2,0,0,'ringo EMOTE_RIN_END_5'),
+(-1000431,'Ugh.',0,0,0,0,'ringo SAY_RIN_END_6'),
+(-1000432,'Ringo? Wake up! Don\'t worry, I\'ll take care of you.',0,0,0,0,'ringo SAY_SPR_END_7'),
+(-1000433,'%s fades away after a long pause.',0,2,0,0,'ringo EMOTE_RIN_END_8'),
+
+(-1000434,'Liladris has been waiting for me at Maestra\'s Post, so we should make haste, $N.',0,0,0,0,'kerlonian SAY_KER_START'),
+(-1000435,'%s looks very sleepy...',0,2,0,0,'kerlonian EMOTE_KER_SLEEP_1'),
+(-1000436,'%s suddenly falls asleep',0,2,0,0,'kerlonian EMOTE_KER_SLEEP_2'),
+(-1000437,'%s begins to drift off...',0,2,0,0,'kerlonian EMOTE_KER_SLEEP_3'),
+(-1000438,'This looks like the perfect place for a nap...',0,0,0,0,'kerlonian SAY_KER_SLEEP_1'),
+(-1000439,'Yaaaaawwwwwnnnn...',0,0,0,0,'kerlonian SAY_KER_SLEEP_2'),
+(-1000440,'Oh, I am so tired...',0,0,0,0,'kerlonian SAY_KER_SLEEP_3'),
+(-1000441,'You don\'t mind if I stop here for a moment, do you?',0,0,0,0,'kerlonian SAY_KER_SLEEP_4'),
+(-1000442,'Be on the alert! The Blackwood furbolgs are numerous in the area...',0,0,0,0,'kerlonian SAY_KER_ALERT_1'),
+(-1000443,'It\'s quiet... Too quiet...',0,0,0,0,'kerlonian SAY_KER_ALERT_2'),
+(-1000444,'Oh, I can see Liladris from here... Tell her I\'m here, won\'t you?',0,0,0,0,'kerlonian SAY_KER_END'),
+(-1000445,'%s wakes up!',0,2,0,0,'kerlonian EMOTE_KER_AWAKEN'),
+
+(-1000446,'A-Me good. Good, A-Me. Follow... follow A-Me. Home. A-Me go home.',0,0,0,0,'ame01 SAY_AME_START'),
+(-1000447,'Good... good, A-Me. A-Me good. Home. Find home.',0,0,0,0,'ame01 SAY_AME_PROGRESS'),
+(-1000448,'A-Me home! A-Me good! Good A-Me. Home. Home. Home.',0,0,0,0,'ame01 SAY_AME_END'),
+(-1000449,'$c, no hurt A-Me. A-Me good.',0,0,0,0,'ame01 SAY_AME_AGGRO1'),
+(-1000450,'Danger. Danger! $c try hurt A-Me.',0,0,0,0,'ame01 SAY_AME_AGGRO2'),
+(-1000451,'Bad, $c. $c, bad!',0,0,0,0,'ame01 SAY_AME_AGGRO3'),
+
+(-1000452,'I noticed some fire on that island over there. A human, too. Let\'s go check it out, $n.',0,0,1,0,'ogron SAY_OGR_START'),
+(-1000453,'That\'s Reethe alright. Let\'s go see what he has to say, yeah?',0,0,1,1,'ogron SAY_OGR_SPOT'),
+(-1000454,'W-what do you want? Just leave me alone...',0,0,0,6,'ogron SAY_OGR_RET_WHAT'),
+(-1000455,'I swear. I didn\'t steal anything from you! Here, take some of my supplies, just go away!',0,0,0,27,'ogron SAY_OGR_RET_SWEAR'),
+(-1000456,'Just tell us what you know about the Shady Rest Inn, and I won\'t bash your skull in.',0,0,1,0,'ogron SAY_OGR_REPLY_RET'),
+(-1000457,'I... Well, I may of taken a little thing or two from the inn... but what would an ogre care about that?',0,0,0,6,'ogron SAY_OGR_RET_TAKEN'),
+(-1000458,'Look here, if you don\'t tell me about the fire--',0,0,1,0,'ogron SAY_OGR_TELL_FIRE'),
+(-1000459,'Not one step closer, ogre!',0,0,0,27,'ogron SAY_OGR_RET_NOCLOSER'),
+(-1000460,'And I don\'t know anything about this fire of yours...',0,0,0,0,'ogron SAY_OGR_RET_NOFIRE'),
+(-1000461,'What was that? Did you hear something?',0,0,0,0,'ogron SAY_OGR_RET_HEAR'),
+(-1000462,'Paval Reethe! Found you at last. And consorting with ogres now? No fear, even deserters and traitors are afforded some mercy.',0,0,0,0,'ogron SAY_OGR_CAL_FOUND'),
+(-1000463,'Private, show Lieutenant Reethe some mercy.',0,0,0,29,'ogron SAY_OGR_CAL_MERCY'),
+(-1000464,'Gladly, sir.',0,0,0,0,'ogron SAY_OGR_HALL_GLAD'),
+(-1000465,'%s staggers backwards as the arrow lodges itself deeply in his chest.',0,2,0,0,'ogron EMOTE_OGR_RET_ARROW'),
+(-1000466,'Ugh... Hallan, didn\'t think you had it in you...',0,0,0,34,'ogron SAY_OGR_RET_ARROW'),
+(-1000467,'Now, let\'s clean up the rest of the trash, men!',0,0,0,0,'ogron SAY_OGR_CAL_CLEANUP'),
+(-1000468,'Damn it! You\'d better not die on me, human!',0,0,1,0,'ogron SAY_OGR_NODIE'),
+(-1000469,'Still with us, Reethe?',0,0,1,0,'ogron SAY_OGR_SURVIVE'),
+(-1000470,'Must be your lucky day. Alright, I\'ll talk. Just leave me alone. Look, you\'re not going to believe me, but it wa... oh, Light, looks like the girl could shoot...',0,0,0,0,'ogron SAY_OGR_RET_LUCKY'),
+(-1000471,'By the way, thanks for watching my back.',0,0,1,0,'ogron SAY_OGR_THANKS'),
+
+(-1000472,'1...',0,3,0,0,'mana bomb SAY_COUNT_1'),
+(-1000473,'2...',0,3,0,0,'mana bomb SAY_COUNT_2'),
+(-1000474,'3...',0,3,0,0,'mana bomb SAY_COUNT_3'),
+(-1000475,'4...',0,3,0,0,'mana bomb SAY_COUNT_4'),
+(-1000476,'5...',0,3,0,0,'mana bomb SAY_COUNT_5'),
+
+(-1000477,'Let us leave this place. I\'ve had enough of these madmen!',0,0,0,0,'akuno SAY_AKU_START'),
+(-1000478,'You\'ll go nowhere, fool!',0,0,0,0,'akuno SAY_AKU_AMBUSH_A'),
+(-1000479,'Beware! More cultists come!',0,0,0,0,'akuno SAY_AKU_AMBUSH_B'),
+(-1000480,'You will not escape us so easily!',0,0,0,0,'akuno SAY_AKU_AMBUSH_B_REPLY'),
+(-1000481,'I can find my way from here. My friend Mekeda will reward you for your kind actions.',0,0,0,0,'akuno SAY_AKU_COMPLETE'),
+
+(-1000482,'Look out!',0,0,0,0,'maghar captive SAY_MAG_START'),
+(-1000483,'Don\'t let them escape! Kill the strong one first!',0,0,0,0,'maghar captive SAY_MAG_NO_ESCAPE'),
+(-1000484,'More of them coming! Watch out!',0,0,0,0,'maghar captive SAY_MAG_MORE'),
+(-1000485,'Where do you think you\'re going? Kill them all!',0,0,0,0,'maghar captive SAY_MAG_MORE_REPLY'),
+(-1000486,'Ride the lightning, filth!',0,0,0,0,'maghar captive SAY_MAG_LIGHTNING'),
+(-1000487,'FROST SHOCK!!!',0,0,0,0,'maghar captive SAY_MAG_SHOCK'),
+(-1000488,'It is best that we split up now, in case they send more after us. Hopefully one of us will make it back to Garrosh. Farewell stranger.',0,0,0,0,'maghar captive SAY_MAG_COMPLETE'),
+
+(-1000489,'Show our guest around Shattrath, will you? Keep an eye out for pickpockets in the lower city.',0,0,0,0,'SAY_KHAD_START'),
+(-1000490,'A newcomer to Shattrath! Make sure to drop by later. We can always use a hand with the injured.',0,0,0,0,'SAY_KHAD_INJURED'),
+(-1000491,'Be mindful of what you say, this one\'s being shown around by Khadgar\'s pet.',0,0,0,0,'SAY_KHAD_MIND_YOU'),
+(-1000492,'Are you joking? I\'m a Scryer, I always watch what i say. More enemies than allies in this city, it seems.',0,0,0,0,'SAY_KHAD_MIND_ALWAYS'),
+(-1000493,'Light be with you, $n. And welcome to Shattrath.',0,0,0,0,'SAY_KHAD_ALDOR_GREET'),
+(-1000494,'We\'re rather selective of who we befriend, $n. You think you have what it takes?',0,0,0,0,'SAY_KHAD_SCRYER_GREET'),
+(-1000495,'Khadgar himself is showing you around? You must have made a good impression, $n.',0,0,0,0,'SAY_KHAD_HAGGARD'),
+
+(-1000496,'%s lifts its head into the air, as if listening for something.',0,2,0,0,'ancestral wolf EMOTE_WOLF_LIFT_HEAD'),
+(-1000497,'%s lets out a howl that rings across the mountains to the north and motions for you to follow.',0,2,0,0,'ancestral wolf EMOTE_WOLF_HOWL'),
+(-1000498,'Welcome, kind spirit. What has brought you to us?',0,0,0,0,'ancestral wolf SAY_WOLF_WELCOME'),
+
+(-1000499,'Puny $r wanna fight %s? Me beat you! Me boss here!',0,0,1,0,'morokk SAY_MOR_CHALLENGE'),
+(-1000500,'Me scared! Me run now!',0,1,0,0,'morokk SAY_MOR_SCARED'),
+
+(-1000501,'Are you sure that you are ready? If we do not have a group of your allies to aid us, we will surely fail.',0,0,1,0,'muglash SAY_MUG_START1'),
+(-1000502,'This will be a though fight, $n. Follow me closely.',0,0,1,0,'muglash SAY_MUG_START2'),
+(-1000503,'This is the brazier, $n. Put it out. Vorsha is a beast, worthy of praise from no one!',0,0,1,0,'muglash SAY_MUG_BRAZIER'),
+(-1000504,'Now we must wait. It won\'t be long before the naga realize what we have done.',0,0,1,0,'muglash SAY_MUG_BRAZIER_WAIT'),
+(-1000505,'Be on your guard, $n!',0,0,1,0,'muglash SAY_MUG_ON_GUARD'),
+(-1000506,'Perhaps we will get a moment to rest. But i will not give up until we have faced off against Vorsha!',0,0,1,0,'muglash SAY_MUG_REST'),
+(-1000507,'We have done it!',0,0,1,0,'muglash SAY_MUG_DONE'),
+(-1000508,'You have my deepest gratitude. I thank you.',0,0,1,0,'muglash SAY_MUG_GRATITUDE'),
+(-1000509,'I am going to patrol the area for a while longer and ensure that things are truly safe.',0,0,1,0,'muglash SAY_MUG_PATROL'),
+(-1000510,'Please return to Zoram\'gar and report our success to the Warsong runner.',0,0,1,0,'muglash SAY_MUG_RETURN'),
+
+(-1000511,'Aright, listen up! Form a circle around me and move out!',0,0,0,0,'letoll SAY_LE_START'),
+(-1000512,'Aright, $r, just keep us safe from harm while we work. We\'ll pay you when we return.',0,0,0,0,'letoll SAY_LE_KEEP_SAFE'),
+(-1000513,'The dig site is just north of here.',0,0,0,0,'letoll SAY_LE_NORTH'),
+(-1000514,'We\'re here! Start diggin\'!',0,0,0,0,'letoll SAY_LE_ARRIVE'),
+(-1000515,'I think there\'s somethin\' buried here, beneath the sand!',0,0,0,0,'letoll SAY_LE_BURIED'),
+(-1000516,'Almost got it!',0,0,0,0,'letoll SAY_LE_ALMOST'),
+(-1000517,'By brann\'s brittle bananas! What is it!? It... It looks like a drum.',0,0,0,0,'letoll SAY_LE_DRUM'),
+(-1000518,'Wow... a drum.',0,0,0,0,'letoll SAY_LE_DRUM_REPLY'),
+(-1000519,'This discovery will surely rock the foundation of modern archaeology.',0,0,0,0,'letoll SAY_LE_DISCOVERY'),
+(-1000520,'Yea, great. Can we leave now? This desert is giving me hives.',0,0,0,0,'letoll SAY_LE_DISCOVERY_REPLY'),
+(-1000521,'Have ye gone mad? You expect me to leave behind a drum without first beatin\' on it? Not this son of Ironforge! No sir!',0,0,0,0,'letoll SAY_LE_NO_LEAVE'),
+(-1000522,'This reminds me of that one time where you made us search Silithus for evidence of sand gnomes.',0,0,0,0,'letoll SAY_LE_NO_LEAVE_REPLY1'),
+(-1000523,'Or that time when you told us that you\'d discovered the cure for the plague of the 20th century. What is that even? 20th century?',0,0,0,0,'letoll SAY_LE_NO_LEAVE_REPLY2'),
+(-1000524,'I don\'t think it can top the one time where he told us that he\'d heard that Artha\'s "cousin\'s" skeleton was frozen beneath a glacier in Winterspring. I\'ll never forgive you for that one, Letoll. I mean honestly... Artha\'s cousin?',0,0,0,0,'letoll SAY_LE_NO_LEAVE_REPLY3'),
+(-1000525,'I dunno. It can\'t possibly beat the time he tried to convince us that we\'re all actually a figment of some being\'s imagination and that they only use us for their own personal amusement. That went over well during dinner with the family.',0,0,0,0,'letoll SAY_LE_NO_LEAVE_REPLY4'),
+(-1000526,'Shut yer yaps! I\'m gonna bang on this drum and that\'s that!',0,0,0,0,'letoll SAY_LE_SHUT'),
+(-1000527,'Say, do you guys hear that?',0,0,0,0,'letoll SAY_LE_REPLY_HEAR'),
+(-1000528,'IN YOUR FACE! I told you there was somethin\' here!',0,0,0,0,'letoll SAY_LE_IN_YOUR_FACE'),
+(-1000529,'Don\'t just stand there! Help him out!',0,0,0,0,'letoll SAY_LE_HELP_HIM'),
+(-1000530,'%s picks up the drum.',0,2,0,0,'letoll EMOTE_LE_PICK_UP'),
+(-1000531,'You\'ve been a tremendous help, $r! Let\'s get out of here before more of those things show up! I\'ll let Dwarfowitz know you did the job asked of ya\' admirably.',0,0,0,0,'letoll SAY_LE_THANKS'),
+
+(-1000532,'At your command, my liege...',0,0,0,0,'torloth TORLOTH_DIALOGUE1'),
+(-1000533,'As you desire, Lord Illidan.',0,0,0,0,'torloth TORLOTH_DIALOGUE2'),
+(-1000534,'Yes, Lord Illidan, I would sacrifice to you this magnificent physique. On this day you will fall - another victim of Torloth...',0,0,0,0,'torloth TORLOTH_DIALOGUE3'),
+(-1000535,'Destroy them, Torloth. Let lose their blood like a river upon this hallowed ground.',0,0,0,0,'lordillidan ILLIDAN_DIALOGUE'),
+(-1000536,'What manner of fool dares stand before Illidan Stormrage? Soldiers, destroy these insects!',0,1,0,0,'lordillidan ILLIDAN_SUMMON1'),
+(-1000537,'You are no challenge for the Crimson Sigil. Mind breakers, end this nonsense.',0,1,0,0,'lordillidan ILLIDAN_SUMMON2'),
+(-1000538,'Run while you still can. The highlords come soon...',0,1,0,0,'lordillidan ILLIDAN_SUMMON3'),
+(-1000539,'Torloth your master calls!',0,1,0,0,'lordillidan ILLIDAN_SUMMON4'),
+(-1000540,'So you have defeated the Crimson Sigil. You now seek to challenge my rule? Not even Arthas could defeat me, yet you dare to even harbor such thoughts? Then I say to you, come! Come $N! The Black Temple awaits...',0,1,0,0,'lordillidan EVENT_COMPLETED'),
+
+(-1000541,'%s jumps into the moonwell and goes underwater...',0,2,0,0,'kitten EMOTE_SAB_JUMP'),
+(-1000542,'%s follows $n obediertly.',0,2,0,0,'kitten EMOTE_SAB_FOLLOW'),
+
+(-1000543,'Why have you come here, outsider? You will only find pain! Our fate will be yours...',0,0,0,25,'restless app SAY_RAND_1'),
+(-1000544,'It was ... terrible... the demon...',0,0,0,25,'restless app SAY_RAND_2'),
+(-1000545,'The darkness... the corruption... they came too quickly for anyone to know...',0,0,0,25,'restless app SAY_RAND_3'),
+(-1000546,'The darkness will consume all... all the living...',0,0,0,25,'restless app SAY_RAND_4'),
+(-1000547,'It is too late for us, living one. Take yourself and your friend away from here before you both are... claimed...',0,0,0,25,'restless app SAY_RAND_5'),
+(-1000548,'It is too late for Jarl... its hold is too strong...',0,0,0,25,'restless app SAY_RAND_6'),
+(-1000549,'Go away, whoever you are! Witch Hill is mine... mine!',0,0,0,25,'restless app SAY_RAND_7'),
+(-1000550,'The manor... someone else... will soon be consumed...',0,0,0,25,'restless app SAY_RAND_8');
 
 -- -1 033 000 SHADOWFANG KEEP
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -395,7 +619,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1189001,'Blades of Light!',5832,1,0,0,'herod SAY_WHIRLWIND'),
 (-1189002,'Light, give me strength!',5833,1,0,0,'herod SAY_ENRAGE'),
 (-1189003,'Hah, is that all?',5831,1,0,0,'herod SAY_KILL'),
-(-1189004,'becomes enraged!',0,2,0,0,'herod EMOTE_ENRAGE'),
+(-1189004,'%s becomes enraged!',0,2,0,0,'herod EMOTE_ENRAGE'),
 
 (-1189005,'Infidels! They must be purified!',5835,1,0,0,'mograine SAY_MO_AGGRO'),
 (-1189006,'Unworthy!',5836,1,0,0,'mograine SAY_MO_KILL'),
@@ -418,7 +642,21 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1189019,'You will not defile these mysteries!',5842,1,0,0,'doan SAY_AGGRO'),
 (-1189020,'Burn in righteous fire!',5843,1,0,0,'doan SAY_SPECIALAE'),
 
-(-1189021,'Release the hounds!',5841,1,0,0,'loksey SAY_AGGRO');
+(-1189021,'Release the hounds!',5841,1,0,0,'loksey SAY_AGGRO'),
+
+(-1189022,'It is over, your search is done! Let fate choose now, the righteous one.',11961,1,0,0,'horseman SAY_ENTRANCE'),
+(-1189023,'Here\'s my body, fit and pure! Now, your blackened souls I\'ll cure!',12567,1,0,0,'horseman SAY_REJOINED'),
+(-1189024,'So eager you are for my blood to spill, yet to vanquish me this my head you must kill!',11969,1,0,0,'horseman SAY_BODY_DEFEAT'),
+(-1189025,'Over here, you idiot!',12569,1,0,0,'horseman SAY_LOST_HEAD'),
+(-1189026,'Harken, cur! Tis you I spurn! Now, $N, feel the burn!',12573,1,0,0,'horseman SAY_CONFLAGRATION'),
+(-1189027,'Soldiers arise, stand and fight! Bring victory at last to this fallen knight!',11963,1,0,0,'horseman SAY_SPROUTING_PUMPKINS'),
+(-1189028,'Your body lies beaten, battered and broken. Let my curse be your own, fate has spoken.',11962,1,0,0,'horseman SAY_SLAY'),
+(-1189029,'This end have I reached before. What new adventure lies in store?',11964,1,0,0,'horseman SAY_DEATH'),
+(-1189030,'%s laughs.',0,2,0,0,'horseman EMOTE_LAUGH'),
+(-1189031,'Horseman rise...',0,0,0,0,'horseman SAY_PLAYER1'),
+(-1189032,'Your time is night...',0,0,0,0,'horseman SAY_PLAYER2'),
+(-1189033,'You felt death once...',0,0,0,0,'horseman SAY_PLAYER3'),
+(-1189034,'Now, know demise!',0,0,0,0,'horseman SAY_PLAYER4');
 
 -- -1 209 000 ZUL'FARRAK
 
@@ -428,7 +666,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
 (-1230000,'Ah, hits the spot!',0,0,0,0,'rocknot SAY_GOT_BEER'),
 (-1230001,'Come to aid the Throne!',0,1,0,0,'dagran SAY_AGGRO'),
-(-1230002,'Hail to the king, baby!',0,1,0,0,'dagran SAY_SLAY');
+(-1230002,'Hail to the king, baby!',0,1,0,0,'dagran SAY_SLAY'),
+(-1230003,'You have challenged the Seven, and now you will die!',0,0,0,0,'doomrel SAY_DOOMREL_START_EVENT');
 
 -- -1 249 000 ONYXIA'S LAIR
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -436,7 +675,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1249001,'Learn your place mortal!',0,1,0,0,'onyxia SAY_KILL'),
 (-1249002,'This meaningless exertion bores me. I\'ll incinerate you all from above!',0,1,0,254,'onyxia SAY_PHASE_2_TRANS'),
 (-1249003,'It seems you\'ll need another lesson, mortals!',0,1,0,293,'onyxia SAY_PHASE_3_TRANS'),
-(-1249004,'takes in a deep breath...',0,1,0,0,'onyxia EMOTE_BREATH');
+(-1249004,'%s takes in a deep breath...',0,3,0,0,'onyxia EMOTE_BREATH');
 
 -- -1 269 000 OPENING OF THE DARK PORTAL (BLACK MORASS)
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -460,7 +699,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1269015,'One less obstacle in our way!',10403,1,0,0,'aeonus SAY_SLAY1'),
 (-1269016,'No one can stop us! No one!',10404,1,0,0,'aeonus SAY_SLAY2'),
 (-1269017,'It is only a matter...of time.',10405,1,0,0,'aeonus SAY_DEATH'),
-(-1269018,'goes into a frenzy!',0,2,0,0,'aeonus EMOTE_FRENZY'),
+(-1269018,'REUSE ME',0,0,0,0,'REUSE ME'),
 
 (-1269019,'Stop! Do not go further, mortals. You are ill-prepared to face the forces of the Infinite Dragonflight. Come, let me help you.',0,0,0,0,'saat SAY_SAAT_WELCOME'),
 
@@ -502,13 +741,15 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1309015,'I\'ll feed your souls to Hakkar himself!',8413,1,0,0,'mandokir SAY_AGGRO'),
 (-1309016,'DING!',0,1,0,0,'mandokir SAY_DING_KILL'),
 (-1309017,'GRATS!',0,1,0,0,'mandokir SAY_GRATS_JINDO'),
-(-1309018,'I\'m keeping my eye on you, $N!',0,1,0,0,'mandokir SAY_WATCH'),
-(-1309019,'Don\'t make me angry. You won\'t like it when I\'m angry.',0,1,0,0,'mandokir SAY_WATCH_WHISPER'),
+(-1309018,'$N! I\'m watching you!',0,1,0,0,'mandokir SAY_WATCH'),
+(-1309019,'Don\'t make me angry. You won\'t like it when I\'m angry.',0,4,0,0,'mandokir SAY_WATCH_WHISPER'),
 
 (-1309020,'PRIDE HERALDS THE END OF YOUR WORLD. COME, MORTALS! FACE THE WRATH OF THE SOULFLAYER!',8414,1,0,0,'hakkar SAY_AGGRO'),
 (-1309021,'Fleeing will do you no good, mortals!',0,1,0,0,'hakkar SAY_FLEEING'),
 (-1309022,'You dare set foot upon Hakkari holy ground? Minions of Hakkar, destroy the infidels!',0,1,0,0,'hakkar SAY_MINION_DESTROY'),
-(-1309023,'Minions of Hakkar, hear your God. The sanctity of this temple has been compromised. Invaders encroach upon holy ground! The Altar of Blood must be protected. Kill them all!',0,1,0,0,'hakkar SAY_PROTECT_ALTAR');
+(-1309023,'Minions of Hakkar, hear your God. The sanctity of this temple has been compromised. Invaders encroach upon holy ground! The Altar of Blood must be protected. Kill them all!',0,1,0,0,'hakkar SAY_PROTECT_ALTAR'),
+
+(-1309024,'%s goes into a rage after seeing his raptor fall in battle!',0,2,0,0,'mandokir EMOTE_RAGE');
 
 -- -1 329 000 STRATHOLME
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -523,9 +764,9 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 -- -1 409 000 MOLTEN CORE
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
-(-1409000,'performs one last service for Ragnaros.',0,2,0,0,'geddon EMOTE_SERVICE'),
-(-1409001,'goes into a killing frenzy!',0,2,0,0,'magmadar EMOTE_FRENZY'),
-(-1409002,'refuses to die while its master is in trouble.',0,2,0,0,'core rager EMOTE_AEGIS'),
+(-1409000,'%s performs one last service for Ragnaros.',0,2,0,0,'geddon EMOTE_SERVICE'),
+(-1409001,'REUSE ME',0,0,0,0,'REUSE ME'),
+(-1409002,'%s refuses to die while its master is in trouble.',0,2,0,0,'core rager EMOTE_LOWHP'),
 
 (-1409003,'Reckless mortals, none may challenge the sons of the living flame!',8035,1,0,0,'majordomo SAY_AGGRO'),
 (-1409004,'The runes of warding have been destroyed! Hunt down the infedels my bretheren.',8039,1,0,0,'majordomo SAY_SPAWN'),
@@ -553,8 +794,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1469000,'None of your kind should be here! You\'ve doomed only yourselves!',8286,1,0,0,'broodlord SAY_AGGRO'),
 (-1469001,'Clever Mortals but I am not so easily lured away from my sanctum!',8287,1,0,0,'broodlord SAY_LEASH'),
 
-(-1469002,'goes into a killing frenzy!',0,2,0,0,'chromaggus EMOTE_FRENZY'),
-(-1469003,'flinches as its skin shimmers.',0,2,0,0,'chromaggus EMOTE_SHIMMER'),
+(-1469002,'REUSE ME',0,0,0,0,'REUSE ME'),
+(-1469003,'%s flinches as its skin shimmers.',0,2,0,0,'chromaggus EMOTE_SHIMMER'),
 
 (-1469004,'In this world where time is your enemy, it is my greatest ally. This grand game of life that you think you play in fact plays you. To that I say...',0,0,0,0,'victor_nefarius SAY_GAMESBEGIN_1'),
 (-1469005,'Let the games begin!',8280,1,0,0,'victor_nefarius SAY_GAMESBEGIN_2'),
@@ -587,14 +828,14 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1469029,'Nefarius\' hate has made me stronger than ever before. You should have fled, while you could, mortals! The fury of Blackrock courses through my veins!',8285,1,0,0,'vaelastrasz SAY_HALFLIFE'),
 (-1469030,'Forgive me $N, your death only adds to my failure.',8284,1,0,0,'vaelastrasz SAY_KILLTARGET'),
 
-(-1469031,'goes into a frenzy!',0,2,0,0,'flamegor EMOTE_FRENZY');
+(-1469031,'REUSE ME',0,0,0,0,'REUSE ME');
 
 -- -1 509 000 RUINS OF AHN'QIRAJ
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
-(-1509000,'senses your fear.',0,2,0,0,'moam EMOTE_AGGRO'),
-(-1509001,'bristles with energy!',0,2,0,0,'moan EMOTE_MANA_FULL'),
+(-1509000,'%s senses your fear.',0,2,0,0,'moam EMOTE_AGGRO'),
+(-1509001,'%s bristles with energy!',0,2,0,0,'moan EMOTE_MANA_FULL'),
 
-(-1509002,'sets eyes on $N!',0,2,0,0,'buru EMOTE_TARGET'),
+(-1509002,'%s sets eyes on $N!',0,2,0,0,'buru EMOTE_TARGET'),
 
 (-1509003,'They come now. Try not to get yourself killed, young blood.',0,1,0,0,'andorov SAY_ANDOROV_INTRO'),
 (-1509004,'Remember, Rajaxx, when I said I\'d kill you last? I lied...',0,1,0,0,'andorov SAY_ANDOROV_ATTACK'),
@@ -639,7 +880,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1531009,'I sentence you to death!',8647,1,0,0,'sartura SAY_SLAY'),
 (-1531010,'I serve to the last!',8648,1,0,0,'sartura SAY_DEATH'),
 
-(-1531011,'is weakened!',0,2,0,0,'cthun EMOTE_WEAKENED');
+(-1531011,'%s is weakened!',0,2,0,0,'cthun EMOTE_WEAKENED');
 
 -- -1 532 000 KARAZHAN
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -687,7 +928,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1532035,'I could really use a heart. Say, can I have yours?',9268,1,0,0,'tinhead SAY_TINHEAD_AGGRO'),
 (-1532036,'Back to being an old rustbucket.',9270,1,0,0,'tinhead SAY_TINHEAD_DEATH'),
 (-1532037,'Guess I\'m not so rusty, after all.',9271,1,0,0,'tinhead SAY_TINHEAD_SLAY'),
-(-1532038,'begins to rust.',0,2,0,0,'tinhead EMOTE_RUST'),
+(-1532038,'%s begins to rust.',0,2,0,0,'tinhead EMOTE_RUST'),
 
 (-1532039,'Woe to each and every one of you my pretties! <cackles>',9179,1,0,0,'crone SAY_CRONE_AGGRO'),
 (-1532040,'It will all be over soon! <cackles>',9307,1,0,0,'crone SAY_CRONE_AGGRO2'),
@@ -746,8 +987,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1532087,'At last... The nightmare is.. over...',9244,1,0,0,'aran SAY_DEATH'),
 (-1532088,'Where did you get that?! Did HE send you?!',9249,1,0,0,'aran SAY_ATIESH'),
 
-(-1532089,'cries out in withdrawal, opening gates to the warp.',0,2,0,0,'netherspite EMOTE_PHASE_PORTAL'),
-(-1532090,'goes into a nether-fed rage!',0,2,0,0,'netherspite EMOTE_PHASE_BANISH'),
+(-1532089,'%s cries out in withdrawal, opening gates to the warp.',0,2,0,0,'netherspite EMOTE_PHASE_PORTAL'),
+(-1532090,'%s goes into a nether-fed rage!',0,2,0,0,'netherspite EMOTE_PHASE_BANISH'),
 
 (-1532091,'Madness has brought you here to me. I shall be your undoing!',9218,1,0,0,'malchezaar SAY_AGGRO'),
 (-1532092,'Simple fools! Time is the fire in which you\'ll burn!',9220,1,0,0,'malchezaar SAY_AXE_TOSS1'),
@@ -800,8 +1041,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1533018,'Kel\'Thuzad make Patchwerk his Avatar of War!',8910,1,0,0,'patchwerk SAY_AGGRO2'),
 (-1533019,'No more play?',8912,1,0,0,'patchwerk SAY_SLAY'),
 (-1533020,'What happened to... Patch...',8911,1,0,0,'patchwerk SAY_DEATH'),
-(-1533021,'goes into a berserker rage!',0,2,0,0,'patchwerk EMOTE_BERSERK'),
-(-1533022,'becomes enraged!',0,2,0,0,'patchwerk EMOTE_ENRAGE'),
+(-1533021,'%s goes into a berserker rage!',0,2,0,0,'patchwerk EMOTE_BERSERK'),
+(-1533022,'%s becomes enraged!',0,2,0,0,'patchwerk EMOTE_ENRAGE'),
 
 (-1533023,'Stalagg crush you!',8864,1,0,0,'stalagg SAY_STAL_AGGRO'),
 (-1533024,'Stalagg kill!',8866,1,0,0,'stalagg SAY_STAL_SLAY'),
@@ -870,8 +1111,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1533080,'Breathe no more!',8850,1,0,0,'noth SAY_SLAY2'),
 (-1533081,'I will serve the master... in... death!',8848,1,0,0,'noth SAY_DEATH'),
 
-(-1533082,'takes in a deep breath...',0,2,0,0,'sapphiron EMOTE_BREATH'),
-(-1533083,'enrages!',0,2,0,0,'sapphiron EMOTE_ENRAGE'),
+(-1533082,'%s takes in a deep breath...',0,2,0,0,'sapphiron EMOTE_BREATH'),
+(-1533083,'%s enrages!',0,2,0,0,'sapphiron EMOTE_ENRAGE'),
 
 (-1533084,'Our preparations continue as planned, master.',14467,1,0,0,'kelthuzad SAY_SAPP_DIALOG1'),
 (-1533085,'It is good that you serve me so faithfully. Soon, all will serve the Lich King and in the end, you shall be rewarded...so long as you do not falter.',8881,1,0,0,'kelthuzad SAY_SAPP_DIALOG2_LICH'),
@@ -910,7 +1151,18 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1533117,'Hungry worms will feast on your rotten flesh!',8834,1,0,0,'heigan SAY_TAUNT5'),
 (-1533118,'Noo... o...',8828,1,0,0,'heigan SAY_DEATH'),
 
-(-1533119,'%s spots a nearby Zombie to devour!',0,3,0,0,'gluth EMOTE_ZOMBIE');
+(-1533119,'%s spots a nearby Zombie to devour!',0,3,0,0,'gluth EMOTE_ZOMBIE'),
+
+(-1533120,'Hah hah, I\'m just getting warmed up!',8852,1,0,0,'razuvious SAY_AGGRO1'),
+(-1533121,'Stand and fight!',8853,1,0,0,'razuvious SAY_AGGRO2'),
+(-1533122,'Show me what you\'ve got!',8854,1,0,0,'razuvious SAY_AGGRO3'),
+(-1533123,'Sweep the leg! Do you have a problem with that?',8861,1,0,0,'razuvious SAY_SLAY1'),
+(-1533124,'You should have stayed home!',8862,1,0,0,'razuvious SAY_SLAY2'),
+(-1533125,'Do as I taught you!',8855,1,0,0,'razuvious SAY_COMMAND1'),
+(-1533126,'Show them no mercy!',8856,1,0,0,'razuvious SAY_COMMAND2'),
+(-1533127,'You disappoint me, students!',8858,1,0,0,'razuvious SAY_COMMAND3'),
+(-1533128,'The time for practice is over! Show me what you\'ve learned!',8859,1,0,0,'razuvious SAY_COMMAND4'),
+(-1533129,'An honorable... death...',8860,1,0,0,'razuvious SAY_DEATH');
 
 -- -1 534 000 THE BATTLE OF MT. HYJAL
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -992,7 +1244,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1540038,'That\'s because I do all the hard work!',10321,1,0,0,'omrogg KillingDelay_1'),
 (-1540039,'This all...your fault!',10311,1,0,0,'omrogg YELL_DIE_L'),
 (-1540040,'I...hate...you...',10322,1,0,0,'omrogg YELL_DIE_R'),
-(-1540041,'enrages',0,2,0,0,'omrogg EMOTE_ENRAGE'),
+(-1540041,'%s enrages!',0,2,0,0,'omrogg EMOTE_ENRAGE'),
 
 (-1540042,'Ours is the true Horde! The only Horde!',10323,1,0,0,'kargath SAY_AGGRO1'),
 (-1540043,'I\'ll carve the meat from your bones!',10324,1,0,0,'kargath SAY_AGGRO2'),
@@ -1066,10 +1318,10 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1544009,'I will not be taken so easily. Let the walls of this prison tremble...and FALL!!!',10257,1,0,0,'magtheridon SAY_CHAMBER_DESTROY'),
 (-1544010,'Did you think me weak? Soft? Who is the weak one now?!',10255,1,0,0,'magtheridon SAY_PLAYER_KILLED'),
 (-1544011,'The Legion...will consume you...all...',10258,1,0,0,'magtheridon SAY_DEATH'),
-(-1544012,'becomes enraged!',0,2,0,0,'magtheridon EMOTE_BERSERK'),
-(-1544013,'begins to cast Blast Nova!',0,3,0,0,'magtheridon EMOTE_BLASTNOVA'),
-(-1544014,'\'s bonds begin to weaken!',0,2,0,0,'magtheridon EMOTE_BEGIN'),
-(-1544015,'breaks free!',0,2,0,0,'magtheridon EMOTE_FREED');
+(-1544012,'%s becomes enraged!',0,2,0,0,'magtheridon EMOTE_BERSERK'),
+(-1544013,'%s begins to cast Blast Nova!',0,3,0,0,'magtheridon EMOTE_BLASTNOVA'),
+(-1544014,'%s\'s bonds begin to weaken!',0,2,0,0,'magtheridon EMOTE_BEGIN'),
+(-1544015,'%s breaks free!',0,2,0,0,'magtheridon EMOTE_FREED');
 
 -- -1 545 000 THE STEAMVAULT
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -1148,9 +1400,9 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1548036,'Strugging only makes it worse.',11327,1,0,0,'morogrim SAY_SLAY2'),
 (-1548037,'Only the strong survive.',11328,1,0,0,'morogrim SAY_SLAY3'),
 (-1548038,'Great... currents of... Ageon.',11329,1,0,0,'morogrim SAY_DEATH'),
-(-1548039,'sends his enemies to their watery graves!',0,2,0,0,'morogrim EMOTE_WATERY_GRAVE'),
+(-1548039,'%s sends his enemies to their watery graves!',0,2,0,0,'morogrim EMOTE_WATERY_GRAVE'),
 (-1548040,'The violent earthquake has alerted nearby murlocs!',0,3,0,0,'morogrim EMOTE_EARTHQUAKE'),
-(-1548041,'summons Watery Globules!',0,2,0,0,'morogrim EMOTE_WATERY_GLOBULES'),
+(-1548041,'%s summons Watery Globules!',0,2,0,0,'morogrim EMOTE_WATERY_GLOBULES'),
 
 (-1548042,'Water is life. It has become a rare commodity here in Outland. A commodity that we alone shall control. We are the Highborne, and the time has come at last for us to retake our rightful place in the world!',11531,1,0,0,'vashj SAY_INTRO'),
 (-1548043,'I\'ll split you from stem to stern!',11532,1,0,0,'vashj SAY_AGGRO1'),
@@ -1209,7 +1461,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 (-1550035,'Prepare yourselves!',11203,1,0,0,'thaladred SAY_THALADRED_AGGRO'),
 (-1550036,'Forgive me, my prince! I have... failed.',11204,1,0,0,'thaladred SAY_THALADRED_DEATH'),
-(-1550037,'sets his gaze on $N!',0,2,0,0,'thaladred EMOTE_THALADRED_GAZE'),
+(-1550037,'%s sets his gaze on $N!',0,2,0,0,'thaladred EMOTE_THALADRED_GAZE'),
 
 (-1550038,'Blood for blood!',11152,1,0,0,'sanguinar SAY_SANGUINAR_AGGRO'),
 (-1550039,'NO! I ...will... not...',11153,1,0,0,'sanguinar SAY_SANGUINAR_DEATH'),
@@ -1265,7 +1517,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1553004,'Nature bends to my will!',11148,1,0,0,'freywinn SAY_TREE_2'),
 (-1553005,'The specimens...must be preserved.',11149,1,0,0,'freywinn SAY_DEATH'),
 
-(-1553006,'emits a strange noise.',0,2,0,0,'laj EMOTE_SUMMON'),
+(-1553006,'%s emits a strange noise.',0,2,0,0,'laj EMOTE_SUMMON'),
 
 (-1553007,'Who disturbs this sanctuary?',11230,1,0,0,'warp SAY_AGGRO'),
 (-1553008,'You must die! But wait: this does not--No, no... you must die!',11231,1,0,0,'warp SAY_SLAY_1'),
@@ -1289,7 +1541,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1554009,'A foregone conclusion.',11110,1,0,0,'ironhand SAY_SLAY_1'),
 (-1554010,'The processing will continue a schedule!',11111,1,0,0,'ironhand SAY_SLAY_2'),
 (-1554011,'My calculations did not...',11114,1,0,0,'ironhand SAY_DEATH_1'),
-(-1554012,'raises his hammer menacingly...',0,3,0,0,'ironhand EMOTE_HAMMER'),
+(-1554012,'%s raises his hammer menacingly...',0,3,0,0,'ironhand EMOTE_HAMMER'),
 
 (-1554013,'Don\'t value your life very much, do you?',11186,1,0,0,'sepethrea SAY_AGGRO'),
 (-1554014,'I am not alone.',11191,1,0,0,'sepethrea SAY_SUMMON'),
@@ -1350,7 +1602,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1555034,'Your death is for the greater cause!',10528,1,0,0,'vorpil SAY_SLAY2'),
 (-1555035,'I give my life... Gladly.',10529,1,0,0,'vorpil SAY_DEATH'),
 
-(-1555036,'draws energy from the air.',0,2,0,0,'murmur EMOTE_SONIC_BOOM');
+(-1555036,'%s draws energy from the air.',0,2,0,0,'murmur EMOTE_SONIC_BOOM');
 
 -- -1 556 000 SETHEKK HALLS
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -1369,7 +1621,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1556011,'You die..<squawk>..stay away from Trinkets',10558,1,0,0,'ikiss SAY_SLAY_1'),
 (-1556012,'<squawk>',10559,1,0,0,'ikiss SAY_SLAY_2'),
 (-1556013,'Ikiss will not..<squawk>..die',10560,1,0,0,'ikiss SAY_DEATH'),
-(-1556015,'begins to channel arcane energy...',0,3,0,0,'ikiss EMOTE_ARCANE_EXP');
+(-1556015,'%s begins to channel arcane energy...',0,3,0,0,'ikiss EMOTE_ARCANE_EXP');
 
 -- -1 557 000 MANA TOMBS
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -1388,7 +1640,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1557011,'Yes! I am... empowered!',10564,1,0,0,'pandemonius SAY_KILL_1'),
 (-1557012,'More... I must have more!',10565,1,0,0,'pandemonius SAY_KILL_2'),
 (-1557013,'To the void... once... more..',10566,1,0,0,'pandemonius SAY_DEATH'),
-(-1557014,'shifts into the void...',0,3,0,0,'pandemonius EMOTE_DARK_SHELL');
+(-1557014,'%s shifts into the void...',0,3,0,0,'pandemonius EMOTE_DARK_SHELL');
 
 -- -1 558 000 AUCHENAI CRYPTS
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -1631,7 +1883,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1565016,'Unworthy',11361,1,0,0,'gruul SAY_SLAY2'),
 (-1565017,'Die',11362,1,0,0,'gruul SAY_SLAY3'),
 (-1565018,'Aaargh...',11363,1,0,0,'gruul SAY_DEATH'),
-(-1565019,'grows in size!',0,2,0,0,'gruul EMOTE_GROW');
+(-1565019,'%s grows in size!',0,2,0,0,'gruul EMOTE_GROW');
 
 -- -1 568 000 ZUL'AMAN
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -1750,9 +2002,58 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1574017,'See... you... soon.',13200,1,0,0,'dalronn SAY_DAL_DEATH'),
 (-1574018,'There\'s no... greater... glory.',13201,1,0,0,'dalronn SAY_DAL_DEATH_REAL'),
 (-1574019,'You may serve me yet.',13202,1,0,0,'dalronn SAY_DAL_KILL'),
-(-1574020,'Skarvald, you incompetent slug! Return and make yourself useful!',13203,1,0,0,'dalronn SAY_DAL_SKA_DIES_REPLY');
+(-1574020,'Skarvald, you incompetent slug! Return and make yourself useful!',13203,1,0,0,'dalronn SAY_DAL_SKA_DIES_REPLY'),
+
+(-1574021,'%s casts Frost Tomb on $N',0,3,0,0,'keleseth EMOTE_FROST_TOMB'),
+
+(-1574022,'%s roars!',0,3,0,0,'ingvar EMOTE_ROAR');
 
 -- -1 575 000 UTGARDE PINNACLE
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1575000,'My liege! I have done as you asked, and now beseech you for your blessing!',13856,1,0,0,'svala SAY_INTRO_1'),
+(-1575001,'Your sacrifice is a testament to your obedience. Indeed you are worthy of this charge. Arise, and forever be known as Svala Sorrowgrave!',14732,1,0,0,'svala SAY_INTRO_2_ARTHAS'),
+(-1575002,'The sensation is... beyond my imagining. I am yours to command, my king.',13857,1,0,0,'svala SAY_INTRO_3'),
+(-1575003,'Your first test awaits you. Destroy our uninvited guests.',14733,1,0,0,'svala SAY_INTRO_4_ARTHAS'),
+(-1575004,'I will be happy to slaughter them in your name! Come, enemies of the Scourge! I will show you the might of the Lich King!',13858,1,0,0,'svala SAY_INTRO_5'),
+(-1575005,'I will vanquish your soul!',13842,1,0,0,'svala SAY_AGGRO'),
+(-1575006,'You were a fool to challenge the power of the Lich King!',13845,1,0,0,'svala SAY_SLAY_1'),
+(-1575007,'Your will is done, my king.',13847,1,0,0,'svala SAY_SLAY_2'),
+(-1575008,'Another soul for my master.',13848,1,0,0,'svala SAY_SLAY_3'),
+(-1575009,'Your death approaches.',13850,1,0,0,'svala SAY_SACRIFICE_1'),
+(-1575010,'Go now to my master.',13851,1,0,0,'svala SAY_SACRIFICE_2'),
+(-1575011,'Your end is inevitable.',13852,1,0,0,'svala SAY_SACRIFICE_3'),
+(-1575012,'Yor-guul mak!',13853,1,0,0,'svala SAY_SACRIFICE_4'),
+(-1575013,'Any last words?',13854,1,0,0,'svala SAY_SACRIFICE_5'),
+(-1575014,'Nooo! I did not come this far... to...',13855,1,0,0,'svala SAY_DEATH'),
+
+(-1575015,'What this place? I will destroy you!',13464,1,0,0,'gortok SAY_AGGRO'),
+(-1575016,'You die! That what master wants!',13465,1,0,0,'gortok SAY_SLAY_1'),
+(-1575017,'An easy task!',13466,1,0,0,'gortok SAY_SLAY_2'),
+(-1575018,' ',13467,1,0,0,'gortok SAY_DEATH'),
+
+(-1575019,'What mongrels dare intrude here? Look alive, my brothers! A feast for the one that brings me their heads!',13497,1,0,0,'skadi SAY_AGGRO'),
+(-1575020,'Sear them to the bone!',13498,1,0,0,'skadi SAY_DRAKEBREATH_1'),
+(-1575021,'Go now! Leave nothing but ash in your wake!',13499,1,0,0,'skadi SAY_DRAKEBREATH_2'),
+(-1575022,'Cleanse our sacred halls with flame!',13500,1,0,0,'skadi SAY_DRAKEBREATH_3'),
+(-1575023,'I ask for ... to kill them, yet all I get is feeble whelps! By Ye.. SLAUGHTER THEM!',13501,1,0,0,'skadi SAY_DRAKE_HARPOON_1'),
+(-1575024,'If one more harpoon touches my drake I\'ll flae my miserable heins.',13502,1,0,0,'skadi SAY_DRAKE_HARPOON_2'),
+(-1575025,'Mjor Na Ul Kaval!',13503,1,0,0,'skadi SAY_KILL_1'),
+(-1575026,'Not so brash now, are you?',13504,1,0,0,'skadi SAY_KILL_2'),
+(-1575027,'I\'ll mount your skull from the highest tower!',13505,1,0,0,'skadi SAY_KILL_3'),
+(-1575028,'ARGH! You call that... an attack? I\'ll... show... aghhhh...',13506,1,0,0,'skadi SAY_DEATH'),
+(-1575029,'You motherless knaves! Your corpses will make fine morsels for my new drake!',13507,1,0,0,'skadi SAY_DRAKE_DEATH'),
+(-1575030,'%s is within range of the harpoon launchers!',0,3,0,0,'skadi EMOTE_HARPOON_RANGE'),
+
+(-1575031,'You invade my home and then dare to challenge me? I will tear the hearts from your chests and offer them as gifts to the death god! Rualg nja gaborr!',13609,1,0,0,'ymiron SAY_AGGRO'),
+(-1575032,'Bjorn of the Black Storm! Honor me now with your presence!',13610,1,0,0,'ymiron SAY_SUMMON_BJORN'),
+(-1575033,'Haldor of the rocky cliffs, grant me your strength!',13611,1,0,0,'ymiron SAY_SUMMON_HALDOR'),
+(-1575034,'Ranulf of the screaming abyss, snuff these maggots with darkest night!',13612,1,0,0,'ymiron SAY_SUMMON_RANULF'),
+(-1575035,'Tor of the Brutal Siege! Bestow your might upon me!',13613,1,0,0,'ymiron SAY_SUMMON_TORGYN'),
+(-1575036,'Your death is only the beginning!',13614,1,0,0,'ymiron SAY_SLAY_1'),
+(-1575037,'You have failed your people!',13615,1,0,0,'ymiron SAY_SLAY_2'),
+(-1575038,'There is a reason I am king!',13616,1,0,0,'ymiron SAY_SLAY_3'),
+(-1575039,'Bleed no more!',13617,1,0,0,'ymiron SAY_SLAY_4'),
+(-1575040,'What... awaits me... now?',13618,1,0,0,'ymiron SAY_DEATH');
 
 -- -1 576 000 NEXUS
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -1779,7 +2080,10 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1576017,'Stay. Enjoy your final moments.',13451,1,0,0,'keristrasza SAY_CRYSTAL_NOVA'),
 (-1576018,'Finish it! Finish it! Kill me, or I swear by the Dragonqueen you\'ll never see daylight again!',13452,1,0,0,'keristrasza SAY_ENRAGE'),
 (-1576019,'Now we\'ve come to the truth!',13453,1,0,0,'keristrasza SAY_KILL'),
-(-1576020,'Dragonqueen... Life-Binder... preserve... me.',13454,1,0,0,'keristrasza SAY_DEATH');
+(-1576020,'Dragonqueen... Life-Binder... preserve... me.',13454,1,0,0,'keristrasza SAY_DEATH'),
+
+(-1576021,'%s opens a Chaotic Rift!',0,3,0,0,'anomalus EMOTE_OPEN_RIFT'),
+(-1576022,'%s shields himself and divert his power to the rifts!',0,3,0,0,'anomalus EMOTE_SHIELD');
 
 -- -1 578 000 OCULUS
 
@@ -1832,13 +2136,13 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1585003,'Enough distractions!',12388,1,0,0,'selin SAY_KILL_1'),
 (-1585004,'I am invincible!',12385,1,0,0,'selin SAY_KILL_2'),
 (-1585005,'No! More... I must have more!',12383,1,0,0,'selin SAY_DEATH'),
-(-1585006,'begins to channel from the nearby Fel Crystal...',0,3,0,0,'selin EMOTE_CRYSTAL'),
+(-1585006,'%s begins to channel from the nearby Fel Crystal...',0,3,0,0,'selin EMOTE_CRYSTAL'),
 
 (-1585007,'Drain...life!',12389,1,0,0,'vexallus SAY_AGGRO'),
 (-1585008,'Un...con...tainable.',12392,1,0,0,'vexallus SAY_ENERGY'),
 (-1585009,'Un...leash...',12390,1,0,0,'vexallus SAY_OVERLOAD'),
 (-1585010,'Con...sume.',12393,1,0,0,'vexallus SAY_KILL'),
-(-1585011,'discharges pure energy!',0,3,0,0,'vexallus EMOTE_DISCHARGE_ENERGY'),
+(-1585011,'%s discharges pure energy!',0,3,0,0,'vexallus EMOTE_DISCHARGE_ENERGY'),
 
 (-1585012,'Annihilate them!',12395,1,0,0,'delrissa SAY_AGGRO'),
 (-1585013,'Oh, the horror.',12398,1,0,0,'delrissa LackeyDeath1'),
@@ -1863,18 +2167,330 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 -- -1 595 000 CULLING OF STRATHOLME
 
 -- -1 599 000 HALLS OF STONE
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1599000,'Soft, vulnerable shells. Brief, fragile lives. You can not escape the curse of flesh!',14180,1,0,0,'sjonnir SAY_AGGRO'),
+(-1599001,'???',14181,1,0,0,'sjonnir SAY_SLAY_1'),
+(-1599002,'Flesh is no match for iron!',14182,1,0,0,'sjonnir SAY_SLAY_2'),
+(-1599003,'Armies of iron will smother the world!',14183,1,0,0,'sjonnir SAY_SLAY_3'),
+(-1599004,'Loken will not rest, until the forge is retaken. You changed nothing!',14184,1,0,0,'sjonnir SAY_DEATH'),
+
+(-1599005,'You shouldn\'t have come...now you will die!',13487,1,0,0,'maiden SAY_AGGRO'),
+(-1599006,'Why must it be this way?',13488,1,0,0,'maiden SAY_SLAY_1'),
+(-1599007,'You had it coming!',13489,1,0,0,'maiden SAY_SLAY_2'),
+(-1599008,'My burden grows heavier.',13490,1,0,0,'maiden SAY_SLAY_3'),
+(-1599009,'This is your own fault!',13491,1,0,0,'maiden SAY_SLAY_4'),
+(-1599010,'So much lost time... that you\'ll never get back!',13492,1,0,0,'maiden SAY_STUN'),
+(-1599011,'I hope you all rot! I never...wanted...this.',13493,1,0,0,'maiden SAY_DEATH'),
+
+(-1599012,'Now that\'s owning your supper!',14244,1,0,0,'brann SAY_KILL_1'),
+(-1599013,'Press on, that\'s the way!',14245,1,0,0,'brann SAY_KILL_2'),
+(-1599014,'Keep it up now. Plenty of death-dealing for everyone!',14246,1,0,0,'brann SAY_KILL_3'),
+(-1599015,'I\'m all kinds of busted up. Might not... make it...',14257,1,0,0,'brann SAY_LOW_HEALTH'),
+(-1599016,'Not yet, not... yet-',14258,1,0,0,'brann SAY_DEATH'),
+(-1599017,'I\'m doing everything I can!',14260,1,0,0,'brann SAY_PLAYER_DEATH_1'),
+(-1599018,'Light preserve you!',14261,1,0,0,'brann SAY_PLAYER_DEATH_2'),
+(-1599019,'I hope this is all worth it!',14262,1,0,0,'brann SAY_PLAYER_DEATH_3'),
+(-1599020,'Time to get some answers! Let\'s get this show on the road!',14259,1,0,0,'brann SAY_ESCORT_START'),
+
+(-1599021,'Don\'t worry. Old Brann has got your back. Keep that metal monstrosity busy and I\'ll see if I can sweet talk this machine into helping you.',14274,1,0,0,'brann SAY_SPAWN_DWARF'),
+(-1599022,'This is a wee bit trickier that before... Oh, bloody--incomin\'!',14275,1,0,0,'brann SAY_SPAWN_TROGG'),
+(-1599023,'What in the name o\' Madoran did THAT do? Oh! Wait: I just about got it...',14276,1,0,0,'brann SAY_SPAWN_OOZE'),
+(-1599024,'Ha, that did it. Help\'s a-coming. Take this you glow-eying brute!',14277,1,0,0,'brann SAY_SPAWN_EARTHEN'),
+
+(-1599025,'Take a moment and relish this with me! Soon all will be revealed! Okay then, let’s do this!',14247,1,0,0,'brann SAY_EVENT_INTRO_1'),
+(-1599026,'Now keep an eye out! I\'ll have this licked in two shakes of a--',14248,1,0,0,'brann SAY_EVENT_INTRO_2'),
+(-1599027,'Warning! Life form pattern not recognized. Archival processing terminated. Continued interference will result in targeted response.',13765,1,0,0,'brann SAY_EVENT_INTRO_3_ABED'),
+
+(-1599028,'Oh, that doesn\'t sound good. We might have a complication or two...',14249,1,0,0,'brann SAY_EVENT_A_1'),
+(-1599029,'Security breach in progress. Analysis of historical archives transferred to lower priority queue. Countermeasures engaged.',13756,1,0,0,'brann SAY_EVENT_A_2_KADD'),
+(-1599030,'Ah, you want to play hardball, eh? That\'s just my game!',14250,1,0,0,'brann SAY_EVENT_A_3'),
+
+(-1599031,'Couple more minutes and I\'ll--',14251,1,0,0,'brann SAY_EVENT_B_1'),
+(-1599032,'Threat index threshold exceeded. Celestial archive aborted. Security level heightened.',13761,1,0,0,'brann SAY_EVENT_B_2_MARN'),
+(-1599033,'Heightened? What\'s the good news?',14252,1,0,0,'brann SAY_EVENT_B_3'),
+
+(-1599034,'So that was the problem? Now I\'m makin\' progress...',14253,1,0,0,'brann SAY_EVENT_C_1'),
+(-1599035,'Critical threat index. Void analysis diverted. Initiating sanitization protocol.',13767,1,0,0,'brann SAY_EVENT_C_2_ABED'),
+(-1599036,'Hang on! Nobody\'s gonna\' be sanitized as long as I have a say in it!',14254,1,0,0,'brann SAY_EVENT_C_3'),
+
+(-1599037,'Ha! The old magic fingers finally won through! Now let\'s get down to-',14255,1,0,0,'brann SAY_EVENT_D_1'),
+(-1599038,'Alert! Security fail safes deactivated. Beginning memory purge...',13768,1,0,0,'brann SAY_EVENT_D_2_ABED'),
+(-1599039,'Purge? No no no no no! Where did I-- Aha, this should do the trick...',14256,1,0,0,'brann SAY_EVENT_D_3'),
+(-1599040,'System online. Life form pattern recognized. Welcome Branbronzan. Query?',13769,1,0,0,'brann SAY_EVENT_D_4_ABED'),
+
+(-1599041,'Query? What do you think I’m here for? Tea and biscuits? Spill the beans already!',14263,1,0,0,'brann SAY_EVENT_END_01'),
+(-1599042,'Tell me how that dwarfs came to be! And start at the beginning!',14264,1,0,0,'brann SAY_EVENT_END_02'),
+(-1599043,'Accessing prehistoric data. Retrieved. In the beginning Earthen were created to-',13770,1,0,0,'brann SAY_EVENT_END_03_ABED'),
+(-1599044,'Right, right! I know that the Earthen were made of stone to shape the deep reaches of the world but what about the anomalies? Matrix non-stabilizing and whatnot.',14265,1,0,0,'brann SAY_EVENT_END_04'),
+(-1599045,'Accessing. In the early stages of its development cycle Azeroth suffered infection by parasitic, necrophotic symbiotes.',13771,1,0,0,'brann SAY_EVENT_END_05_ABED'),
+(-1599046,'Necro-what? Speak bloody common will ya?',14266,1,0,0,'brann SAY_EVENT_END_06'),
+(-1599047,'Designation: Old Gods. Old Gods rendered all systems, including Earthen defenseless in order to facilitate assimilation. This matrix destabilization has been termed the Curse of Flesh. Effects of destabilization increased over time.',13772,1,0,0,'brann SAY_EVENT_END_07_ABED'),
+(-1599048,'Old Gods eh? So they zapped the Earthen with this Curse of Flesh. And then what?',14267,1,0,0,'brann SAY_EVENT_END_08'),
+(-1599049,'Accessing. Creators arrived to extirpate symbiotic infection. Assessment revealed that Old God infestation had grown malignant. Excising parasites would result in loss of host.',13757,1,0,0,'brann SAY_EVENT_END_09_KADD'),
+(-1599050,'If they killed the Old Gods Azeroth would have been destroyed.',14268,1,0,0,'brann SAY_EVENT_END_10'),
+(-1599051,'Correct. Creators neutralized parasitic threat and contained it within the host. Forge of Wills and other systems were instituted to create new Earthen. Safeguards were implemented and protectors were appointed.',13758,1,0,0,'brann SAY_EVENT_END_11_KADD'),
+(-1599052,'What protectors?',14269,1,0,0,'brann SAY_EVENT_END_12'),
+(-1599053,'Designations: Aesir and Vanir or in common nomenclator Storm and Earth Giants. Sentinel Loken designated supreme. Dragon Aspects appointed to monitor evolution of Azeroth.',13759,1,0,0,'brann SAY_EVENT_END_13_KADD'),
+(-1599054,'Aesir and Vanir. Okay. So the Forge of Wills started to make new Earthen. But what happened to the old ones?',14270,1,0,0,'brann SAY_EVENT_END_14'),
+(-1599055,'Additional background is relevant to your query. Following global combat between-',13762,1,0,0,'brann SAY_EVENT_END_15_MARN'),
+(-1599056,'Hold everything! The Aesir and Vanir went to war? Why?',14271,1,0,0,'brann SAY_EVENT_END_16'),
+(-1599057,'Unknown. Data suggests that impetus for global combat originated with prime designate Loken who neutralized all remaining Aesir and Vanir affecting termination of conflict. Prime designate Loken then initiated stasis of several seed races including Earthen, Giant and Vrykul at designated holding facilities.',13763,1,0,0,'brann SAY_EVENT_END_17_MARN'),
+(-1599058,'This Loken sounds like a nasty character. Glad we don’t have to worry about the likes of him anymore. So if I’m understanding you lads the original Earthen eventually woke up from this statis. And by that time this destabily-whatever had turned them into our brother dwarfs. Or at least dwarf ancestors. Hm?',14272,1,0,0,'brann SAY_EVENT_END_18'),
+(-1599059,'Essentially that is correct.',13764,1,0,0,'brann SAY_EVENT_END_19_MARN'),
+(-1599060,'Well now. That’s a lot to digest. I’m gonna need some time to take all of this in. Thank you!',14273,1,0,0,'brann SAY_EVENT_END_20'),
+(-1599061,'Acknowledged Branbronzan. Session terminated.',13773,1,0,0,'brann SAY_EVENT_END_21_ABED'),
+
+(-1599062,'Loken?! That\'s downright bothersome... We might\'ve neutralized the iron dwarves, but I\'d lay odds there\'s another machine somewhere else churnin\' out a whole mess o\' these iron vrykul!',14278,1,0,0,'brann SAY_VICTORY_SJONNIR_1'),
+(-1599063,'I\'ll use the forge to make badtches o\' earthen to stand guard... But our greatest challenge still remains: find and stop Loken!',14279,1,0,0,'brann SAY_VICTORY_SJONNIR_2'),
+
+(-1599064,'I think it\'s time to see what\'s behind the door near the entrance. I\'m going to sneak over there, nice and quiet. Meet me at the door and I\'ll get us in.',0,1,0,0,'brann SAY_ENTRANCE_MEET');
 
 -- -1 600 000 DRAK'THARON KEEP
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1600000,'More grunts, more glands, more FOOD!',13181,1,0,0,'trollgore SAY_AGGRO'),
+(-1600001,'So hungry! Must feed!',13182,1,0,0,'trollgore SAY_CONSUME'),
+(-1600002,'Aaaargh...',13183,1,0,0,'trollgore SAY_DEATH'),
+(-1600003,'Corpse go boom!',13184,1,0,0,'trollgore SAY_EXPLODE'),
+(-1600004,'You have gone, me gonna eat you!',13185,1,0,0,'trollgore SAY_KILL'),
+
+(-1600005,'The chill that you feel is the herald of your doom!',13173,1,0,0,'novos SAY_AGGRO'),
+(-1600006,'Your efforts... are in vain.',13174,1,0,0,'novos SAY_DEATH'),
+(-1600007,'Such is the fate of all who oppose the Lich King.',13175,1,0,0,'novos SAY_KILL'),
+(-1600008,'Bolster my defenses! Hurry, curse you!',13176,1,0,0,'novos SAY_ADDS'),
+(-1600009,'Surely you can see the futility of it all!',13177,1,0,0,'novos SAY_BUBBLE_1'),
+(-1600010,'Just give up and die already!',13178,1,0,0,'novos SAY_BUBBLE_2'),
+(-1600011,'%s calls for assistance.',0,3,0,0,'novos EMOTE_ASSISTANCE'),
+
+(-1600012,'Tharon\'ja sees all! The work of mortals shall not end the eternal dynasty!',13862,1,0,0,'tharonja SAY_AGGRO'),
+(-1600013,'As Tharon\'ja predicted.',13863,1,0,0,'tharonja SAY_KILL_1'),
+(-1600014,'As it was written.',13864,1,0,0,'tharonja SAY_KILL_2'),
+(-1600015,'Your flesh serves Tharon\'ja now!',13865,1,0,0,'tharonja SAY_FLESH_1'),
+(-1600016,'Tharon\'ja has a use for your mortal shell!',13866,1,0,0,'tharonja SAY_FLESH_2'),
+(-1600017,'No! A taste... all too brief!',13867,1,0,0,'tharonja SAY_SKELETON_1'),
+(-1600018,'Tharon\'ja will have more!',13868,1,0,0,'tharonja SAY_SKELETON_2'),
+(-1600019,'Im... impossible! Tharon\'ja is eternal! Tharon\'ja... is...',13869,1,0,0,'tharonja SAY_DEATH');
 
 -- -1 601 000 AZJOL-NERUB
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1601000,'This kingdom belongs to the Scourge! Only the dead may enter.',14075,1,0,0,'krikthir SAY_AGGRO'),
+(-1601001,'???',14076,1,0,0,'krikthir SAY_KILL_1'),
+(-1601002,'You were foolish to come.',14077,1,0,0,'krikthir SAY_KILL_2'),
+(-1601003,'As Anub\'Arak commands!',14078,1,0,0,'krikthir SAY_KILL_3'),
+(-1601004,'We are besieged. Strike out and bring back their corpses!',14079,1,0,0,'krikthir SAY_SEND_GROUP_1'),
+(-1601005,'We must hold the gate. Attack! Tear them limb from limb!',14080,1,0,0,'krikthir SAY_SEND_GROUP_2'),
+(-1601006,'The gate must be protected at all costs. Rip them to shreds!',14081,1,0,0,'krikthir SAY_SEND_GROUP_3'),
+(-1601007,'Keep an eye on the tunnel. We must not let anyone through!',14082,1,0,0,'krikthir SAY_PREFIGHT_1'),
+(-1601008,'I hear footsteps. Be on your guard.',14083,1,0,0,'krikthir SAY_PREFIGHT_2'),
+(-1601009,'I sense the living. Be ready.',14084,1,0,0,'krikthir SAY_PREFIGHT_3'),
+(-1601010,'They hunger.',14085,1,0,0,'krikthir SAY_SWARM_1'),
+(-1601011,'Dinner time, my pets.',14086,1,0,0,'krikthir SAY_SWARM_2'),
+(-1601012,'I should be grateful. But I long ago lost the capacity.',14087,1,0,0,'krikthir SAY_DEATH'),
+(-1601013,'REUSE ME',0,0,0,0,'REUSE ME'),
+
+(-1601014,'I was king of this empire once, long ago. In life I stood as champion. In death I returned as conqueror. Now I protect the kingdom once more. Ironic, yes?',14053,1,0,0,'anubarak SAY_INTRO'),
+(-1601015,'Eternal agony awaits you!',14054,1,0,0,'anubarak SAY_AGGRO'),
+(-1601016,'You shall experience my torment, first-hand!',14055,1,0,0,'anubarak SAY_KILL_1'),
+(-1601017,'You have made your choice.',14056,1,0,0,'anubarak SAY_KILL_2'),
+(-1601018,'Soon, the Master\'s voice will call to you.',14057,1,0,0,'anubarak SAY_KILL_3'),
+(-1601019,'Come forth, my brethren. Feast on their flesh!',14058,1,0,0,'anubarak SAY_SUBMERGE_1'),
+(-1601020,'Auum na-l ak-k-k-k, isshhh.',14059,1,0,0,'anubarak SAY_SUBMERGE_2'),
+(-1601021,'Your armor is useless against my locusts!',14060,1,0,0,'anubarak SAY_LOCUST_1'),
+(-1601022,'The pestilence upon you!',14067,1,0,0,'anubarak SAY_LOCUST_2'),
+(-1601023,'Uunak-hissss tik-k-k-k-k!',14068,1,0,0,'anubarak SAY_LOCUST_3'),
+(-1601024,'Ahhh... RAAAAAGH! Never thought... I would be free of him...',14069,1,0,0,'anubarak SAY_DEATH');
 
 -- -1 602 000 HALLS OF LIGHTNING
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1602000,'I am the greatest of my father\'s sons! Your end has come!',14149,1,0,0,'bjarngrim SAY_AGGRO'),
+(-1602001,'So ends your curse!',14153,1,0,0,'bjarngrim SAY_SLAY_1'),
+(-1602002,'Flesh... is... weak!',14154,1,0,0,'bjarngrim SAY_SLAY_2'),
+(-1602003,'...',14155,1,0,0,'bjarngrim SAY_SLAY_3'),
+(-1602004,'How can it be...? Flesh is not... stronger!',14156,1,0,0,'bjarngrim SAY_DEATH'),
+(-1602005,'Defend yourself, for all the good it will do!',14151,1,0,0,'bjarngrim SAY_BATTLE_STANCE'),
+(-1602006,'%s switches to Battle Stance!',0,3,0,0,'bjarngrim EMOTE_BATTLE_STANCE'),
+(-1602007,'GRAAAAAH! Behold the fury of iron and steel!',14152,1,0,0,'bjarngrim SAY_BERSEKER_STANCE'),
+(-1602008,'%s switches to Berserker Stance!',0,3,0,0,'bjarngrim EMOTE_BERSEKER_STANCE'),
+(-1602009,'Give me your worst!',14150,1,0,0,'bjarngrim SAY_DEFENSIVE_STANCE'),
+(-1602010,'%s switches to Defensive Stance!',0,3,0,0,'bjarngrim EMOTE_DEFENSIVE_STANCE'),
 
--- -1 603 000 ULDUAR (RAID NIU)
+(-1602011,'You wish to confront the master? You must weather the storm!',14453,1,0,0,'ionar SAY_AGGRO'),
+(-1602012,'Shocking ... I know!',14456,1,0,0,'ionar SAY_SLAY_1'),
+(-1602013,'You atempt the unpossible.',14457,1,0,0,'ionar SAY_SLAY_2'),
+(-1602014,'Your spark of light is ... extinguish.',14458,1,0,0,'ionar SAY_SLAY_3'),
+(-1602015,'Master... you have guests.',14459,1,0,0,'ionar SAY_DEATH'),
+(-1602016,'The slightest spark shall be your undoing.',14454,1,0,0,'ionar SAY_SPLIT_1'),
+(-1602017,'No one is safe!',14455,1,0,0,'ionar SAY_SPLIT_2'),
+
+(-1602018,'What hope is there for you? None!',14162,1,0,0,'loken SAY_AGGRO0'),
+(-1602019,'I have witnessed the rise and fall of empires. The birth and extinction of entire species. Over countless millennia the foolishness of mortals has remained beyond a constant. Your presence here confirms this.',14160,1,0,0,'loken SAY_INTRO_1'),
+(-1602020,'My master has shown me the future, and you have no place in it. Azeroth will be reborn in darkness. Yogg-Saron shall be released! The Pantheon shall fall!',14162,1,0,0,'loken SAY_INTRO_2'),
+(-1602021,'Only mortal...',14166,1,0,0,'loken SAY_SLAY_1'),
+(-1602022,'I... am... FOREVER!',14167,1,0,0,'loken SAY_SLAY_2'),
+(-1602023,'What little time you had, you wasted!',14168,1,0,0,'loken SAY_SLAY_3'),
+(-1602024,'My death... heralds the end of this world.',14172,1,0,0,'loken SAY_DEATH'),
+(-1602025,'You cannot hide from fate!',14163,1,0,0,'loken SAY_NOVA_1'),
+(-1602026,'Come closer. I will make it quick.',14164,1,0,0,'loken SAY_NOVA_2'),
+(-1602027,'Your flesh cannot hold out for long.',14165,1,0,0,'loken SAY_NOVA_3'),
+(-1602028,'You stare blindly into the abyss!',14169,1,0,0,'loken SAY_75HEALTH'),
+(-1602029,'Your ignorance is profound. Can you not see where this path leads?',14170,1,0,0,'loken SAY_50HEALTH'),
+(-1602030,'You cross the precipice of oblivion!',14171,1,0,0,'loken SAY_25HEALTH'),
+(-1602031,'%s begins to cast Lightning Nova!',0,3,0,0,'loken EMOTE_NOVA'),
+
+(-1602032,'It is you who have destroyed my children? You... shall... pay!',13960,1,0,0,'volkhan SAY_AGGRO'),
+(-1602033,'The armies of iron will conquer all!',13965, 1,0,0,'volkhan SAY_SLAY_1'),
+(-1602034,'Ha, pathetic!',13966,1,0,0,'volkhan SAY_SLAY_2'),
+(-1602035,'You have cost me too much work!',13967,1,0,0,'volkhan SAY_SLAY_3'),
+(-1602036,'The master was right... to be concerned.',13968,1,0,0,'volkhan SAY_DEATH'),
+(-1602037,'I will crush you beneath my boots!',13963,1,0,0,'volkhan SAY_STOMP_1'),
+(-1602038,'All my work... undone!',13964,1,0,0,'volkhan SAY_STOMP_2'),
+(-1602039,'Life from the lifelessness... death for you.',13961,1,0,0,'volkhan SAY_FORGE_1'),
+(-1602040,'Nothing is wasted in the process. You will see....',13962,1,0,0,'volkhan SAY_FORGE_2'),
+(-1602041,'%s runs to his anvil!',0,3,0,0,'volkhan EMOTE_TO_ANVIL'),
+(-1602042,'%s prepares to shatter his Brittle Golems!',0,3,0,0,'volkhan EMOTE_SHATTER');
+
+-- -1 603 000 ULDUAR
 
 -- -1 604 000 GUNDRAK
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1604000,'Drakkari gonna kill anybody who trespass on these lands!',14443,1,0,0,'sladran SAY_AGGRO'),
+(-1604001,'Minions of the scale, heed my call!',14444,1,0,0,'sladran SAY_SUMMON_SNAKE'),
+(-1604002,'Our thousand fangs gonna rend your flesh! ',14445,1,0,0,'sladran SAY_SUMMON_CONSTRICT'),
+(-1604003,'Ye not breathin\'! Good.',14446,1,0,0,'sladran SAY_SLAY_1'),
+(-1604004,'You scared now?',14447,1,0,0,'sladran SAY_SLAY_2'),
+(-1604005,'I\'ll eat you next, mon!',14448,1,0,0,'sladran SAY_SLAY_3'),
+(-1604006,'I sssee now... Ssscourge wasss not... our greatessst enemy...',14449,1,0,0,'sladran SAY_DEATH'),
+(-1604007,'%s begins to cast Poison Nova!',0,3,0,0,'sladran EMOTE_NOVA'),
+
+(-1604008,'%s surges forward!',0,2,0,0,'colossus EMOTE_SURGE'),
+(-1604009,'%s seep into the ground.',0,2,0,0,'colossus EMOTE_SEEP'),
+(-1604010,'%s begins to glow faintly.',0,2,0,0,'colossus EMOTE_GLOW'),
+
+(-1604011,'We fought back da Scourge. What chance joo be thinkin\' JOO got?',14721,1,0,0,'moorabi SAY_AGGRO'),
+(-1604012,'Da ground gonna swallow you up! ',14723,1,0,0,'moorabi SAY_QUAKE'),
+(-1604013,'Get ready for somethin\'... much... BIGGAH!',14722,1,0,0,'moorabi SAY_TRANSFORM'),
+(-1604014,'I crush you, cockroaches!',14725,1,0,0,'moorabi SAY_SLAY_1'),
+(-1604015,'Who gonna stop me; you?',14726,1,0,0,'moorabi SAY_SLAY_2'),
+(-1604016,'Not so tough now.',14727,1,0,0,'moorabi SAY_SLAY_3'),
+(-1604017,'If our gods can die... den so can we...',14728,1,0,0,'moorabi SAY_DEATH'),
+(-1604018,'%s begins to transform!',0,3,0,0,'moorabi EMOTE_TRANSFORM'),
+
+(-1604019,'I\'m gonna spill your guts, mon!',14430,1,0,0,'galdarah SAY_AGGRO'),
+(-1604020,'Ain\'t gonna be nottin\' left after this!',14431,1,0,0,'galdarah SAY_TRANSFORM_1'),
+(-1604021,'You wanna see power? I\'m gonna show you power!',14432,1,0,0,'galdarah SAY_TRANSFORM_2'),
+(-1604022,'Gut them! Impale them!',14433,1,0,0,'galdarah SAY_SUMMON_1'),
+(-1604023,'Kill them all!',14434,1,0,0,'galdarah SAY_SUMMON_2'),
+(-1604024,'Say hello to my BIG friend!',14435,1,0,0,'galdarah SAY_SUMMON_3'),
+(-1604025,'What a rush!',14436,1,0,0,'galdarah SAY_SLAY_1'),
+(-1604026,'Who needs gods, when WE ARE GODS!',14437,1,0,0,'galdarah SAY_SLAY_2'),
+(-1604027,'I told ya so!',14438,1,0,0,'galdarah SAY_SLAY_3'),
+(-1604028,'Even the mighty... can fall.',14439,1,0,0,'galdarah SAY_DEATH');
 
 -- -1 608 000 VIOLET HOLD
+
+-- -1 609 000 EBON HOLD (DK START)
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1609000,'You have made a grave error, fiend!',0,0,0,0,'unworthy SAY_START_1'),
+(-1609001,'I was a soldier of the Light once... Look at what I have become... ',0,0,0,0,'unworthy SAY_START_2'),
+(-1609002,'You are hopelessly outmatched, $R.',0,0,0,0,'unworthy SAY_START_3'),
+(-1609003,'They brand me unworthy? I will show them unmorthy!',0,0,0,0,'unworthy SAY_START_4'),
+(-1609004,'You will allow me a weapon and armor, yes?',0,0,0,0,'unworthy SAY_START_5'),
+(-1609005,'I will win my freedom and leave this cursed place!',0,0,0,0,'unworthy SAY_START_6'),
+(-1609006,'I will dismantle this festering hellhole!',0,0,0,0,'unworthy SAY_START_7'),
+(-1609007,'There can be only one survivor!',0,0,0,0,'unworthy SAY_START_8'),
+
+(-1609008,'Let your fears consume you!',0,0,0,0,'unworthy SAY_AGGRO_1'),
+(-1609009,'HAH! You can barely hold a blade! Yours will be a quick death.',0,0,0,0,'unworthy SAY_AGGRO_2'),
+(-1609010,'And now you die',0,0,0,0,'unworthy SAY_AGGRO_3'),
+(-1609011,'To battle!',0,0,0,0,'unworthy SAY_AGGRO_4'),
+(-1609012,'There is no hope for our future...',0,0,0,0,'unworthy SAY_AGGRO_5'),
+(-1609013,'Sate your hunger on cold steel, $R',0,0,0,0,'unworthy SAY_AGGRO_6'),
+(-1609014,'It ends here!',0,0,0,0,'unworthy SAY_AGGRO_7'),
+(-1609015,'Death is the only cure!',0,0,0,0,'unworthy SAY_AGGRO_8'),
+
+(-1609016,'No potions!',0,0,0,0,'dk_initiate SAY_DUEL_A'),
+(-1609017,'Remember this day, $n, for it is the day that you will be thoroughly owned.',0,0,0,0,'dk_initiate SAY_DUEL_B'),
+(-1609018,'I\'m going to tear your heart out, cupcake!',0,0,0,0,'dk_initiate SAY_DUEL_C'),
+(-1609019,'Don\'t make me laugh.',0,0,0,0,'dk_initiate SAY_DUEL_D'),
+(-1609020,'Here come the tears...',0,0,0,0,'dk_initiate SAY_DUEL_E'),
+(-1609021,'You have challenged death itself!',0,0,0,0,'dk_initiate SAY_DUEL_F'),
+(-1609022,'The Lich King will see his true champion on this day!',0,0,0,0,'dk_initiate SAY_DUEL_G'),
+(-1609023,'You\'re going down!',0,0,0,0,'dk_initiate SAY_DUEL_H'),
+(-1609024,'You don\'t stand a chance, $n',0,0,0,0,'dk_initiate SAY_DUEL_I'),
+
+(-1609025,'Come to finish the job, have you?',0,0,0,1,'special_surprise SAY_EXEC_START_1'),
+(-1609026,'Come to finish the job, have ye?',0,0,0,1,'special_surprise SAY_EXEC_START_2'),
+(-1609027,'Come ta finish da job, mon?',0,0,0,1,'special_surprise SAY_EXEC_START_3'),
+
+(-1609028,'You\'ll look me in the eyes when...',0,0,0,25,'special_surprise SAY_EXEC_PROG_1'),
+(-1609029,'Well this son o\' Ironforge would like...',0,0,0,25,'special_surprise SAY_EXEC_PROG_2'),
+(-1609030,'Ironic, isn\'t it? To be killed...',0,0,0,25,'special_surprise SAY_EXEC_PROG_3'),
+(-1609031,'If you\'d allow me just one...',0,0,0,25,'special_surprise SAY_EXEC_PROG_4'),
+(-1609032,'I\'d like to stand for...',0,0,0,25,'special_surprise SAY_EXEC_PROG_5'),
+(-1609033,'I want to die like an orc...',0,0,0,25,'special_surprise SAY_EXEC_PROG_6'),
+(-1609034,'Dis troll gonna stand for da...',0,0,0,25,'special_surprise SAY_EXEC_PROG_7'),
+
+(-1609035,'$N?',0,0,0,1,'special_surprise SAY_EXEC_NAME_1'),
+(-1609036,'$N? Mon?',0,0,0,1,'special_surprise SAY_EXEC_NAME_2'),
+
+(-1609037,'$N, I\'d recognize that face anywhere... What... What have they done to you, $N?',0,0,0,1,'special_surprise SAY_EXEC_RECOG_1'),
+(-1609038,'$N, I\'d recognize those face tentacles anywhere... What... What have they done to you, $N?',0,0,0,1,'special_surprise SAY_EXEC_RECOG_2'),
+(-1609039,'$N, I\'d recognize that face anywhere... What... What have they done to ye, $Glad:lass;?',0,0,0,1,'special_surprise SAY_EXEC_RECOG_3'),
+(-1609040,'$N, I\'d recognize that decay anywhere... What... What have they done to you, $N?',0,0,0,1,'special_surprise SAY_EXEC_RECOG_4'),
+(-1609041,'$N, I\'d recognize those horns anywhere... What have they done to you, $N?',0,0,0,1,'special_surprise SAY_EXEC_RECOG_5'),
+(-1609042,'$N, I\'d recognize dem tusks anywhere... What... What have dey done ta you, mon?',0,0,0,1,'special_surprise SAY_EXEC_RECOG_6'),
+
+(-1609043,'You don\'t remember me, do you? Blasted Scourge... They\'ve tried to drain you of everything that made you a righteous force of reckoning. Every last ounce of good... Everything that made you a draenei!',0,0,0,1,'special_surprise SAY_EXEC_NOREM_1'),
+(-1609044,'Ye don\'t remember me, do ye? Blasted Scourge... They\'ve tried to drain ye o\' everything that made ye a righteous force o\' reckoning. Every last ounce o\' good... Everything that made you a $Gson:daughter; of Ironforge!',0,0,0,1,'special_surprise SAY_EXEC_NOREM_2'),
+(-1609045,'You don\'t remember me, do you? We were humans once - long, long ago - until Lordaeron fell to the Scourge. Your transformation to a Scourge zombie came shortly after my own. Not long after that, our minds were freed by the Dark Lady.',0,0,0,1,'special_surprise SAY_EXEC_NOREM_3'),
+(-1609046,'You don\'t remember me, do you? Blasted Scourge... They\'ve tried to drain you of everything that made you a pint-sized force of reckoning. Every last ounce of good... Everything that made you a gnome!',0,0,0,1,'special_surprise SAY_EXEC_NOREM_4'),
+(-1609047,'You don\'t remember me, do you? Blasted Scourge...They\'ve tried to drain of everything that made you a righteous force of reckoning. Every last ounce of good...Everything that made you a human!',0,0,0,1,'special_surprise SAY_EXEC_NOREM_5'),
+(-1609048,'You don\'t remember me? When you were a child your mother would leave you in my care while she served at the Temple of the Moon. I held you in my arms and fed you with honey and sheep\'s milk to calm you until she would return. You were my little angel. Blasted Scourge... What have they done to you, $N?',0,0,0,1,'special_surprise SAY_EXEC_NOREM_6'),
+(-1609049,'You don\'t recognize me, do you? Blasted Scourge... They\'ve tried to drain you of everything that made you a righteous force of reckoning. Every last ounce of good... Everything that made you an orc!',0,0,0,1,'special_surprise SAY_EXEC_NOREM_7'),
+(-1609050,'You don\'t remember me, do you? Blasted Scourge... They\'ve tried to drain you of everything that made you a righteous force of reckoning. Every last ounce of good... Everything that made you a tauren!',0,0,0,1,'special_surprise SAY_EXEC_NOREM_8'),
+(-1609051,'You don\'t remember me, mon? Damn da Scourge! Dey gone ta drain you of everytin dat made ya a mojo masta. Every last ounce of good... Everytin\' dat made ya a troll hero, mon!',0,0,0,1,'special_surprise SAY_EXEC_NOREM_9'),
+
+(-1609052,'A pact was made, $Gbrother:sister;! We vowed vengeance against the Lich King! For what he had done to us! We battled the Scourge as Forsaken, pushing them back into the plaguelands and freeing Tirisfal! You and I were champions of the Forsaken!',0,0,0,1,'special_surprise SAY_EXEC_THINK_1'),
+(-1609053,'You must remember the splendor of life, $Gbrother:sister;. You were a champion of the Kaldorei once! This isn\'t you!',0,0,0,1,'special_surprise SAY_EXEC_THINK_2'),
+(-1609054,'Think, $N. Think back. Try and remember the majestic halls of Silvermoon City, where you were born. Remember the splendor of life, $Gbrother:sister;. You were a champion of the sin\'dorei once! This isn\'t you.',0,0,0,6,'special_surprise SAY_EXEC_THINK_3'),
+(-1609055,'Think, $N. Think back. Try and remember the proud mountains of Argus, where you were born. Remember the splendor of life, $Gbrother:sister;. You were a champion of the draenei once! This isn\'t you.',0,0,0,6,'special_surprise SAY_EXEC_THINK_4'),
+(-1609056,'Think, $N. Think back. Try and remember the snow capped mountains o\' Dun Morogh! Ye were born there, $Glad:lass;. Remember the splendor o\' life, $N! Ye were a champion o\' the dwarves once! This isn\'t ye!',0,0,0,6,'special_surprise SAY_EXEC_THINK_5'),
+(-1609057,'Think, $N. Think back. Try and remember Gnomeregan before those damned troggs! Remember the feel of an [arclight spanner] $Gbrother:sister;. You were a champion of gnome-kind once! This isn\'t you.',0,0,0,6,'special_surprise SAY_EXEC_THINK_6'),
+(-1609058,'Think, $N. Think back. Try and remember the hills and valleys of Elwynn, where you were born. Remember the splendor of life, $Gbrother:sister;. You were a champion of the Alliance once! This isn\'t you.',0,0,0,6,'special_surprise SAY_EXEC_THINK_7'),
+(-1609059,'Think, $N. Think back. Try and remember Durotar, $Gbrother:sister;! Remember the sacrifices our heroes made so that we could be free of the blood curse. Harken back to the Valley of Trials, where we were reborn into a world without demonic influence. We found the splendor of life, $N. Together! This isn\'t you. You were a champion of the Horde once!',0,0,0,6,'special_surprise SAY_EXEC_THINK_8'),
+(-1609060,'Think, $N. Think back. Try and remember the rolling plains of Mulgore, where you were born. Remember the splendor of life, $Gbrother:sister;. You were a champion of the tauren once! This isn\'t you.',0,0,0,6,'special_surprise SAY_EXEC_THINK_9'),
+(-1609061,'TINK $N. Tink back, mon! We be Darkspear, mon! Bruddas and sistas! Remember when we fought the Zalazane and done took he head and freed da Echo Isles? MON! TINK! You was a champion of da Darkspear trolls!',0,0,0,6,'special_surprise SAY_EXEC_THINK_10'),
+
+(-1609062,'Listen to me, $N. You must fight against the Lich King\'s control. He is a monster that wants to see this world - our world - in ruin. Don\'t let him use you to accomplish his goals. You were once a hero and you can be again. Fight, damn you! Fight his control!',0,0,0,5,'special_surprise SAY_EXEC_LISTEN_1'),
+(-1609063,'Listen to me, $N Ye must fight against the Lich King\'s control. He\'s a monster that wants to see this world - our world - in ruin. Don\'t let him use ye to accomplish his goals. Ye were once a hero and ye can be again. Fight, damn ye! Fight his control!',0,0,0,5,'special_surprise SAY_EXEC_LISTEN_2'),
+(-1609064,'Listen to me, $N. You must fight against the Lich King\'s control. He is a monster that wants to see this world - our world - in ruin. Don\'t let him use you to accomplish his goals AGAIN. You were once a hero and you can be again. Fight, damn you! Fight his control!',0,0,0,5,'special_surprise SAY_EXEC_LISTEN_3'),
+(-1609065,'Listen ta me, $Gbrudda:sista;. You must fight against da Lich King\'s control. He be a monstar dat want ta see dis world - our world - be ruined. Don\'t let he use you ta accomplish he goals. You be a hero once and you be a hero again! Fight it, mon! Fight he control!',0,0,0,5,'special_surprise SAY_EXEC_LISTEN_4'),
+
+(-1609066,'What\'s going on in there? What\'s taking so long, $N?',0,1,0,0,'special_surprise SAY_PLAGUEFIST'),
+
+(-1609067,'There... There\'s no more time for me. I\'m done for. Finish me off, $N. Do it or they\'ll kill us both. $N... Remember Silvermoon. This world is worth saving!',0,0,0,18,'special_surprise SAY_EXEC_TIME_1'),
+(-1609068,'There... There\'s no more time for me. I\'m done for. Finish me off, $N. Do it or they\'ll kill us both. $N... Remember Argus. Don\'t let that happen to this world.',0,0,0,18,'special_surprise SAY_EXEC_TIME_2'),
+(-1609069,'There... There\'s no more time for me. I\'m done for. Finish me off, $N. Do it or they\'ll kill us both $N... For KHAAAAAAAAZZZ MODAAAAAANNNNNN!!!',0,0,0,18,'special_surprise SAY_EXEC_TIME_3'),
+(-1609070,'There... There\'s no more time for me. I\'m done for. Finish me off, $N. Do it or they\'ll kill us both. $N... Remember Tirisfal! This world is worth saving!',0,0,0,18,'special_surprise SAY_EXEC_TIME_4'),
+(-1609071,'There... There\'s no more time for me. I\'m done for. Finish me off, $N. Do it or they\'ll kill us both. $N... Remember Gnomeregan! This world is worth saving.',0,0,0,18,'special_surprise SAY_EXEC_TIME_5'),
+(-1609072,'There... There\'s no more time for me. I\'m done for. FInish me off, $N. Do it or they\'ll kill us both. $N...Remember Elwynn. This world is worth saving.',0,0,0,18,'special_surprise SAY_EXEC_TIME_6'),
+(-1609073,'There... There\'s no more time for me. I\'m done for. Finish me off, $N. Do it or they\'ll kill us both. $N... Remember Teldrassil, our beloved home. This world is worth saving.',0,0,0,18,'special_surprise SAY_EXEC_TIME_7'),
+(-1609074,'There... There\'s no more time for me. I\'m done for. Finish me off, $N. Do it or they\'ll kill us both. $N... For the Horde! This world is worth saving.',0,0,0,18,'special_surprise SAY_EXEC_TIME_8'),
+(-1609075,'There... There\'s no more time for me. I\'m done for. Finish me off, $N. Do it or they\'ll kill us both. $N... Remember Mulgore. This world is worth saving.',0,0,0,18,'special_surprise SAY_EXEC_TIME_9'),
+(-1609076,'Der... Der\'s no more time for me. I be done for. Finish me off $N. Do it or they\'ll kill us both. $N... Remember Sen\'jin Village, mon! Dis world be worth saving!',0,0,0,18,'special_surprise SAY_EXEC_TIME_10'),
+
+(-1609077,'Do it, $N! Put me out of my misery!',0,0,0,1,'special_surprise SAY_EXEC_WAITING'),
+(-1609078,'%s dies from his wounds.',0,2,0,0,'special_surprise EMOTE_DIES'),
+
+(-1609079, 'I\'ll need to get my runeblade and armor... Just need a little more time.',0,0,0,399,'koltira SAY_BREAKOUT1'),
+(-1609080, 'I\'m still weak, but I think I can get an anti-magic barrier up. Stay inside it or you\'ll be destroyed by their spells.',0,0,0,0,'koltira SAY_BREAKOUT2'),
+(-1609081, 'Maintaining this barrier will require all of my concentration. Kill them all!',0,0,0,16,'koltira SAY_BREAKOUT3'),
+(-1609082, 'There are more coming. Defend yourself! Don\'t fall out of the anti-magic field! They\'ll tear you apart without its protection!',0,0,0,0,'koltira SAY_BREAKOUT4'),
+(-1609083, 'I can\'t keep barrier up much longer... Where is that coward?',0,0,0,0,'koltira SAY_BREAKOUT5'),
+(-1609084, 'The High Inquisitor comes! Be ready, death knight! Do not let him draw you out of the protective bounds of my anti-magic field! Kill him and take his head!',0,0,0,0,'koltira SAY_BREAKOUT6'),
+(-1609085, 'Stay in the anti-magic field! Make them come to you!',0,0,0,0,'koltira SAY_BREAKOUT7'),
+(-1609086, 'The death of the High Inquisitor of New Avalon will not go unnoticed. You need to get out of here at once! Go, before more of them show up. I\'ll be fine on my own.',0,0,0,0,'koltira SAY_BREAKOUT8'),
+(-1609087, 'I\'ll draw their fire, you make your escape behind me.',0,0,0,0,'koltira SAY_BREAKOUT9'),
+(-1609088, 'Your High Inquisitor is nothing more than a pile of meat, Crusaders! There are none beyond the grasp of the Scourge!',0,1,0,0,'koltira SAY_BREAKOUT10');
 
 -- -1 615 000 OBSIDIAN SANCTUM
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -1929,6 +2545,50 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 -- -1 616 000 EYE OF ETERNITY
 
 -- -1 619 000 AHN'KAHET
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1619000,'The secrets of the deep shall remain hidden.',14033,1,0,0,'nadox SAY_AGGRO'),
+(-1619001,'The young must not grow hungry...',14034,1,0,0,'nadox SAY_SUMMON_EGG_1'),
+(-1619002,'Shhhad ak kereeesshh chak-k-k!',14035,1,0,0,'nadox SAY_SUMMON_EGG_2'),
+(-1619003,'Sleep now, in the cold dark.',14036,1,0,0,'nadox SAY_SLAY_1'),
+(-1619004,'For the Lich King!',14037,1,0,0,'nadox SAY_SLAY_2'),
+(-1619005,'Perhaps we will be allies soon.',14038,1,0,0,'nadox SAY_SLAY_3'),
+(-1619006,'Master, is my service complete?',14039,1,0,0,'nadox SAY_DEATH'),
+(-1619007,'An Ahn\'kahar Guardian hatches!',0,3,0,0,'nadox EMOTE_HATCH'),
+
+(-1619008,'I will feast on your remains.',14360,1,0,0,'taldaram SAY_AGGRO'),
+(-1619009,'Your heartbeat is music to my ears.',14361,1,0,0,'taldaram SAY_VANISH_1'),
+(-1619010,'I am nowhere. I am everywhere. I am the watcher, unseen.',14362,1,0,0,'taldaram SAY_VANISH_2'),
+(-1619011,'So appetizing.',14363,1,0,0,'taldaram SAY_FEED_1'),
+(-1619012,'Fresh, warm blood. It has been too long.',14364,1,0,0,'taldaram SAY_FEED_2'),
+(-1619013,'Bin-dor\'el',14365,1,0,0,'taldaram SAY_SLAY_1'),
+(-1619014,'I will drink no blood before it\'s time.',14366,1,0,0,'taldaram SAY_SLAY_2'),
+(-1619015,'One final embrace.',14367,1,0,0,'taldaram SAY_SLAY_3'),
+(-1619016,'Still I hunger, still I thirst.',14368,1,0,0,'taldaram SAY_DEATH'),
+
+(-1619017,'These are sacred halls! Your intrusion will be met with death.',14343,1,0,0,'jedoga SAY_AGGRO'),
+(-1619018,'Who among you is devoted?',14344,1,0,0,'jedoga SAY_CALL_SACRIFICE_1'),
+(-1619019,'You there! Step forward!',14345,1,0,0,'jedoga SAY_CALL_SACRIFICE_2'),
+(-1619020,'Yogg-Saron, grant me your power!',14346,1,0,0,'jedoga SAY_SACRIFICE_1'),
+(-1619021,'Master, a gift for you!',14347,1,0,0,'jedoga SAY_SACRIFICE_2'),
+(-1619022,'Glory to Yogg-Saron!',14348,1,0,0,'jedoga SAY_SLAY_1'),
+(-1619023,'You are unworthy!',14349,1,0,0,'jedoga SAY_SLAY_2'),
+(-1619024,'Get up! You haven\'t suffered enough.',14350,1,0,0,'jedoga SAY_SLAY_3'),
+(-1619025,'Do not expect your sacrilege... to go unpunished.',14351,1,0,0,'jedoga SAY_DEATH'),
+(-1619026,'The elements themselves will rise up against the civilized world! Only the faithful will be spared!',14352,1,0,0,'jedoga SAY_PREACHING_1'),
+(-1619027,'Immortality can be yours. But only if you pledge yourself fully to Yogg-Saron!',14353,1,0,0,'jedoga SAY_PREACHING_2'),
+(-1619028,'Here on the very borders of his domain. You will experience powers you would never have imagined! ',14354,1,0,0,'jedoga SAY_PREACHING_3'),
+(-1619029,'You have traveled long and risked much to be here. Your devotion shall be rewarded.',14355,1,0,0,'jedoga SAY_PREACHING_4'),
+(-1619030,'The faithful shall be exalted! But there is more work to be done. We will press on until all of Azeroth lies beneath his shadow!',14356,1,0,0,'jedoga SAY_PREACHING_5'),
+(-1619031,'I have been chosen!',0,1,0,0,'jedoga SAY_VOLUNTEER_1'),
+(-1619032,'I give myself to the master!',0,1,0,0,'jedoga SAY_VOLUNTEER_2'),
+
+(-1619033,'Shgla\'yos plahf mh\'naus.',14043,1,0,0,'volazj SAY_AGGRO'),
+(-1619034,' ',14044,1,0,0,'volazj SAY_INSANITY'),
+(-1619035,' ',14045,1,0,0,'volazj SAY_SLAY_1'),
+(-1619036,' ',14046,1,0,0,'volazj SAY_SLAY_2'),
+(-1619037,' ',14047,1,0,0,'volazj SAY_SLAY_3'),
+(-1619038,' ',14048,1,0,0,'volazj SAY_DEATH_1'),
+(-1619039,' ',14049,1,0,0,'volazj SAY_DEATH_2');
 
 -- -1 999 900 EXAMPLE TEXT
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -2054,7 +2714,7 @@ INSERT INTO script_waypoint VALUES
 
 DELETE FROM script_waypoint WHERE entry=2768;
 INSERT INTO script_waypoint VALUES
-(2768, 0, -2066.45, -2085.96, 9.08, 0, ''),
+(2768, 0, -2077.73, -2091.17, 9.49, 0, ''),
 (2768, 1, -2077.99, -2105.33, 13.24, 0, ''),
 (2768, 2, -2074.60, -2109.67, 14.24, 0, ''),
 (2768, 3, -2076.60, -2117.46, 16.67, 0, ''),
@@ -2072,7 +2732,7 @@ INSERT INTO script_waypoint VALUES
 (2768, 15, -2076.60, -2117.46, 16.67, 0, ''),
 (2768, 16, -2074.60, -2109.67, 14.24, 0, ''),
 (2768, 17, -2077.99, -2105.33, 13.24, 0, ''),
-(2768, 18, -2066.45, -2085.96, 9.08, 0, ''),
+(2768, 18, -2077.73, -2091.17, 9.49, 0, ''),
 (2768, 19, -2066.41, -2086.21, 8.97, 6000, ''),
 (2768, 20, -2066.41, -2086.21, 8.97, 2000, '');
 
@@ -2124,38 +2784,88 @@ INSERT INTO script_waypoint VALUES
 
 DELETE FROM script_waypoint WHERE entry=3439;
 INSERT INTO script_waypoint VALUES
-(3439, 0, 1109.15, -3104.11, 82.41, 5000, ''),
-(3439, 1, 1105.39, -3102.86, 82.74, 1000, 'SAY_STARTUP1'),
-(3439, 2, 1104.97, -3108.52, 83.10, 1000, ''),
-(3439, 3, 1110.01, -3110.48, 82.81, 1000, ''),
-(3439, 4, 1111.72, -3103.03, 82.21, 1000, ''),
-(3439, 5, 1106.98, -3099.44, 82.18, 1000, ''),
-(3439, 6, 1103.74, -3103.29, 83.05, 1000, ''),
-(3439, 7, 1112.55, -3106.56, 82.31, 1000, ''),
-(3439, 8, 1108.12, -3111.04, 82.99, 1000, ''),
-(3439, 9, 1109.32, -3100.39, 82.08, 1000, ''),
-(3439, 10, 1109.32, -3100.39, 82.08, 5000, 'SAY_STARTUP2'),
-(3439, 11, 1098.92, -3095.14, 82.97, 0, ''),
-(3439, 12, 1100.94, -3082.60, 82.83, 0, ''),
-(3439, 13, 1101.12, -3068.83, 82.53, 0, ''),
-(3439, 14, 1096.97, -3051.99, 82.50, 0, ''),
-(3439, 15, 1094.06, -3036.79, 82.70, 0, ''),
-(3439, 16, 1098.22, -3027.84, 83.79, 0, ''),
-(3439, 17, 1109.51, -3015.92, 85.73, 0, ''),
-(3439, 18, 1119.87, -3007.21, 87.08, 0, ''),
-(3439, 19, 1130.23, -3002.49, 91.27, 5000, ''),
-(3439, 20, 1130.23, -3002.49, 91.27, 3000, ''),
-(3439, 21, 1130.23, -3002.49, 91.27, 4000, 'SAY_PROGRESS_1'),
-(3439, 22, 1129.73, -2985.89, 92.46, 0, ''),
-(3439, 23, 1124.10, -2983.29, 92.81, 0, ''),
-(3439, 24, 1111.74, -2992.38, 91.59, 0, ''),
-(3439, 25, 1111.06, -2976.54, 91.81, 0, ''),
-(3439, 26, 1099.91, -2991.17, 91.67, 0, ''),
-(3439, 27, 1096.32, -2981.55, 91.73, 8000, 'SAY_PROGRESS_2'),
-(3439, 28, 1091.28, -2985.82, 91.74, 5000, 'SAY_PROGRESS_3'),
-(3439, 29, 1091.28, -2985.82, 91.74, 0, ''),
-(3439, 30, 1091.28, -2985.82, 91.74, 5000, 'SAY_END'),
-(3439, 31, 1091.28, -2985.82, 91.74, 180000, '');
+(3439, 0, 1105.090332, -3101.254150, 82.706, 1000, 'SAY_STARTUP1'),
+(3439, 1, 1103.204468, -3104.345215, 83.113, 1000, ''),
+(3439, 2, 1107.815186, -3106.495361, 82.739, 1000, ''),
+(3439, 3, 1104.733276, -3100.830811, 82.747, 1000, ''),
+(3439, 4, 1103.242554, -3106.270020, 83.133, 1000, ''),
+(3439, 5, 1112.807373, -3106.285400, 82.320, 1000, ''),
+(3439, 6, 1112.826782, -3108.908691, 82.377, 1000, ''),
+(3439, 7, 1108.053955, -3115.156738, 82.894, 0, ''),
+(3439, 8, 1108.355591, -3104.365234, 82.377, 5000, ''),
+(3439, 9, 1100.306763, -3097.539063, 83.150, 0, 'SAY_STARTUP2'),
+(3439, 10, 1100.562378, -3082.721924, 82.768, 0, ''),
+(3439, 11, 1097.512939, -3069.226563, 82.206, 0, ''),
+(3439, 12, 1092.964966, -3053.114746, 82.351, 0, ''),
+(3439, 13, 1094.010986, -3036.958496, 82.888, 0, ''),
+(3439, 14, 1095.623901, -3025.760254, 83.392, 0, ''),
+(3439, 15, 1107.656494, -3013.530518, 85.653, 0, ''),
+(3439, 16, 1119.647705, -3006.928223, 87.019, 0, ''),
+(3439, 17, 1129.991211, -3002.410645, 91.232, 7000, 'SAY_MERCENARY'),
+(3439, 18, 1133.328735, -2997.710693, 91.675, 1000, 'SAY_PROGRESS_1'),
+(3439, 19, 1131.799316, -2987.948242, 91.976, 1000, ''),
+(3439, 20, 1122.028687, -2993.397461, 91.536, 0, ''),
+(3439, 21, 1116.614868, -2981.916748, 92.103, 0, ''),
+(3439, 22, 1102.239136, -2994.245117, 92.074, 0, ''),
+(3439, 23, 1096.366211, -2978.306885, 91.873, 0, ''),
+(3439, 24, 1091.971558, -2985.919189, 91.730, 40000, 'SAY_PROGRESS_2');
+
+DELETE FROM script_waypoint WHERE entry=3465;
+INSERT INTO script_waypoint VALUES
+(3465, 0, -2095.840820, -3650.001221, 61.716, 0, ''),
+(3465, 1, -2100.193604, -3613.949219, 61.604, 0, ''),
+(3465, 2, -2098.549561, -3601.557129, 59.154, 0, ''),
+(3465, 3, -2093.796387, -3595.234375, 56.658, 0, ''),
+(3465, 4, -2072.575928, -3578.827637, 48.844, 0, ''),
+(3465, 5, -2023.858398, -3568.146240, 24.636, 0, ''),
+(3465, 6, -2013.576416, -3571.499756, 22.203, 0, ''),
+(3465, 7, -2009.813721, -3580.547852, 21.791, 0, ''),
+(3465, 8, -2015.296021, -3597.387695, 21.760, 0, ''),
+(3465, 9, -2020.677368, -3610.296143, 21.759, 0, ''),
+(3465, 10, -2019.990845, -3640.155273, 21.759, 0, ''),
+(3465, 11, -2016.110596, -3664.133301, 21.758, 0, ''),
+(3465, 12, -1999.397095, -3679.435059, 21.316, 0, ''),
+(3465, 13, -1987.455811, -3688.309326, 18.495, 0, ''),
+(3465, 14, -1973.966553, -3687.666748, 14.996, 0, ''),
+(3465, 15, -1949.163940, -3678.054932, 11.293, 0, ''),
+(3465, 16, -1934.091187, -3682.859619, 9.897, 30000, 'SAY_GIL_AT_LAST'),
+(3465, 17, -1935.383911, -3682.322021, 10.029, 1500, 'SAY_GIL_PROCEED'),
+(3465, 18, -1879.039185, -3699.498047, 6.582, 7500, 'SAY_GIL_FREEBOOTERS'),
+(3465, 19, -1852.728149, -3703.778809, 6.875, 0, ''),
+(3465, 20, -1812.989990, -3718.500732, 10.572, 0, ''),
+(3465, 21, -1788.171265, -3722.867188, 9.663, 0, ''),
+(3465, 22, -1767.206665, -3739.923096, 10.082, 0, ''),
+(3465, 23, -1750.194580, -3747.392090, 10.390, 0, ''),
+(3465, 24, -1729.335571, -3776.665527, 11.779, 0, ''),
+(3465, 25, -1715.997925, -3802.404541, 12.618, 0, ''),
+(3465, 26, -1690.711548, -3829.262451, 13.905, 0, ''),
+(3465, 27, -1674.700684, -3842.398682, 13.872, 0, ''),
+(3465, 28, -1632.726318, -3846.109619, 14.401, 0, ''),
+(3465, 29, -1592.734497, -3842.225342, 14.981, 0, ''),
+(3465, 30, -1561.614746, -3839.320801, 19.118, 0, ''),
+(3465, 31, -1544.567627, -3834.393311, 18.761, 0, ''),
+(3465, 32, -1512.514404, -3831.715820, 22.914, 0, ''),
+(3465, 33, -1486.889771, -3836.639893, 23.964, 0, ''),
+(3465, 34, -1434.193604, -3852.702881, 18.843, 0, ''),
+(3465, 35, -1405.794678, -3854.488037, 17.276, 0, ''),
+(3465, 36, -1366.592041, -3852.383789, 19.273, 0, ''),
+(3465, 37, -1337.360962, -3837.827148, 17.352, 2000, 'SAY_GIL_ALMOST'),
+(3465, 38, -1299.744507, -3810.691406, 20.801, 0, ''),
+(3465, 39, -1277.144409, -3782.785156, 25.918, 0, ''),
+(3465, 40, -1263.686768, -3781.251953, 26.447, 0, ''),
+(3465, 41, -1243.674438, -3786.328125, 25.281, 0, ''),
+(3465, 42, -1221.875488, -3784.124512, 24.051, 0, ''),
+(3465, 43, -1204.011230, -3775.943848, 24.437, 0, ''),
+(3465, 44, -1181.706787, -3768.934082, 23.368, 0, ''),
+(3465, 45, -1156.913818, -3751.559326, 21.074, 0, ''),
+(3465, 46, -1138.830688, -3741.809326, 17.843, 0, ''),
+(3465, 47, -1080.101196, -3738.780029, 19.805, 0, 'SAY_GIL_SWEET'),
+(3465, 48, -1069.065186, -3735.006348, 19.302, 0, ''),
+(3465, 49, -1061.941040, -3724.062256, 21.086, 0, ''),
+(3465, 50, -1053.593262, -3697.608643, 27.320, 0, ''),
+(3465, 51, -1044.110474, -3690.133301, 24.856, 0, ''),
+(3465, 52, -1040.260986, -3690.739014, 25.342, 0, ''),
+(3465, 53, -1028.146606, -3688.718750, 23.843, 7500, 'SAY_GIL_FREED');
 
 DELETE FROM script_waypoint WHERE entry=3849;
 INSERT INTO script_waypoint VALUES
@@ -2190,6 +2900,53 @@ INSERT INTO script_waypoint VALUES
 (3850, 11, -241.129700, 2154.562988, 90.624, 5000, 'cast'),
 (3850, 12, -241.129700, 2154.562988, 90.624, 5000, 'SAY_POST_DOOR_AS'),
 (3850, 13, -241.129700, 2154.562988, 90.624, 25000, '');
+
+DELETE FROM script_waypoint WHERE entry=4500;
+INSERT INTO script_waypoint VALUES
+(4500, 0, -3125.597168, -2885.673828, 34.731, 2500, ''),
+(4500, 1, -3120.257080, -2877.830322, 34.917, 0, ''),
+(4500, 2, -3116.487305, -2850.670410, 34.869, 0, ''),
+(4500, 3, -3093.474854, -2819.189697, 34.432, 0, ''),
+(4500, 4, -3104.726318, -2802.020996, 33.954, 0, ''),
+(4500, 5, -3105.906006, -2780.234375, 34.469, 0, ''),
+(4500, 6, -3116.080811, -2757.902588, 34.734, 0, ''),
+(4500, 7, -3125.234375, -2733.960205, 33.189, 0, '');
+
+DELETE FROM script_waypoint WHERE entry=4962;
+INSERT INTO script_waypoint VALUES
+(4962, 0, -3804.438965, -828.048035, 10.093068, 0, ''),
+(4962, 1, -3803.934326, -835.772400, 10.077722, 0, ''),
+(4962, 2, -3792.629150, -835.670898,  9.655657, 0, ''),
+(4962, 3, -3772.433838, -835.345947, 10.868981, 0, ''),
+(4962, 4, -3765.937256, -840.128601, 10.885593, 0, ''),
+(4962, 5, -3738.633789, -830.997498, 11.057384, 0, ''),
+(4962, 6, -3690.224121, -862.261597,  9.960449, 0, '');
+
+DELETE FROM script_waypoint WHERE entry=4983;
+INSERT INTO script_waypoint VALUES
+(4983, 0, -3322.649414, -3124.631836, 33.842, 0, ''),
+(4983, 1, -3326.336670, -3126.833496, 34.426, 0, ''),
+(4983, 2, -3336.984131, -3129.611816, 30.692, 0, ''),
+(4983, 3, -3342.598389, -3132.146729, 30.422, 0, ''),
+(4983, 4, -3355.827881, -3140.947998, 29.534, 0, ''),
+(4983, 5, -3365.828125, -3144.284180, 35.176, 0, ''),
+(4983, 6, -3368.904541, -3147.265381, 36.091, 0, ''),
+(4983, 7, -3369.355957, -3169.828857, 36.325, 0, ''),
+(4983, 8, -3371.443359, -3183.905029, 33.454, 0, ''),
+(4983, 9, -3373.824951, -3190.861084, 34.717, 5000, 'SAY_OGR_SPOT'),
+(4983, 10, -3368.529785, -3198.210205, 34.926, 0, 'SAY_OGR_RET_WHAT'),
+(4983, 11, -3366.265625, -3210.867676, 33.733, 5000, 'pause'),
+(4983, 12, -3368.529785, -3198.210205, 34.926, 0, ''),
+(4983, 13, -3373.824951, -3190.861084, 34.717, 0, ''),
+(4983, 14, -3371.443359, -3183.905029, 33.454, 0, ''),
+(4983, 15, -3369.355957, -3169.828857, 36.325, 0, ''),
+(4983, 16, -3368.904541, -3147.265381, 36.091, 0, ''),
+(4983, 17, -3365.828125, -3144.284180, 35.176, 0, ''),
+(4983, 18, -3355.827881, -3140.947998, 29.534, 0, ''),
+(4983, 19, -3342.598389, -3132.146729, 30.422, 0, ''),
+(4983, 20, -3336.984131, -3129.611816, 30.692, 0, ''),
+(4983, 21, -3326.336670, -3126.833496, 34.426, 0, ''),
+(4983, 22, -3322.649414, -3124.631836, 33.842, 0, '');
 
 DELETE FROM script_waypoint WHERE entry=6182;
 INSERT INTO script_waypoint VALUES
@@ -2228,6 +2985,33 @@ INSERT INTO script_waypoint VALUES
 (6575, 10, 1961.22, -422.74, 6.17, 0, ''),
 (6575, 11, 1964.80, -431.26, 6.17, 300000, '');
 
+DELETE FROM script_waypoint WHERE entry=7780;
+INSERT INTO script_waypoint VALUES
+(7780, 0, 261.058868, -2757.876221, 122.553, 0, ''),
+(7780, 1, 259.812195, -2758.249023, 122.555, 0, 'SAY_RIN_FREE'),
+(7780, 2, 253.823441, -2758.619141, 122.562, 0, ''),
+(7780, 3, 241.394791, -2769.754883, 123.309, 0, ''),
+(7780, 4, 218.915588, -2783.397461, 123.355, 0, ''),
+(7780, 5, 209.088196, -2789.676270, 122.001, 0, ''),
+(7780, 6, 204.453568, -2792.205811, 120.620, 0, ''),
+(7780, 7, 182.012604, -2809.995361, 113.887, 0, 'summon'),
+(7780, 8, 164.411591, -2825.162842, 107.779, 0, ''),
+(7780, 9, 149.727600, -2833.704346, 106.224, 0, ''),
+(7780, 10, 142.448074, -2838.807373, 109.665, 0, ''),
+(7780, 11, 133.274963, -2845.135254, 112.606, 0, ''),
+(7780, 12, 111.247459, -2861.065674, 116.305, 0, ''),
+(7780, 13, 96.104073, -2874.886230, 114.397, 0, 'summon'),
+(7780, 14, 73.369942, -2881.184570, 117.666, 0, ''),
+(7780, 15, 58.579178, -2889.151611, 116.253, 0, ''),
+(7780, 16, 33.214249, -2906.343994, 115.083, 0, ''),
+(7780, 17, 19.586519, -2908.712402, 117.276, 7500, 'SAY_RIN_COMPLETE'),
+(7780, 18, 10.282522, -2911.607422, 118.394, 0, ''),
+(7780, 19, -37.580383, -2942.730225, 117.145, 0, ''),
+(7780, 20, -68.599411, -2953.694824, 116.685, 0, ''),
+(7780, 21, -102.054253, -2956.965576, 116.677, 0, ''),
+(7780, 22, -135.993637, -2955.743652, 115.788, 0, ''),
+(7780, 23, -171.561600, -2951.417480, 115.451, 0, '');
+
 DELETE FROM script_waypoint WHERE entry=7784;
 INSERT INTO script_waypoint VALUES
 (7784, 0, -8845.65, -4373.98, 43.87, 5000, 'SAY_START'),
@@ -2237,10 +3021,10 @@ INSERT INTO script_waypoint VALUES
 (7784, 4, -8829.37, -4373.14, 44.33, 0, ''),
 (7784, 5, -8817.38, -4372.41, 35.58, 0, ''),
 (7784, 6, -8803.47, -4371.60, 30.34, 0, ''),
-(7784, 7, -8795.10, -4365.61, 26.08, 0, ''), 
+(7784, 7, -8795.10, -4365.61, 26.08, 0, ''),
 (7784, 8, -8766.78, -4367.13, 25.15, 0, ''),
-(7784, 9, -8755.63, -4367.54, 24.63, 0, ''), 
-(7784, 10, -8754.42, -4365.59, 24.15, 0, ''), 
+(7784, 9, -8755.63, -4367.54, 24.63, 0, ''),
+(7784, 10, -8754.42, -4365.59, 24.15, 0, ''),
 (7784, 11, -8728.82, -4353.13, 20.90, 0, ''),
 (7784, 12, -8706.60, -4356.55, 17.93, 0, ''),
 (7784, 13, -8679.00, -4380.23, 12.64, 0, ''),
@@ -2265,6 +3049,74 @@ INSERT INTO script_waypoint VALUES
 (7784, 32, -6985.52, -4777.41, 10.26, 0, ''),
 (7784, 33, -6953.02, -4786.00, 6.32, 0, ''),
 (7784, 34, -6940.37, -4831.03, 0.67, 10000, 'quest complete SAY_END');
+
+DELETE FROM script_waypoint WHERE entry=7806;
+INSERT INTO script_waypoint VALUES
+(7806, 0, 495.404358, -3478.350830, 114.837, 0, ''),
+(7806, 1, 492.704742, -3486.112549, 108.627, 0, ''),
+(7806, 2, 487.249756, -3485.764404, 107.890, 0, ''),
+(7806, 3, 476.851959, -3489.875977, 99.985, 0, ''),
+(7806, 4, 467.212402, -3493.355469, 99.819, 0, ''),
+(7806, 5, 460.017029, -3496.984375, 104.481, 0, ''),
+(7806, 6, 439.619446, -3500.730225, 110.534, 0, ''),
+(7806, 7, 428.326385, -3495.874756, 118.662, 0, ''),
+(7806, 8, 424.664032, -3489.381592, 121.999, 0, ''),
+(7806, 9, 424.137299, -3470.952637, 124.333, 0, ''),
+(7806, 10, 421.791107, -3449.242676, 119.126, 0, ''),
+(7806, 11, 404.247070, -3429.376953, 117.644, 0, ''),
+(7806, 12, 335.465271, -3430.717773, 116.456, 0, ''),
+(7806, 13, 317.160126, -3426.708984, 116.226, 0, ''),
+(7806, 14, 331.180115, -3464.002197, 117.143, 0, ''),
+(7806, 15, 336.393616, -3501.877441, 118.201, 0, ''),
+(7806, 16, 337.251312, -3544.764648, 117.284, 0, ''),
+(7806, 17, 337.748932, -3565.415527, 116.797, 0, ''),
+(7806, 18, 336.010925, -3597.363037, 118.225, 0, ''),
+(7806, 19, 324.619141, -3622.884033, 119.811, 0, ''),
+(7806, 20, 308.027466, -3648.600098, 123.047, 0, ''),
+(7806, 21, 276.325409, -3685.738525, 128.356, 0, ''),
+(7806, 22, 239.981064, -3717.330811, 131.874, 0, ''),
+(7806, 23, 224.950974, -3730.169678, 132.125, 0, ''),
+(7806, 24, 198.707870, -3768.292725, 129.420, 0, ''),
+(7806, 25, 183.758316, -3791.068848, 128.045, 0, ''),
+(7806, 26, 178.110657, -3801.575439, 128.370, 3000, 'SAY_OOX_DANGER'),
+(7806, 27, 162.215225, -3827.014160, 129.424, 0, ''),
+(7806, 28, 141.664734, -3864.519287, 131.419, 0, ''),
+(7806, 29, 135.301697, -3880.089111, 132.120, 0, ''),
+(7806, 30, 122.461151, -3910.071533, 135.605, 0, ''),
+(7806, 31, 103.376175, -3937.725098, 137.342, 0, ''),
+(7806, 32, 81.414474, -3958.614258, 138.469, 0, ''),
+(7806, 33, 55.378139, -3982.004639, 136.520, 0, ''),
+(7806, 34, 13.983131, -4013.952881, 126.903, 0, ''),
+(7806, 35, -21.658007, -4048.713623, 118.068, 0, ''),
+(7806, 36, -52.443058, -4081.209717, 117.477, 0, ''),
+(7806, 37, -102.710854, -4116.760742, 118.666, 0, ''),
+(7806, 38, -92.996193, -4135.847168, 119.310, 0, ''),
+(7806, 39, -86.391273, -4153.331055, 122.502, 0, ''),
+(7806, 40, -85.746086, -4163.600586, 121.892, 0, ''),
+(7806, 41, -90.544006, -4183.577637, 117.587, 0, ''),
+(7806, 42, -110.223564, -4205.861328, 121.878, 0, ''),
+(7806, 43, -115.257607, -4211.962402, 121.878, 3000, 'SAY_OOX_DANGER'),
+(7806, 44, -128.594650, -4233.343750, 117.766, 0, ''),
+(7806, 45, -135.358917, -4258.120117, 117.562, 0, ''),
+(7806, 46, -156.832428, -4258.961914, 120.059, 0, ''),
+(7806, 47, -167.119873, -4274.102539, 117.062, 0, ''),
+(7806, 48, -176.291016, -4287.594727, 118.721, 0, ''),
+(7806, 49, -196.992981, -4315.815430, 117.588, 0, ''),
+(7806, 50, -209.329300, -4331.671387, 115.142, 0, ''),
+(7806, 51, -232.292236, -4356.015625, 108.543, 0, ''),
+(7806, 52, -232.159683, -4370.904297, 102.815, 0, ''),
+(7806, 53, -210.271133, -4389.896973, 84.167, 0, ''),
+(7806, 54, -187.940186, -4407.532715, 70.987, 0, ''),
+(7806, 55, -181.353577, -4418.771973, 64.778, 0, ''),
+(7806, 56, -170.529861, -4440.438965, 58.943, 0, ''),
+(7806, 57, -141.428543, -4465.323242, 45.963, 0, ''),
+(7806, 58, -120.993629, -4487.088379, 32.075, 0, ''),
+(7806, 59, -104.134621, -4501.837402, 25.051, 0, ''),
+(7806, 60, -84.154663, -4529.436523, 11.952, 0, ''),
+(7806, 61, -88.698898, -4544.626465, 9.055, 0, ''),
+(7806, 62, -100.603447, -4575.034180, 11.388, 0, ''),
+(7806, 63, -106.908669, -4600.407715, 11.046, 0, ''),
+(7806, 64, -106.831703, -4620.503418, 11.057, 3000, 'SAY_OOX_COMPLETE');
 
 DELETE FROM script_waypoint WHERE entry=7807;
 INSERT INTO script_waypoint VALUES
@@ -2318,6 +3170,49 @@ INSERT INTO script_waypoint VALUES
 (9503, 6, 877.035217, -187.048080, -43.703655, 0,''),
 (9503, 7, 891.198000, -197.924000, -43.620400, 0,'home');
 
+DELETE FROM script_waypoint WHERE entry=9623;
+INSERT INTO script_waypoint VALUES
+(9623, 0, -6383.070801, -1964.368896, -258.709, 0, 'SAY_AME_START'),
+(9623, 1, -6393.649414, -1949.572266, -261.449, 0, ''),
+(9623, 2, -6397.846680, -1931.099609, -263.366, 0, ''),
+(9623, 3, -6397.501953, -1921.470703, -263.876, 0, ''),
+(9623, 4, -6389.630371, -1909.995361, -259.601, 0, ''),
+(9623, 5, -6380.065430, -1905.452881, -255.858, 0, ''),
+(9623, 6, -6373.437988, -1900.275024, -254.774, 0, ''),
+(9623, 7, -6372.868652, -1893.500854, -255.678, 0, ''),
+(9623, 8, -6379.730469, -1877.627808, -259.654, 0, ''),
+(9623, 9, -6380.264160, -1871.139648, -260.617, 0, ''),
+(9623, 10, -6373.830566, -1855.620361, -259.566, 0, ''),
+(9623, 11, -6368.824707, -1847.770508, -259.246, 0, ''),
+(9623, 12, -6370.902832, -1835.038940, -260.212, 0, ''),
+(9623, 13, -6376.591309, -1821.592285, -260.856, 0, ''),
+(9623, 14, -6381.931152, -1810.434326, -266.180, 0, ''),
+(9623, 15, -6396.713867, -1807.123535, -269.329, 0, ''),
+(9623, 16, -6400.266602, -1795.053589, -269.744, 0, ''),
+(9623, 17, -6402.675781, -1747.514648, -272.961, 0, ''),
+(9623, 18, -6396.997559, -1710.052979, -273.719, 0, ''),
+(9623, 19, -6388.105957, -1676.328125, -272.133, 5000, 'SAY_AME_PROGRESS'),
+(9623, 20, -6370.711914, -1638.638306, -272.031, 0, ''),
+(9623, 21, -6366.709473, -1592.645996, -272.201, 0, ''),
+(9623, 22, -6333.869629, -1534.598755, -270.493, 0, ''),
+(9623, 23, -6305.362305, -1477.913330, -269.518, 0, ''),
+(9623, 24, -6311.588867, -1419.017456, -267.622, 0, ''),
+(9623, 25, -6330.014648, -1400.064331, -266.425, 0, ''),
+(9623, 26, -6356.021973, -1392.607422, -267.123, 0, ''),
+(9623, 27, -6370.859375, -1386.179321, -270.218, 0, ''),
+(9623, 28, -6381.529785, -1369.780273, -272.110, 0, ''),
+(9623, 29, -6405.381348, -1321.522827, -271.699, 0, ''),
+(9623, 30, -6406.583496, -1307.574585, -271.802, 0, ''),
+(9623, 31, -6386.325684, -1286.851074, -272.074, 0, ''),
+(9623, 32, -6364.254883, -1264.706299, -269.075, 0, ''),
+(9623, 33, -6343.636230, -1239.844360, -268.364, 0, ''),
+(9623, 34, -6335.568848, -1202.449585, -271.515, 0, ''),
+(9623, 35, -6325.625000, -1184.455322, -270.461, 0, ''),
+(9623, 36, -6317.797363, -1177.668091, -269.792, 0, ''),
+(9623, 37, -6303.024414, -1180.252686, -269.332, 0, 'SAY_AME_END'),
+(9623, 38, -6301.975098, -1184.787842, -269.371, 1000, ''),
+(9623, 39, -6297.575684, -1186.412964, -268.962, 5000, '');
+
 DELETE FROM script_waypoint WHERE entry=10096;
 INSERT INTO script_waypoint VALUES
 (10096, 0, 604.802673, -191.081985, -54.058590, 0,'ring'),
@@ -2326,6 +3221,113 @@ INSERT INTO script_waypoint VALUES
 (10096, 3, 601.300781, -198.556992, -53.950256, 0,'ring'),
 (10096, 4, 631.818359, -180.548126, -52.654770, 0,'second gate'),
 (10096, 5, 627.390381, -201.075974, -52.692917, 0,'hiding in corner');
+
+DELETE FROM script_waypoint WHERE entry=10427;
+INSERT INTO script_waypoint VALUES
+(10427, 0, -5185.463, -1185.927, 45.951, 0, ''),
+(10427, 1, -5184.880, -1154.210, 45.035, 0, ''),
+(10427, 2, -5175.880, -1126.526, 43.701, 0, ''),
+(10427, 3, -5138.651, -1111.874, 44.024, 0, ''),
+(10427, 4, -5134.728, -1104.796, 47.365, 0, ''),
+(10427, 5, -5129.681, -1097.878, 49.449, 2500, ''),
+(10427, 6, -5125.303, -1080.572, 47.033, 0, ''),
+(10427, 7, -5146.668, -1053.694, 28.415, 0, ''),
+(10427, 8, -5147.463, -1027.539, 13.818, 0, ''),
+(10427, 9, -5139.238, -1018.889, 8.220, 0, ''),
+(10427, 10, -5121.168, -1013.126, -0.619, 0, ''),
+(10427, 11, -5091.919, -1014.205, -4.902, 0, ''),
+(10427, 12, -5069.240, -994.299, -4.631, 0, ''),
+(10427, 13, -5059.975, -944.112, -5.377, 0, ''),
+(10427, 14, -5013.546, -906.184, -5.490, 0, ''),
+(10427, 15, -4992.461, -920.983, -4.980, 5000, 'SAY_WYVERN'),
+(10427, 16, -4976.355, -1002.997, -5.380, 0, ''),
+(10427, 17, -4958.478, -1033.185, -5.433, 0, ''),
+(10427, 18, -4953.353, -1052.211, -10.836, 0, ''),
+(10427, 19, -4937.447, -1056.351, -22.139, 0, ''),
+(10427, 20, -4908.455, -1050.433, -33.458, 0, ''),
+(10427, 21, -4905.530, -1056.885, -33.722, 0, ''),
+(10427, 22, -4920.830, -1073.284, -45.515, 0, ''),
+(10427, 23, -4933.368, -1082.700, -50.186, 0, ''),
+(10427, 24, -4935.313, -1092.353, -52.785, 0, ''),
+(10427, 25, -4929.553, -1101.268, -50.637, 0, ''),
+(10427, 26, -4920.679, -1100.028, -51.944, 10000, 'SAY_COMPLETE'),
+(10427, 27, -4920.679, -1100.028, -51.944, 0, 'quest complete');
+
+DELETE FROM script_waypoint WHERE entry=10638;
+INSERT INTO script_waypoint VALUES
+(10638, 0, -4903.521973, -1368.339844, -52.611, 5000, 'SAY_KAN_START'),
+(10638, 1, -4906.004395, -1367.048096, -52.611, 0, '');
+
+DELETE FROM script_waypoint WHERE entry=10646;
+INSERT INTO script_waypoint VALUES
+(10646, 0, -4792.401855, -2137.775146, 82.423, 0, ''),
+(10646, 1, -4813.508301, -2141.543457, 80.774, 0, ''),
+(10646, 2, -4828.630859, -2154.309814, 82.074, 0, ''),
+(10646, 3, -4833.772949, -2149.182617, 81.676, 0, ''),
+(10646, 4, -4846.418945, -2136.045410, 77.871, 0, ''),
+(10646, 5, -4865.076660, -2116.549561, 76.483, 0, ''),
+(10646, 6, -4888.434570, -2090.729248, 80.907, 0, ''),
+(10646, 7, -4893.068359, -2085.468994, 82.094, 0, ''),
+(10646, 8, -4907.256836, -2074.929932, 84.437, 5000, 'SAY_LAKO_LOOK_OUT'),
+(10646, 9, -4899.899902, -2062.143555, 83.780, 0, ''),
+(10646, 10, -4897.762207, -2056.520020, 84.184, 0, ''),
+(10646, 11, -4888.331543, -2033.182495, 83.654, 0, ''),
+(10646, 12, -4876.343750, -2003.916138, 90.887, 0, ''),
+(10646, 13, -4872.227051, -1994.173340, 91.513, 0, ''),
+(10646, 14, -4879.569336, -1976.985229, 92.185, 5000, 'SAY_LAKO_HERE_COME'),
+(10646, 15, -4879.049316, -1964.349609, 92.001, 0, ''),
+(10646, 16, -4874.720215, -1956.939819, 90.737, 0, ''),
+(10646, 17, -4869.474609, -1952.612671, 89.206, 0, ''),
+(10646, 18, -4842.466797, -1929.000732, 84.147, 0, ''),
+(10646, 19, -4804.444824, -1897.302734, 89.362, 0, ''),
+(10646, 20, -4798.072754, -1892.383545, 89.368, 0, ''),
+(10646, 21, -4779.447754, -1882.759155, 90.169, 5000, 'SAY_LAKO_MORE'),
+(10646, 22, -4762.081055, -1866.530640, 89.481, 0, ''),
+(10646, 23, -4766.267090, -1861.867798, 87.847, 0, ''),
+(10646, 24, -4782.929688, -1852.174683, 78.354, 0, ''),
+(10646, 25, -4793.605469, -1850.961182, 77.658, 0, ''),
+(10646, 26, -4803.323730, -1855.102661, 78.958, 0, ''),
+(10646, 27, -4807.971680, -1854.501221, 77.743, 0, ''),
+(10646, 28, -4837.212891, -1848.493408, 64.488, 0, ''),
+(10646, 29, -4884.619629, -1840.401123, 56.219, 0, ''),
+(10646, 30, -4889.705566, -1839.623291, 54.417, 0, ''),
+(10646, 31, -4893.904297, -1843.685791, 53.012, 0, ''),
+(10646, 32, -4903.142090, -1872.383545, 32.266, 0, ''),
+(10646, 33, -4910.940918, -1879.864868, 29.940, 0, ''),
+(10646, 34, -4920.047363, -1880.940796, 30.597, 0, ''),
+(10646, 35, -4924.457031, -1881.447144, 29.292, 0, ''),
+(10646, 36, -4966.120117, -1886.033081, 10.977, 0, ''),
+(10646, 37, -4999.369629, -1890.847290, 4.430, 0, ''),
+(10646, 38, -5007.271484, -1891.669678, 2.771, 0, ''),
+(10646, 39, -5013.334473, -1879.588257, -1.947, 0, ''),
+(10646, 40, -5023.328613, -1855.959961, -17.103, 0, ''),
+(10646, 41, -5038.513184, -1825.986694, -35.821, 0, ''),
+(10646, 42, -5048.733887, -1809.798218, -46.457, 0, ''),
+(10646, 43, -5053.188965, -1791.682983, -57.186, 0, ''),
+(10646, 44, -5062.093750, -1794.399780, -56.515, 0, ''),
+(10646, 45, -5052.657227, -1797.044800, -54.734, 5000, 'SAY_LAKO_END');
+
+DELETE FROM script_waypoint WHERE entry=11856;
+INSERT INTO script_waypoint VALUES
+(11856, 0, 113.91, -350.13, 4.55, 0, ''),
+(11856, 1, 109.54, -350.08, 3.74, 0, ''),
+(11856, 2, 106.95, -353.40, 3.60, 0, ''),
+(11856, 3, 100.28, -338.89, 2.97, 0, ''),
+(11856, 4, 110.11, -320.26, 3.47, 0, ''),
+(11856, 5, 109.78, -287.80, 5.30, 0, ''),
+(11856, 6, 105.02, -269.71, 4.71, 0, ''),
+(11856, 7, 86.71, -251.81, 5.34, 0, ''),
+(11856, 8, 64.10, -246.38, 5.91, 0, ''),
+(11856, 9, -2.55, -243.58, 6.3, 0, ''),
+(11856, 10, -27.78, -267.53, -1.08, 0, ''),
+(11856, 11, -31.27, -283.54, -4.36, 0, ''),
+(11856, 12, -28.96, -322.44, -9.19, 0, ''),
+(11856, 13, -35.63, -360.03, -16.59, 0, ''),
+(11856, 14, -58.30, -412.26, -30.60, 0, ''),
+(11856, 15, -58.88, -474.17, -44.54, 0, ''),
+(11856, 16, -45.92, -496.57, -46.26, 5000, 'AMBUSH'),
+(11856, 17, -40.25, -510.07, -46.05, 0, ''),
+(11856, 18, -38.88, -520.72, -46.06, 5000, 'END');
 
 DELETE FROM script_waypoint WHERE entry=12423;
 INSERT INTO script_waypoint VALUES
@@ -2351,6 +3353,39 @@ DELETE FROM script_waypoint WHERE entry=12430;
 INSERT INTO script_waypoint VALUES
 (12430, 0, 161.65, -4779.34, 14.64, 0, ''),
 (12430, 1, 140.71, -4813.56, 17.04, 0, '');
+
+DELETE FROM script_waypoint WHERE entry=12717;
+INSERT INTO script_waypoint VALUES
+(12717, 0, 3346.247070, 1007.879028, 3.590, 0, 'SAY_MUG_START2'),
+(12717, 1, 3367.388428, 1011.505859, 3.720, 0, ''),
+(12717, 2, 3418.636963, 1013.963684, 2.905, 0, ''),
+(12717, 3, 3426.844971, 1015.097534, 3.449, 0, ''),
+(12717, 4, 3437.025391, 1020.786194, 2.742, 0, ''),
+(12717, 5, 3460.563721, 1024.256470, 1.353, 0, ''),
+(12717, 6, 3479.869629, 1037.957153, 1.023, 0, ''),
+(12717, 7, 3490.526367, 1043.346313, 3.338, 0, ''),
+(12717, 8, 3504.282959, 1047.772339, 8.205, 0, ''),
+(12717, 9, 3510.733398, 1049.790771, 12.143, 0, ''),
+(12717, 10, 3514.411133, 1051.167725, 13.235, 0, ''),
+(12717, 11, 3516.939697, 1052.911377, 12.918, 0, ''),
+(12717, 12, 3523.635742, 1056.297485, 7.563, 0, ''),
+(12717, 13, 3531.939941, 1059.863525, 6.175, 0, ''),
+(12717, 14, 3535.475342, 1069.959473, 1.697, 0, ''),
+(12717, 15, 3546.978027, 1093.485474, 0.680, 0, ''),
+(12717, 16, 3549.729980, 1101.882446, -1.123, 0, ''),
+(12717, 17, 3555.140137, 1116.985718, -4.326, 0, ''),
+(12717, 18, 3571.940430, 1132.175781, -0.634, 0, ''),
+(12717, 19, 3574.283203, 1137.575928, 3.684, 0, ''),
+(12717, 20, 3579.312744, 1137.252319, 8.205, 0, ''),
+(12717, 21, 3590.218994, 1143.646973, 8.291, 0, ''),
+(12717, 22, 3595.972900, 1145.827148, 6.773, 0, ''),
+(12717, 23, 3603.650391, 1146.920776, 9.763, 0, ''),
+(12717, 24, 3607.081787, 1146.014282, 10.692, 5000, 'SAY_MUG_BRAZIER'),
+(12717, 25, 3614.518555, 1142.629150, 10.248, 0, ''),
+(12717, 26, 3616.660889, 1140.837036, 10.682, 3000, 'SAY_MUG_PATROL'),
+(12717, 27, 3621.078613, 1138.109497, 10.369, 0, 'SAY_MUG_RETURN'),
+(12717, 28, 3615.478516, 1145.525879, 9.614, 0, ''),
+(12717, 29, 3607.188232, 1152.715942, 8.871, 0, '');
 
 DELETE FROM script_waypoint WHERE entry=12818;
 INSERT INTO script_waypoint VALUES
@@ -2452,6 +3487,19 @@ INSERT INTO script_waypoint VALUES
 (16295, 33, 7603.768066, -7667.000488, 153.997726, 8000, 'SAY_END_2'),
 (16295, 34, 7603.768066, -7667.000488, 153.997726, 0, '');
 
+DELETE FROM script_waypoint WHERE entry=16812;
+INSERT INTO script_waypoint VALUES
+(16812, 0, -10868.260, -1779.836, 90.476, 2500, 'Open door, begin walking'),
+(16812, 1, -10875.585, -1779.581, 90.478, 0, ''),
+(16812, 2, -10887.447, -1779.258, 90.476, 0, ''),
+(16812, 3, -10894.592, -1780.668, 90.476, 0, ''),
+(16812, 4, -10895.015, -1782.036, 90.476, 2500, 'Begin Speech after this'),
+(16812, 5, -10894.592, -1780.668, 90.476, 0, 'Resume walking (back to spawn point now) after speech'),
+(16812, 6, -10887.447, -1779.258, 90.476, 0, ''),
+(16812, 7, -10875.585, -1779.581, 90.478, 0, ''),
+(16812, 8, -10868.260, -1779.836, 90.476, 5000, 'close door'),
+(16812, 9, -10866.799, -1780.958, 90.470, 2000, 'Summon mobs, open curtains');
+
 DELETE FROM script_waypoint WHERE entry=16993;
 INSERT INTO script_waypoint VALUES
 (16993, 0, -1137.72, 4272.10, 14.04, 5000, ''),
@@ -2482,6 +3530,60 @@ INSERT INTO script_waypoint VALUES
 (16993, 25, -656.74, 4147.72, 64.11, 0, ''),
 (16993, 26, -652.22, 4137.50, 64.58, 0, ''),
 (16993, 27, -649.99, 4136.38, 64.63, 30000, 'Quest Credit');
+
+DELETE FROM script_waypoint WHERE entry=17077;
+INSERT INTO script_waypoint VALUES
+(17077, 0, -16.950142, 3801.409424, 95.064, 5000, 'EMOTE_WOLF_LIFT_HEAD'),
+(17077, 1, -15.577404, 3805.170898, 94.833, 2500, ''),
+(17077, 2, -20.011766, 3806.609863, 92.476, 5000, 'EMOTE_WOLF_HOWL'),
+(17077, 3, -18.594666, 3816.207764, 91.482, 0, ''),
+(17077, 4, -19.293468, 3838.218750, 85.012, 0, ''),
+(17077, 5, -16.504408, 3871.034668, 82.327, 0, ''),
+(17077, 6, 2.064510, 3898.678711, 85.623, 0, ''),
+(17077, 7, 16.403864, 3921.174072, 86.024, 0, ''),
+(17077, 8, 47.307926, 3932.001465, 83.302, 0, ''),
+(17077, 9, 90.067230, 3942.906250, 77.000, 0, ''),
+(17077, 10, 106.886024, 3944.388428, 76.502, 0, ''),
+(17077, 11, 139.085480, 3941.897217, 80.617, 0, ''),
+(17077, 12, 150.092346, 3942.782959, 80.399, 0, ''),
+(17077, 13, 193.511475, 3950.396484, 74.366, 0, ''),
+(17077, 14, 226.274948, 3958.003418, 73.257, 0, ''),
+(17077, 15, 246.686981, 3963.309326, 76.376, 0, ''),
+(17077, 16, 264.206177, 3977.726563, 83.704, 0, ''),
+(17077, 17, 279.857422, 3986.417236, 88.245, 0, ''),
+(17077, 18, 304.039642, 3998.354004, 95.649, 0, ''),
+(17077, 19, 328.071503, 3995.832764, 104.434, 0, ''),
+(17077, 20, 347.485229, 3990.817627, 113.608, 0, ''),
+(17077, 21, 351.257202, 3954.260254, 125.747, 0, ''),
+(17077, 22, 345.625977, 3932.016113, 132.358, 0, ''),
+(17077, 23, 347.971893, 3908.549561, 135.520, 0, ''),
+(17077, 24, 351.887878, 3891.062744, 139.957, 0, ''),
+(17077, 25, 346.116852, 3864.634277, 146.647, 0, ''),
+(17077, 26, 330.012360, 3839.859375, 154.148, 0, ''),
+(17077, 27, 297.250610, 3811.855225, 166.893, 0, ''),
+(17077, 28, 290.783112, 3800.188477, 172.130, 0, ''),
+(17077, 29, 288.125427, 3782.474365, 180.825, 0, ''),
+(17077, 30, 296.817841, 3771.629639, 184.961, 0, ''),
+(17077, 31, 305.256256, 3765.380615, 185.360, 0, ''),
+(17077, 32, 311.447906, 3757.902100, 184.312, 0, ''),
+(17077, 33, 325.258026, 3730.282227, 184.076, 0, ''),
+(17077, 34, 341.158630, 3717.757080, 183.904, 0, ''),
+(17077, 35, 365.589020, 3717.200684, 183.902, 0, ''),
+(17077, 36, 387.395081, 3731.750732, 183.645, 0, ''),
+(17077, 37, 396.574127, 3732.604248, 179.831, 0, ''),
+(17077, 38, 404.303192, 3737.313232, 180.151, 0, ''),
+(17077, 39, 410.995972, 3742.286865, 183.364, 0, ''),
+(17077, 40, 434.904541, 3761.058838, 186.219, 0, ''),
+(17077, 41, 460.128815, 3774.436768, 186.348, 0, ''),
+(17077, 42, 467.643951, 3788.506104, 186.446, 0, ''),
+(17077, 43, 491.551666, 3815.446777, 189.848, 0, ''),
+(17077, 44, 496.957855, 3836.875244, 193.078, 0, ''),
+(17077, 45, 502.889191, 3855.458740, 194.834, 0, ''),
+(17077, 46, 508.208466, 3863.689453, 194.024, 0, ''),
+(17077, 47, 528.907593, 3887.348633, 189.762, 0, ''),
+(17077, 48, 527.722229, 3890.686523, 189.240, 0, ''),
+(17077, 49, 524.637329, 3891.768066, 189.149, 0, ''),
+(17077, 50, 519.146057, 3886.701660, 190.128, 60000, 'SAY_WOLF_WELCOME');
 
 DELETE FROM script_waypoint WHERE entry=17312;
 INSERT INTO script_waypoint VALUES
@@ -2658,6 +3760,41 @@ INSERT INTO script_waypoint VALUES
 (17969, 24, -472.463959, 5449.546875, 22.561453, 0, ''),
 (17969, 25, -454.533264, 5461.302246, 22.602837, 30000, 'quest complete');
 
+DELETE FROM script_waypoint WHERE entry=18210;
+INSERT INTO script_waypoint VALUES
+(18210, 0, -1581.410034, 8557.933594, 2.726, 0, ''),
+(18210, 1, -1579.908447, 8553.716797, 2.559, 0, ''),
+(18210, 2, -1577.829102, 8549.880859, 2.001, 0, ''),
+(18210, 3, -1571.161987, 8543.494141, 2.001, 0, ''),
+(18210, 4, -1563.944824, 8530.334961, 1.605, 0, ''),
+(18210, 5, -1554.565552, 8518.413086, 0.364, 0, ''),
+(18210, 6, -1549.239136, 8515.518555, 0.293, 0, ''),
+(18210, 7, -1518.490112, 8516.771484, 0.683, 2000, 'SAY_MAG_MORE'),
+(18210, 8, -1505.038940, 8513.247070, 0.672, 0, ''),
+(18210, 9, -1476.161133, 8496.066406, 2.157, 0, ''),
+(18210, 10, -1464.450684, 8492.601563, 3.529, 0, ''),
+(18210, 11, -1457.568359, 8492.183594, 4.449, 0, ''),
+(18210, 12, -1444.100342, 8499.031250, 6.177, 0, ''),
+(18210, 13, -1426.472168, 8510.116211, 7.686, 0, ''),
+(18210, 14, -1403.685303, 8524.146484, 9.680, 0, ''),
+(18210, 15, -1384.890503, 8542.014648, 11.180, 0, ''),
+(18210, 16, -1382.286133, 8539.869141, 11.139, 7500, 'SAY_MAG_COMPLETE'),
+(18210, 17, -1361.224609, 8521.440430, 11.144, 0, ''),
+(18210, 18, -1324.803589, 8510.688477, 13.050, 0, ''),
+(18210, 19, -1312.075439, 8492.709961, 14.235, 0, '');
+
+DELETE FROM script_waypoint WHERE entry=18731;
+INSERT INTO script_waypoint VALUES
+(18731, 0, -157.366, 2.177, 8.073, 0, ''),
+(18731, 1, -172.266, -18.280, 8.073, 0, ''),
+(18731, 2, -171.051, -38.748, 8.073, 0, ''),
+(18731, 3, -170.718, -59.436, 8.073, 0, ''),
+(18731, 4, -156.659, -72.118, 8.073, 0, ''),
+(18731, 5, -142.292, -59.423, 8.073, 0, ''),
+(18731, 6, -141.779, -38.972, 8.073, 0, ''),
+(18731, 7, -142.922, -18.950, 8.073, 0, ''),
+(18731, 8, -157.366, 2.177, 8.073, 0, '');
+
 DELETE FROM script_waypoint WHERE entry=18887;
 INSERT INTO script_waypoint VALUES
 (18887, 0, 2650.06, 665.473, 61.9305, 0, ''),
@@ -2671,64 +3808,82 @@ INSERT INTO script_waypoint VALUES
 
 DELETE FROM script_waypoint WHERE entry=19685;
 INSERT INTO script_waypoint VALUES
-(19685, 0, -1863.369019, 5419.517090, -10.463668, 5000, ''),
-(19685, 1, -1861.749023, 5416.465332, -10.508068, 0, ''),
-(19685, 2, -1857.036133, 5410.966309, -12.428039, 0, ''),
-(19685, 3, -1831.539185, 5365.472168, -12.428039, 0, ''),
-(19685, 4, -1813.416504, 5333.776855, -12.428039, 0, ''),
-(19685, 5, -1800.354370, 5313.290039, -12.428039, 0, ''),
-(19685, 6, -1775.624878, 5268.786133, -38.809181, 0, ''),
-(19685, 7, -1770.147339, 5259.268066, -38.829231, 0, ''),
-(19685, 8, -1762.814209, 5261.098145, -38.848995, 0, ''),
-(19685, 9, -1740.110474, 5268.858398, -40.208965, 0, ''),
-(19685, 10, -1725.837402, 5270.936035, -40.208965, 0, ''),
-(19685, 11, -1701.580322, 5290.323242, -40.209187, 0, ''),
-(19685, 12, -1682.877808, 5291.406738, -34.429646, 0, ''),
-(19685, 13, -1670.101685, 5291.201172, -32.786007, 0, ''),
-(19685, 14, -1656.666870, 5294.333496, -37.862648, 0, ''),
-(19685, 15, -1652.035767, 5295.413086, -40.245499, 0, ''),
-(19685, 16, -1620.860596, 5300.133301, -40.208992, 0, ''),
-(19685, 17, -1607.630981, 5293.983398, -38.577045, 5000, ''),
-(19685, 18, -1607.630981, 5293.983398, -38.577045, 5000, ''),
-(19685, 19, -1607.630981, 5293.983398, -38.577045, 5000, ''),
-(19685, 20, -1622.140869, 5301.955566, -40.208897, 0, ''),
-(19685, 21, -1621.131836, 5333.112793, -40.208897, 0, ''),
-(19685, 22, -1637.598999, 5342.134277, -40.208790, 0, ''),
-(19685, 23, -1648.521606, 5352.309570, -47.496170, 0, ''),
-(19685, 24, -1654.606934, 5357.419434, -45.870892, 0, ''),
-(19685, 25, -1633.670044, 5422.067871, -42.835541, 0, ''),
-(19685, 26, -1656.567505, 5426.236328, -40.405815, 0, ''),
-(19685, 27, -1664.932373, 5425.686523, -38.846405, 0, ''),
-(19685, 28, -1681.406006, 5425.871094, -38.810928, 0, ''),
-(19685, 29, -1730.875977, 5427.413574, -12.427910, 0, ''),
-(19685, 30, -1743.509521, 5369.599121, -12.427910, 0, ''),
-(19685, 31, -1877.217041, 5303.710449, -12.427989, 0, ''),
-(19685, 32, -1890.371216, 5289.273438, -12.428268, 0, ''),
-(19685, 33, -1905.505737, 5266.534668, 2.630672, 0, ''),
-(19685, 34, -1909.381348, 5273.008301, 1.663714, 10000, ''),
-(19685, 35, -1909.381348, 5273.008301, 1.663714, 12000, ''),
-(19685, 36, -1909.381348, 5273.008301, 1.663714, 8000, ''),
-(19685, 37, -1909.381348, 5273.008301, 1.663714, 15000, ''),
-(19685, 38, -1927.561401, 5275.324707, 1.984987, 0, ''),
-(19685, 39, -1927.385498, 5300.879883, -12.427236, 0, ''),
-(19685, 40, -1921.063965, 5314.318359, -12.427236, 0, ''),
-(19685, 41, -1965.425415, 5379.298828, -12.427236, 0, ''),
-(19685, 42, -1981.233154, 5450.743652, -12.427236, 0, ''),
-(19685, 43, -1958.022461, 5455.904297, 0.487659, 0, ''),
-(19685, 44, -1951.991455, 5463.580566, 0.874490, 10000, ''),
-(19685, 45, -1951.991455, 5463.580566, 0.874490, 12000, ''),
-(19685, 46, -1968.730225, 5481.752930, -12.427846, 0, ''),
-(19685, 47, -1881.839844, 5554.040039, -12.427846, 0, ''),
-(19685, 48, -1841.566650, 5545.965332, -12.427846, 0, ''),
-(19685, 49, -1837.658325, 5523.780273, 0.558756, 0, ''),
-(19685, 50, -1831.321777, 5534.821777, 1.221819, 6000, ''),
-(19685, 51, -1831.321777, 5534.821777, 1.221819, 8000, ''),
-(19685, 52, -1831.321777, 5534.821777, 1.221819, 5000, ''),
-(19685, 53, -1850.060669, 5472.610840, 0.857320, 6000, ''),
-(19685, 54, -1850.060669, 5472.610840, 0.857320, 8000, ''),
-(19685, 55, -1850.060669, 5472.610840, 0.857320, 9000, ''),
-(19685, 56, -1850.060669, 5472.610840, 0.857320, 9000, ''),
-(19685, 57, -1850.060669, 5472.610840, 0.857320, 4000, '');
+(19685, 0, -1860.536987, 5416.987793, -10.480, 2500, ''),
+(19685, 1, -1855.899048, 5412.805664, -12.427, 0, 'SAY_KHAD_SERV_0'),
+(19685, 2, -1845.518433, 5385.352539, -12.427, 0, ''),
+(19685, 3, -1815.247803, 5340.255371, -12.427, 0, ''),
+(19685, 4, -1799.338379, 5312.777344, -12.427, 0, ''),
+(19685, 5, -1780.491455, 5278.535156, -33.877, 2500, 'pause'),
+(19685, 6, -1776.057983, 5270.247559, -38.809, 0, ''),
+(19685, 7, -1772.219727, 5262.777344, -38.810, 0, ''),
+(19685, 8, -1762.195557, 5261.720215, -38.850, 0, ''),
+(19685, 9, -1759.242798, 5259.751465, -40.208, 0, ''),
+(19685, 10, -1743.427612, 5259.661621, -40.208, 0, ''),
+(19685, 11, -1744.361816, 5251.179199, -44.523, 0, ''),
+(19685, 12, -1740.121582, 5240.120117, -47.740, 0, ''),
+(19685, 13, -1737.636719, 5238.288086, -49.793, 0, ''),
+(19685, 14, -1727.411621, 5233.874512, -50.477, 0, ''),
+(19685, 15, -1707.489746, 5230.437988, -51.050, 0, ''),
+(19685, 16, -1684.122925, 5223.633301, -49.415, 0, ''),
+(19685, 17, -1669.973267, 5221.929688, -46.336, 0, ''),
+(19685, 18, -1662.870117, 5221.712891, -44.959, 0, ''),
+(19685, 19, -1657.170410, 5225.206055, -45.708, 0, ''),
+(19685, 20, -1645.025635, 5238.360352, -40.212, 0, ''),
+(19685, 21, -1631.657471, 5252.759766, -40.962, 0, ''),
+(19685, 22, -1631.368286, 5276.543945, -41.032, 0, ''),
+(19685, 23, -1621.732544, 5298.553711, -40.209, 0, ''),
+(19685, 24, -1615.498169, 5298.098145, -40.209, 2500, 'pause'),
+(19685, 25, -1636.979370, 5302.677734, -40.209, 0, ''),
+(19685, 26, -1655.330322, 5315.736328, -40.207, 0, ''),
+(19685, 27, -1656.884155, 5321.649414, -40.209, 0, ''),
+(19685, 28, -1663.975586, 5335.206055, -46.526, 0, ''),
+(19685, 29, -1659.141602, 5359.131836, -45.846, 0, ''),
+(19685, 30, -1644.207520, 5390.886230, -45.542, 0, ''),
+(19685, 31, -1646.183594, 5405.273926, -44.649, 0, ''),
+(19685, 32, -1650.202637, 5414.541992, -46.324, 0, ''),
+(19685, 33, -1656.052490, 5424.683594, -40.461, 0, ''),
+(19685, 34, -1661.628296, 5423.929199, -40.405, 0, ''),
+(19685, 35, -1664.651855, 5423.659180, -38.848, 0, ''),
+(19685, 36, -1681.772339, 5425.999512, -38.809, 0, ''),
+(19685, 37, -1729.785767, 5427.246094, -12.445, 0, ''),
+(19685, 38, -1735.371460, 5423.663086, -12.427, 0, ''),
+(19685, 39, -1741.627075, 5386.767578, -12.427, 0, ''),
+(19685, 40, -1764.786133, 5363.735840, -12.427, 0, ''),
+(19685, 41, -1816.372314, 5340.664063, -12.427, 0, ''),
+(19685, 42, -1880.022705, 5309.796387, -12.427, 0, ''),
+(19685, 43, -1887.374146, 5315.426270, -12.427, 0, ''),
+(19685, 44, -1888.768066, 5324.518066, -5.146, 0, ''),
+(19685, 45, -1888.399170, 5334.149902, 0.151, 0, ''),
+(19685, 46, -1890.221680, 5337.659668, 0.921, 0, ''),
+(19685, 47, -1897.542725, 5323.042969, 1.256, 0, ''),
+(19685, 48, -1900.250244, 5319.804688, 0.831, 0, ''),
+(19685, 49, -1910.039673, 5291.258789, 1.288, 0, ''),
+(19685, 50, -1915.219482, 5275.572266, 2.502, 2500, 'pause'),
+(19685, 51, -1927.226196, 5273.250977, 2.703, 0, ''),
+(19685, 52, -1926.980225, 5278.467285, 0.109, 0, ''),
+(19685, 53, -1927.665894, 5299.210449, -12.427, 0, ''),
+(19685, 54, -1922.841797, 5319.263672, -12.427, 0, ''),
+(19685, 55, -1925.779053, 5347.405273, -12.427, 0, ''),
+(19685, 56, -1954.912476, 5384.230957, -12.427, 0, ''),
+(19685, 57, -1966.727295, 5428.203613, -12.427, 0, ''),
+(19685, 58, -1979.477661, 5448.415527, -12.427, 0, ''),
+(19685, 59, -1977.533569, 5453.861328, -12.385, 0, ''),
+(19685, 60, -1968.064087, 5455.781250, -4.343, 0, ''),
+(19685, 61, -1959.223145, 5454.895020, 0.202, 0, ''),
+(19685, 62, -1954.629028, 5457.011230, 0.900, 0, ''),
+(19685, 63, -1967.760010, 5464.953125, 1.220, 2500, 'pause'),
+(19685, 64, -1952.874023, 5462.962402, 0.956, 0, ''),
+(19685, 65, -1955.339478, 5467.116699, 0.445, 0, ''),
+(19685, 66, -1962.033203, 5472.804688, -4.243, 0, ''),
+(19685, 67, -1968.007690, 5480.914551, -12.427, 0, ''),
+(19685, 68, -1945.900146, 5515.948242, -12.427, 0, ''),
+(19685, 69, -1874.867310, 5549.783691, -12.427, 0, ''),
+(19685, 70, -1840.641602, 5544.234375, -12.427, 0, ''),
+(19685, 71, -1838.963501, 5536.059570, -5.639, 0, ''),
+(19685, 72, -1839.582275, 5525.627930, 0.193, 0, ''),
+(19685, 73, -1837.931763, 5521.119629, 0.844, 0, ''),
+(19685, 74, -1829.182495, 5533.433594, 1.209, 2500, 'pause'),
+(19685, 75, -1848.397095, 5476.073730, 0.856, 40000, 'end');
 
 DELETE FROM script_waypoint WHERE entry=20129;
 INSERT INTO script_waypoint VALUES
@@ -2758,6 +3913,109 @@ INSERT INTO script_waypoint VALUES
 (20129, 23, -8304.54,-4357.2, -208.2,2000, ''),
 (20129, 24, -8375.42,-4250.41, -205.14,5000, ''),
 (20129, 25, -8375.42,-4250.41, -205.14,5000, '');
+
+DELETE FROM script_waypoint WHERE entry=21027;
+INSERT INTO script_waypoint VALUES
+(21027, 0, -2714.697266, 1326.879395, 34.306953, 0, ''),
+(21027, 1, -2666.364990, 1348.222656, 34.445557, 0, ''),
+(21027, 2, -2693.789307, 1336.964966, 34.445557, 0, ''),
+(21027, 3, -2715.495361, 1328.054443, 34.106014, 0, ''),
+(21027, 4, -2742.530762, 1314.138550, 33.606144, 0, ''),
+(21027, 5, -2745.077148, 1311.108765, 33.630898, 0, ''),
+(21027, 6, -2749.855225, 1302.737915, 33.475632, 0, ''),
+(21027, 7, -2753.639648, 1294.059448, 33.314930, 0, ''),
+(21027, 8, -2756.796387, 1285.122192, 33.391262, 0, ''),
+(21027, 9, -2750.042969, 1273.661987, 33.188259, 0, ''),
+(21027, 10, -2740.378418, 1258.846680, 33.212521, 0, ''),
+(21027, 11, -2733.629395, 1248.259766, 33.640598, 0, ''),
+(21027, 12, -2727.212646, 1238.606445, 33.520847, 0, ''),
+(21027, 13, -2726.377197, 1237.264526, 33.461823, 3000, 'SAY_WIL_PROGRESS1'),
+(21027, 14, -2746.383301, 1266.390625, 33.191952, 2000, ''),
+(21027, 15, -2746.383301, 1266.390625, 33.191952, 4000, 'SAY_WIL_FIND_EXIT'),
+(21027, 16, -2758.927734, 1285.134155, 33.341728, 0, ''),
+(21027, 17, -2761.845703, 1292.313599, 33.209042, 0, ''),
+(21027, 18, -2758.871826, 1300.677612, 33.285332, 0, ''),
+(21027, 19, -2753.928955, 1307.755859, 33.452457, 0, ''),
+(21027, 20, -2738.612061, 1316.191284, 33.482975, 0, ''),
+(21027, 21, -2727.897461, 1320.013916, 33.381111, 0, ''),
+(21027, 22, -2709.458740, 1315.739990, 33.301838, 0, ''),
+(21027, 23, -2704.658936, 1301.620361, 32.463303, 0, ''),
+(21027, 24, -2704.120117, 1298.922607, 32.768162, 0, ''),
+(21027, 25, -2691.798340, 1292.846436, 33.852642, 0, ''),
+(21027, 26, -2682.879639, 1288.853882, 32.995399, 0, ''),
+(21027, 27, -2661.869141, 1279.682495, 26.686783, 0, ''),
+(21027, 28, -2648.943604, 1270.272827, 24.147522, 0, ''),
+(21027, 29, -2642.506836, 1262.938721, 23.512444, 0, ''),
+(21027, 30, -2636.984863, 1252.429077, 20.418257, 0, ''),
+(21027, 31, -2648.113037, 1224.984863, 8.691818, 0, ''),
+(21027, 32, -2658.393311, 1200.136719, 5.492243, 0, ''),
+(21027, 33, -2668.504395, 1190.450562, 3.127407, 0, ''),
+(21027, 34, -2685.930420, 1174.360840, 5.163924, 0, ''),
+(21027, 35, -2701.613770, 1160.026367, 5.611311, 0, ''),
+(21027, 36, -2714.659668, 1149.980347, 4.342373, 0, ''),
+(21027, 37, -2721.443359, 1145.002808, 1.913474, 0, ''),
+(21027, 38, -2733.962158, 1143.436279, 2.620415, 0, ''),
+(21027, 39, -2757.876709, 1146.937500, 6.184002, 2000, 'SAY_WIL_JUST_AHEAD'),
+(21027, 40, -2772.300537, 1166.052734, 6.331811, 0, ''),
+(21027, 41, -2790.265381, 1189.941650, 5.207958, 0, ''),
+(21027, 42, -2805.448975, 1208.663940, 5.557623, 0, ''),
+(21027, 43, -2820.617676, 1225.870239, 6.266103, 0, ''),
+(21027, 44, -2831.926758, 1237.725830, 5.808506, 0, ''),
+(21027, 45, -2842.578369, 1252.869629, 6.807481, 0, ''),
+(21027, 46, -2846.344971, 1258.727295, 7.386168, 0, ''),
+(21027, 47, -2847.556396, 1266.771729, 8.208790, 0, ''),
+(21027, 48, -2841.654541, 1285.809204, 7.933223, 0, ''),
+(21027, 49, -2841.754883, 1289.832520, 6.990304, 0, ''),
+(21027, 50, -2871.398438, 1302.348145, 6.807335, 7500, 'SAY_WIL_END');
+
+DELETE FROM script_waypoint WHERE entry=22377;
+INSERT INTO script_waypoint VALUES
+(22377, 0, -2770.457520, 5418.410645, -34.538, 0, ''),
+(22377, 1, -2778.180420, 5416.253906, -34.538, 0, ''),
+(22377, 2, -2816.960449, 5414.944336, -34.529, 0, ''),
+(22377, 3, -2827.533203, 5414.737305, -28.265, 0, ''),
+(22377, 4, -2841.610596, 5413.021973, -28.261, 0, ''),
+(22377, 5, -2863.605957, 5411.964355, -28.262, 1000, 'SAY_AKU_AMBUSH_A'),
+(22377, 6, -2874.559570, 5413.799316, -28.260, 0, ''),
+(22377, 7, -2878.775879, 5413.812012, -28.261, 0, ''),
+(22377, 8, -2892.586914, 5413.478516, -18.784, 0, ''),
+(22377, 9, -2896.040527, 5413.137207, -18.589, 0, ''),
+(22377, 10, -2896.318848, 5409.431641, -18.450, 0, ''),
+(22377, 11, -2895.997803, 5396.909668, -8.855, 0, ''),
+(22377, 12, -2895.734131, 5386.623535, -9.260, 0, ''),
+(22377, 13, -2895.318359, 5367.613281, -9.456, 0, ''),
+(22377, 14, -2890.306641, 5353.883301, -11.280, 1000, 'SAY_AKU_AMBUSH_B'),
+(22377, 15, -2880.419189, 5334.625977, -10.629, 0, ''),
+(22377, 16, -2866.394043, 5314.253906, -9.678, 0, ''),
+(22377, 17, -2864.753174, 5277.734375, -11.087, 0, ''),
+(22377, 18, -2856.330322, 5255.902344, -11.496, 5000, 'SAY_AKU_COMPLETE');
+
+DELETE FROM script_waypoint WHERE entry=22458;
+INSERT INTO script_waypoint VALUES
+(22458, 0, -3739.907959, 5393.691895, -4.213, 5000, 'SAY_LE_KEEP_SAFE'),
+(22458, 1, -3733.334229, 5389.243164, -5.331, 0, ''),
+(22458, 2, -3728.771729, 5385.649414, -3.704, 0, ''),
+(22458, 3, -3717.267090, 5379.179199, -4.400, 0, ''),
+(22458, 4, -3705.626465, 5379.261719, -7.711, 0, ''),
+(22458, 5, -3688.279541, 5379.716309, -9.400, 0, ''),
+(22458, 6, -3649.186523, 5389.111816, -11.917, 0, ''),
+(22458, 7, -3612.791504, 5392.812500, -13.655, 0, ''),
+(22458, 8, -3574.865479, 5412.704590, -16.543, 0, ''),
+(22458, 9, -3564.438232, 5422.615723, -16.104, 0, ''),
+(22458, 10, -3553.387695, 5444.732910, -12.184, 2500, 'arivve dig site SAY_LE_ARRIVE'),
+(22458, 11, -3557.291016, 5465.319336, -9.282, 7500, 'dig 1'),
+(22458, 12, -3548.102051, 5453.417969, -12.282, 10000, 'dig 2 SAY_LE_BURIED pause'),
+(22458, 13, -3556.580322, 5446.475098, -11.920, 0, 'start returning'),
+(22458, 14, -3564.438232, 5422.615723, -16.104, 0, ''),
+(22458, 15, -3574.865479, 5412.704590, -16.543, 0, ''),
+(22458, 16, -3612.791504, 5392.812500, -13.655, 0, ''),
+(22458, 17, -3649.186523, 5389.111816, -11.917, 0, ''),
+(22458, 18, -3688.279541, 5379.716309, -9.400, 0, ''),
+(22458, 19, -3705.626465, 5379.261719, -7.711, 0, ''),
+(22458, 20, -3717.267090, 5379.179199, -4.400, 0, ''),
+(22458, 21, -3728.771729, 5385.649414, -3.704, 0, ''),
+(22458, 22, -3733.334229, 5389.243164, -5.331, 0, ''),
+(22458, 23, -3739.907959, 5393.691895, -4.213, 0, '');
 
 DELETE FROM script_waypoint WHERE entry=22916;
 INSERT INTO script_waypoint VALUES
@@ -2897,5 +4155,44 @@ INSERT INTO script_waypoint VALUES
 (24358, 2, 120.670631, 1636.346802, 42.415, 0, ''),
 (24358, 3, 120.536003, 1611.654663, 43.473, 10000, 'SAY_OPEN_ENTRANCE'),
 (24358, 4, 120.536003, 1611.654663, 43.473, 0, '');
+
+DELETE FROM script_waypoint WHERE entry=28070;
+INSERT INTO script_waypoint VALUES
+(28070, 0, 1053.789795, 476.639343, 207.744, 0, ''),
+(28070, 1, 1032.293945, 467.623444, 207.736, 0, ''),
+(28070, 2, 1017.908752, 454.765656, 207.719, 0, ''),
+(28070, 3, 1004.810120, 441.305115, 207.373, 0, ''),
+(28070, 4, 988.694214, 424.422485, 207.425, 0, ''),
+(28070, 5, 984.816345, 422.177917, 205.994, 0, ''),
+(28070, 6, 977.204468, 420.026917, 205.994, 0, ''),
+(28070, 7, 962.388123, 421.983307, 205.994, 0, ''),
+(28070, 8, 950.419556, 416.515198, 205.994, 0, ''),
+(28070, 9, 943.972290, 403.071228, 205.994, 0, ''),
+(28070, 10, 947.921936, 387.683563, 205.994, 0, ''),
+(28070, 11, 946.554749, 383.270782, 205.994, 0, ''),
+(28070, 12, 944.654724, 380.630859, 207.286, 0, ''),
+(28070, 13, 941.101563, 377.373413, 207.421, 0, 'reach tribunal, set pause'),
+(28070, 14, 935.217896, 370.557343, 207.421, 0, ''),
+(28070, 15, 928.035950, 363.026733, 204.018, 0, ''),
+(28070, 16, 909.287292, 344.392792, 203.706, 0, ''),
+(28070, 17, 897.946838, 333.634735, 203.706, 0, 'reach panel'),
+(28070, 18, 918.914429, 351.312866, 203.706, 0, 'reach floor disc (end event begin)'),
+(28070, 19, 928.070068, 363.296326, 204.091, 0, 'stealth'),
+(28070, 20, 934.817627, 370.136261, 207.421, 0, ''),
+(28070, 21, 941.501465, 377.254456, 207.421, 0, '');
+
+DELETE FROM script_waypoint WHERE entry=28912;
+INSERT INTO script_waypoint VALUES
+(28912, 0, 1653.518, -6038.374, 127.585, 0, 'Jump off'),
+(28912, 1, 1653.978, -6034.614, 127.585, 5000, 'To Box'),
+(28912, 2, 1653.854, -6034.726, 127.585, 500, 'Equip'),
+(28912, 3, 1652.297, -6035.671, 127.585, 3000, 'Recover'),
+(28912, 4, 1639.762, -6046.343, 127.948, 0, 'Escape'),
+(28912, 5, 1640.963, -6028.119, 134.740, 0, ''),
+(28912, 6, 1625.805, -6029.197, 134.740, 0, ''),
+(28912, 7, 1626.845, -6015.085, 134.740, 0, ''),
+(28912, 8, 1649.150, -6016.975, 133.240, 0, ''),
+(28912, 9, 1653.063, -5974.844, 132.652, 5000, 'Mount'),
+(28912, 10, 1654.747, -5926.424, 121.191, 0, 'Disappear');
 
 -- EOF

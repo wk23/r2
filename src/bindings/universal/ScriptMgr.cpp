@@ -265,10 +265,40 @@ InstanceData* CreateInstanceData(Map *map)
     return tmpscript->GetInstanceData(map);
 }
 
+MANGOS_DLL_EXPORT
+bool EffectDummyGameObj(Unit *caster, uint32 spellId, uint32 effIndex, GameObject *gameObjTarget )
+{
+    Script *tmpscript = m_scripts[gameObjTarget->GetGOInfo()->ScriptId];
+
+    if (!tmpscript || !tmpscript->pEffectDummyGameObj) return false;
+
+    return tmpscript->pEffectDummyGameObj(caster, spellId,effIndex,gameObjTarget);
+}
+
+MANGOS_DLL_EXPORT
+bool EffectDummyCreature(Unit *caster, uint32 spellId, uint32 effIndex, Creature *crTarget )
+{
+    Script *tmpscript = m_scripts[crTarget->GetScriptId()];
+
+    if (!tmpscript || !tmpscript->pEffectDummyCreature) return false;
+
+    return tmpscript->pEffectDummyCreature(caster, spellId,effIndex,crTarget);
+}
+
+MANGOS_DLL_EXPORT
+bool EffectDummyItem(Unit *caster, uint32 spellId, uint32 effIndex, Item *itemTarget )
+{
+    Script *tmpscript = m_scripts[itemTarget->GetProto()->ScriptId];
+
+    if (!tmpscript || !tmpscript->pEffectDummyItem) return false;
+
+    return tmpscript->pEffectDummyItem(caster, spellId,effIndex,itemTarget);
+}
+
 void ScriptedAI::UpdateAI(const uint32)
 {
     //Check if we have a current target
-    if( m_creature->isAlive() && m_creature->SelectHostilTarget() && m_creature->getVictim())
+    if( m_creature->isAlive() && m_creature->SelectHostileTarget() && m_creature->getVictim())
     {
         //If we are within range melee the target
         if( m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))

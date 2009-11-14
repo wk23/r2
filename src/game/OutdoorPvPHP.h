@@ -1,10 +1,28 @@
+/*
+ * Copyright (C) 2005-2008 MaNGOS <http://www.mangosproject.org/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 #ifndef OUTDOOR_PVP_HP_
 #define OUTDOOR_PVP_HP_
 
 #include "OutdoorPvP.h"
 
 #define OutdoorPvPHPBuffZonesNum 6
-                                                         //  HP, citadel, ramparts, blood furnace, shattered halls, mag's lair
+//  HP, citadel, ramparts, blood furnace, shattered halls, mag's lair
 const uint32 OutdoorPvPHPBuffZones[OutdoorPvPHPBuffZonesNum] = { 3483, 3563, 3562, 3713, 3714, 3836 };
 
 const uint32 AllianceBuff = 32071;
@@ -66,22 +84,22 @@ const go_type HPTowerFlags[HP_TOWER_NUM] = {
 
 class OutdoorPvPObjectiveHP : public OutdoorPvPObjective
 {
-public:
-    OutdoorPvPObjectiveHP(OutdoorPvP * pvp, OutdoorPvPHPTowerType type);
-    bool Update(uint32 diff);
-    void FillInitialWorldStates(WorldPacket & data);
-    // used when player is activated/inactivated in the area
-    bool HandlePlayerEnter(Player * plr);
-    void HandlePlayerLeave(Player * plr);
-    bool HandleCapturePointEvent(Player * plr, uint32 eventId);
-private:
-    OutdoorPvPHPTowerType m_TowerType;
+    public:
+        OutdoorPvPObjectiveHP(OutdoorPvP * pvp, OutdoorPvPHPTowerType type);
+        bool Update(uint32 diff);
+        void FillInitialWorldStates(WorldPacket & data);
+        // used when player is activated/inactivated in the area
+        bool HandlePlayerEnter(Player * plr);
+        void HandlePlayerLeave(Player * plr);
+        bool HandleCapturePointEvent(Player * plr, uint32 eventId);
+    private:
+        OutdoorPvPHPTowerType m_TowerType;
 };
 
 class OutdoorPvPHP : public OutdoorPvP
 {
-friend class OutdoorPvPObjectiveHP;
-public:
+    friend class OutdoorPvPObjectiveHP;
+    public:
     OutdoorPvPHP();
     bool SetupOutdoorPvP();
     void HandlePlayerEnterZone(Player *plr, uint32 zone);
@@ -91,7 +109,7 @@ public:
     void SendRemoveWorldStates(Player * plr);
     void HandleKillImpl(Player * plr, Unit * killed);
     void BuffTeam(uint32 team);
-private:
+    private:
     // how many towers are controlled
     uint32 m_AllianceTowersControlled;
     uint32 m_HordeTowersControlled;

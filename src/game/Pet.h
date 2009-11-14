@@ -241,8 +241,6 @@ class Pet : public Creature
         uint32  m_resetTalentsCost;
         time_t  m_resetTalentsTime;
 
-        RedirectThreatMap* getRedirectThreatMap() { return &m_redirectMap; }
-
         const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
         void SetAuraUpdateMask(uint8 slot) { m_auraUpdateMask |= (uint64(1) << slot); }
         void ResetAuraUpdateMask() { m_auraUpdateMask = 0; }
@@ -274,8 +272,5 @@ class Pet : public Creature
         {
             assert(false);
         }
-
-        // Map used to control threat redirection effects
-        RedirectThreatMap m_redirectMap;
 };
 #endif

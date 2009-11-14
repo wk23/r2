@@ -257,8 +257,7 @@ void WorldSession::HandleLootReleaseOpcode( WorldPacket & recv_data )
 
     // cheaters can modify lguid to prevent correct apply loot release code and re-loot
     // use internal stored guid
-    //uint64   lguid;
-    //recv_data >> lguid;
+    recv_data.read_skip<uint64>();                          // guid;
 
     if(uint64 lguid = GetPlayer()->GetLootGUID())
         DoLootRelease(lguid);
@@ -314,7 +313,7 @@ void WorldSession::DoLootRelease( uint64 lguid )
                             // the reset time is set but not added to the scheduler
                             // until the players leave the instance
                             time_t resettime = go->GetRespawnTimeEx() + 2 * HOUR;
-                            if(InstanceSave *save = sInstanceSaveManager.GetInstanceSave(player->GetInstanceId()))
+                            if(InstanceSave *save = sInstanceSaveMgr.GetInstanceSave(player->GetInstanceId()))
                             if(save->GetResetTime() < resettime) save->SetResetTime(resettime);
                         }
                     }

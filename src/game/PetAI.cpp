@@ -106,7 +106,7 @@ void PetAI::_stopAttack()
         m_creature->GetMotionMaster()->Clear();
         m_creature->GetMotionMaster()->MoveIdle();
         m_creature->CombatStop();
-        m_creature->getHostilRefManager().deleteReferences();
+        m_creature->getHostileRefManager().deleteReferences();
 
         return;
     }
@@ -172,7 +172,7 @@ void PetAI::UpdateAI(const uint32 diff)
                     return;
 
                 //if pet misses its target, it will also be the first in threat list
-                m_creature->getVictim()->AddThreat(m_creature,0.0f);
+                m_creature->getVictim()->AddThreat(m_creature);
 
                 if( _needToStop() )
                     _stopAttack();
@@ -287,10 +287,10 @@ void PetAI::UpdateAI(const uint32 diff)
             {
                 m_creature->SetInFront(target);
                 if (target->GetTypeId() == TYPEID_PLAYER)
-                    m_creature->SendUpdateToPlayer((Player*)target);
+                    m_creature->SendCreateUpdateToPlayer((Player*)target);
 
                 if (owner && owner->GetTypeId() == TYPEID_PLAYER)
-                    m_creature->SendUpdateToPlayer( (Player*)owner );
+                    m_creature->SendCreateUpdateToPlayer( (Player*)owner );
             }
 
             m_creature->AddCreatureSpellCooldown(spell->m_spellInfo->Id);
@@ -309,7 +309,7 @@ void PetAI::UpdateAI(const uint32 diff)
 bool PetAI::_isVisible(Unit *u) const
 {
     return m_creature->IsWithinDist(u,sWorld.getConfig(CONFIG_SIGHT_GUARDER))
-        && u->isVisibleForOrDetect(m_creature,true);
+        && u->isVisibleForOrDetect(m_creature,m_creature,true);
 }
 
 void PetAI::UpdateAllies()

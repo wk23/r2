@@ -38,6 +38,28 @@
 #include "GridNotifiersImpl.h"
 #include "CellImpl.h"
 
+bool WorldSession::processChatmessageFurtherAfterSecurityChecks(std::string& msg, uint32 lang)
+{
+    if (lang != LANG_ADDON)
+    {
+        // strip invisible characters for non-addon messages
+        if(sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
+            stripLineInvisibleChars(msg);
+
+        if (sWorld.getConfig(CONFIG_CHAT_STRICT_LINK_CHECKING_SEVERITY) && GetSecurity() < SEC_MODERATOR
+                && !ChatHandler(this).isValidChatMessage(msg.c_str()))
+        {
+            sLog.outError("Player %s (GUID: %u) sent a chatmessage with an invalid link: %s", GetPlayer()->GetName(),
+                    GetPlayer()->GetGUIDLow(), msg.c_str());
+            if (sWorld.getConfig(CONFIG_CHAT_STRICT_LINK_CHECKING_KICK))
+                KickPlayer();
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
 {
     uint32 type;
@@ -151,9 +173,8 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
                 break;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
@@ -184,9 +205,8 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             recv_data >> to;
             recv_data >> msg;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
@@ -201,7 +221,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
                 break;
             }
 
-            Player *player = objmgr.GetPlayer(to.c_str());
+            Player *player = sObjectMgr.GetPlayer(to.c_str());
             uint32 tSecurity = GetSecurity();
             uint32 pSecurity = player ? player->GetSession()->GetSecurity() : SEC_PLAYER;
             if (!player || (tSecurity == SEC_PLAYER && pSecurity > SEC_PLAYER && !player->isAcceptWhispers()))
@@ -239,9 +259,8 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
                 break;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
@@ -268,18 +287,19 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
                 break;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
 
             //sChatLog.GuildMsg(GetPlayer(), msg, false);
 
+            //sChatLog.GuildMsg(GetPlayer(), msg, true);
+
             if (GetPlayer()->GetGuildId())
             {
-                Guild *guild = objmgr.GetGuildById(GetPlayer()->GetGuildId());
+                Guild *guild = sObjectMgr.GetGuildById(GetPlayer()->GetGuildId());
                 if (guild)
                     guild->BroadcastToGuild(this, msg, lang == LANG_ADDON ? LANG_ADDON : LANG_UNIVERSAL);
             }
@@ -297,18 +317,15 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
                 break;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
 
-            //sChatLog.GuildMsg(GetPlayer(), msg, true);
-
             if (GetPlayer()->GetGuildId())
             {
-                Guild *guild = objmgr.GetGuildById(GetPlayer()->GetGuildId());
+                Guild *guild = sObjectMgr.GetGuildById(GetPlayer()->GetGuildId());
                 if (guild)
                     guild->BroadcastToOfficers(this, msg, lang == LANG_ADDON ? LANG_ADDON : LANG_UNIVERSAL);
             }
@@ -325,9 +342,8 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
                 break;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
@@ -353,9 +369,8 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
                 break;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
@@ -375,9 +390,8 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             std::string msg="";
             recv_data >> msg;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
@@ -398,9 +412,8 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             std::string msg="";
             recv_data >> msg;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
@@ -421,9 +434,8 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             std::string msg="";
             recv_data >> msg;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
@@ -446,9 +458,8 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
 
             recv_data >> msg;
 
-            // strip invisible characters for non-addon messages
-            if (lang != LANG_ADDON && sWorld.getConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-                stripLineInvisibleChars(msg);
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if(msg.empty())
                 break;
@@ -613,7 +624,7 @@ void WorldSession::HandleChatIgnoredOpcode(WorldPacket& recv_data )
     recv_data >> iguid;
     recv_data >> unk;                                       // probably related to spam reporting
 
-    Player *player = objmgr.GetPlayer(iguid);
+    Player *player = sObjectMgr.GetPlayer(iguid);
     if(!player || !player->GetSession())
         return;
 
