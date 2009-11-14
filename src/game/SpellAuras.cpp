@@ -6063,6 +6063,7 @@ void Aura::PeriodicTick()
             else
                 pdamage = amount;
 
+            if(!GetCastItemGUID())
             pdamage = pCaster->SpellHealingBonus(GetSpellProto(), pdamage, DOT, m_target);
 
             sLog.outDetail("PeriodicTick: %u (TypeId: %u) heal of %u (TypeId: %u) for %u health inflicted by %u",
