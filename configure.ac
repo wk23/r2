@@ -205,7 +205,7 @@ AC_CHECK_FUNCS([atexit ftime gethostbyaddr gethostbyname gethostname gettimeofda
 # Check for use buildtin ACE sources
 AC_ARG_ENABLE(builtin_ace, AC_HELP_STRING([--enable-builtin-ace], [turn on/off using builtin ACE sources]))
 
-enable_builtin_ace_support=yes
+enable_builtin_ace_support=no
 
 if test "x$enable_builtin_ace" = "xno"; then
   PKG_CHECK_MODULES(ACE, [ACE >= 5.5.2], [need_builtin_ace=no], [need_builtin_ace=yes])
