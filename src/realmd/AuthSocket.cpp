@@ -549,8 +549,8 @@ bool AuthSocket::_HandleLogonProof()
 
     /// <ul><li> If the client has no valid version
     if(!valid_version)
-if (_build == 9947)
-{//if (_build == 9947)
+if (_build == 10505)
+{//if (_build == 10505)
 
     ///- Continue the SRP6 calculation based on data received from the client
     BigNumber A;
@@ -697,7 +697,7 @@ if (_build == 9947)
 
 
 return true;
-}//if (_build == 9947)
+}//if (_build == 10505)
 else
     {
         ///- Check if we have the apropriate patch on the disk
