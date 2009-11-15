@@ -2589,7 +2589,7 @@ void Map::SendObjectUpdates()
     {
         Object* obj = *i_objectsToClientUpdate.begin();
         i_objectsToClientUpdate.erase(i_objectsToClientUpdate.begin());
-        if (!obj)
+        if (!obj || !obj->IsInWorld())
             continue;
         obj->BuildUpdateData(update_players);
     }
