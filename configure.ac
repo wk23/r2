@@ -31,6 +31,7 @@ AM_MAINTAINER_MODE
 # configuration is being performed in the top-level directory.
 # The idea is to prevent this ,because some maintainers tend
 # to break parallel build trees (a.k.a. VPATH builds).
+/*
 if test "$srcdir" = "." && test "$enable_maintainer_mode" != "yes"; then
   AC_MSG_ERROR(
      [
@@ -55,6 +56,7 @@ if test "$srcdir" = "." && test "$enable_maintainer_mode" != "yes"; then
       use --enable-maintainer-mode switch.
      ])
 fi
+*/
 
 ## Disable building of static libraries by default
 AC_DISABLE_STATIC
