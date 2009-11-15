@@ -999,9 +999,6 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
         // Do triggers for unit (reflect triggers passed on hit phase for correct drop charge)
         if (m_canTrigger && missInfo != SPELL_MISS_REFLECT)
             caster->ProcDamageAndSpell(unitTarget, procAttacker, procVictim, procEx, addhealth, m_attackType, m_spellInfo);
-        int32 gain = caster->DealHeal(unitTarget, addhealth, m_spellInfo, crit);
-if(caster->GetTypeId()==TYPEID_PLAYER) if(BattleGround *bg = ((Player*)caster)->GetBattleGround()) bg->UpdatePlayerScore(((Player*)caster), SCORE_HEALING_DONE, gain);
-        unitTarget->getHostileRefManager().threatAssist(caster, float(gain) * 0.5f, m_spellInfo);
     }
     // Do damage and triggers
     else if (m_damage)
