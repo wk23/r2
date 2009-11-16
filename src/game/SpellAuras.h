@@ -230,6 +230,7 @@ class MANGOS_DLL_SPEC Aura
         time_t GetAuraApplyTime() { return m_applyTime; }
         void UpdateAuraDuration();
         void SendAuraDurationForCaster(Player* caster);
+        void UpdateSlotCounterAndDuration();
 
         uint64 const& GetCasterGUID() const { return m_caster_guid; }
         Unit* GetCaster() const;
@@ -295,6 +296,8 @@ class MANGOS_DLL_SPEC Aura
 
         int32 m_procCharges;
 
+        int32 m_stackAmount;
+
         virtual Unit* GetTriggerTarget() const { return m_target; }
 
         // add/remove SPELL_AURA_MOD_SHAPESHIFT (36) linked auras
@@ -353,7 +356,6 @@ class MANGOS_DLL_SPEC Aura
 
         uint32 m_in_use;                                    // > 0 while in Aura::ApplyModifier call/Aura::Update/etc
     private:
-        void UpdateSlotCounterAndDuration(bool add);
         void CleanupTriggeredSpells();
         void SetAura(uint32 slot, bool remove) { m_target->SetUInt32Value(UNIT_FIELD_AURA + slot, remove ? 0 : GetId()); }
         void SetAuraFlag(uint32 slot, bool add);
