@@ -2589,8 +2589,9 @@ void Map::SendObjectUpdates()
     {
         Object* obj = *i_objectsToClientUpdate.begin();
         i_objectsToClientUpdate.erase(i_objectsToClientUpdate.begin());
-        //if (!obj || !obj->IsInWorld())
-            //continue;
+        if (!obj)
+        if (!obj->IsInWorld())
+            continue;
         obj->BuildUpdateData(update_players);
     }
 
