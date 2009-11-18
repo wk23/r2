@@ -249,6 +249,7 @@ class BattleGround
     friend class BattleGroundMgr;
 
     public:
+        uint8   m_is_leave;
         /* Construction */
         BattleGround();
         /*BattleGround(const BattleGround& bg);*/

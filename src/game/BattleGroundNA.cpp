@@ -130,7 +130,7 @@ void BattleGroundNA::HandleKillPlayer(Player *player, Player *killer)
         sLog.outError("BattleGroundNA: Killer player not found");
         return;
     }
-
+    m_is_leave++;
     BattleGround::HandleKillPlayer(player,killer);
 
     UpdateWorldState(0xa0f, GetAlivePlayersCountByTeam(ALLIANCE));

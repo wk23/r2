@@ -131,7 +131,7 @@ void BattleGroundRL::HandleKillPlayer(Player *player, Player *killer)
         sLog.outError("Killer player not found");
         return;
     }
-
+    m_is_leave++;
     BattleGround::HandleKillPlayer(player,killer);
 
     UpdateWorldState(0xbb8, GetAlivePlayersCountByTeam(ALLIANCE));
