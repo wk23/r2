@@ -261,6 +261,8 @@ Player::Player (WorldSession *session): Unit(), m_reputationMgr(this)
 {
     m_transport = 0;
 
+    m_playerLogout = false;
+
     m_speakTime = 0;
     m_speakCount = 0;
 
@@ -1744,7 +1746,8 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
                 SendSavedInstances();
 
                 // remove from old map now
-                if(oldmap) oldmap->Remove(this, false);
+                if(oldmap && !IsLoggingOut()) oldmap->Remove(this, false);
+                //if(oldmap) oldmap->Remove(this, false);
             }
 
             // new final coordinates

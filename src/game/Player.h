@@ -862,6 +862,9 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void CleanupsBeforeDelete();
 
+        bool IsLoggingOut() { return m_playerLogout; }
+        void SetLoggingOut(bool logout) { m_playerLogout = logout; }
+
         static UpdateMask updateVisualBits;
         static void InitVisibleBits();
 
@@ -2066,6 +2069,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint8 m_bgAfkReportedCount;
         time_t m_bgAfkReportedTimer;
         uint32 m_contestedPvPTimer;
+
+        bool m_playerLogout;
 
         uint32 m_bgTeam;                                    // what side the player will be added to
 

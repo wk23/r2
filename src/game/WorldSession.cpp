@@ -290,6 +290,8 @@ void WorldSession::LogoutPlayer(bool Save)
 
     if (_player)
     {
+         _player->SetLoggingOut(true);
+
         if (uint64 lguid = GetPlayer()->GetLootGUID())
             DoLootRelease(lguid);
 
