@@ -940,6 +940,8 @@ void Spell::doTriggers(SpellMissInfo missInfo, uint32 damage, SpellSchoolMask da
 
 void Spell::DoAllEffectOnTarget(TargetInfo *target)
 {
+    if (!target)                                  // Check target
+        return;
     if (target->processed)                                  // Check target
         return;
     target->processed = true;                               // Target checked in apply effects procedure
@@ -1209,6 +1211,8 @@ void Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask)
 
 void Spell::DoAllEffectOnTarget(GOTargetInfo *target)
 {
+    if (!target)                                  // Check target
+        return;
     if (target->processed)                                  // Check target
         return;
     target->processed = true;                               // Target checked in apply effects procedure
@@ -1236,6 +1240,8 @@ void Spell::DoAllEffectOnTarget(GOTargetInfo *target)
 
 void Spell::DoAllEffectOnTarget(ItemTargetInfo *target)
 {
+    if (!target)                                  // Check target
+        return;
     uint32 effectMask = target->effectMask;
     if(!target->item || !effectMask)
         return;
