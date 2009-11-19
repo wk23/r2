@@ -3258,6 +3258,9 @@ void Spell::EffectDispel(uint32 i)
                 SpellEntry const* spellInfo = sSpellStore.LookupEntry(j->first);
                 data << uint32(spellInfo->Id);              // Spell Id
                 data << uint8(0);                           // 0 - dispeled !=0 cleansed
+                if (spellInfo->Dispel == DISPEL_POISON)
+                   unitTarget->RemoveSingleAuraFromStack(spellInfo->Id, 0);
+                else
                 unitTarget->RemoveAurasDueToSpellByDispel(spellInfo->Id, j->second, m_caster);
             }
             m_caster->SendMessageToSet(&data, true);
