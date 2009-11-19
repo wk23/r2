@@ -652,8 +652,6 @@ void WorldSession::HandleReclaimCorpseOpcode(WorldPacket &recv_data)
 
     // spawn bones
     GetPlayer()->SpawnCorpseBones();
-
-    GetPlayer()->SaveToDB();
 }
 
 void WorldSession::HandleResurrectResponseOpcode(WorldPacket & recv_data)
@@ -677,8 +675,7 @@ void WorldSession::HandleResurrectResponseOpcode(WorldPacket & recv_data)
     if(!GetPlayer()->isRessurectRequestedBy(guid))
         return;
 
-    GetPlayer()->ResurectUsingRequestData();
-    GetPlayer()->SaveToDB();
+    GetPlayer()->ResurectUsingRequestData();                // will call spawncorpsebones
 }
 
 void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
