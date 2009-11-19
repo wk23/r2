@@ -539,7 +539,7 @@ int32 ArenaTeam::WonAgainst(uint32 againstRating)
     //'chance' calculation - to beat the opponent
     float chance = GetChanceAgainst(m_stats.rating, againstRating);
     // calculate the rating modification (ELO system with k=32)
-    int32 mod = (int32)floor(32.0f * (1.0f - chance));
+    int32 mod = (againstRating == 0) ? 0 : (int32)floor(32.0f * (1.0f - chance));
     // modify the team stats accordingly
     FinishGame(mod);
     m_stats.wins_week += 1;

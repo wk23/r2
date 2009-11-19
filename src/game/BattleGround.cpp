@@ -457,9 +457,10 @@ void BattleGround::EndBattleGround(uint32 winner)
             loser_rating = loser_arena_team->GetStats().rating;
             winner_rating = winner_arena_team->GetStats().rating;
 //todo
-            int32 winner_change = (m_is_leave>1) ? winner_arena_team->WonAgainst(loser_rating) : 0;
+            int32 winner_change = (m_is_leave>0) ? winner_arena_team->WonAgainst(loser_rating) : winner_arena_team->WonAgainst(0);
+            int32 loser_change = (m_is_leave>0) ? loser_arena_team->LostAgainst(winner_rating) : loser_arena_team->LostAgainst(0);
 //            int32 winner_change = winner_arena_team->WonAgainst(loser_rating);
-            int32 loser_change = loser_arena_team->LostAgainst(winner_rating);
+//            int32 loser_change = loser_arena_team->LostAgainst(winner_rating);
             sLog.outDebug("--- Winner rating: %u, Loser rating: %u, Winner change: %u, Losser change: %u ---", winner_rating, loser_rating, winner_change, loser_change);
             if(winner == ALLIANCE)
             {
