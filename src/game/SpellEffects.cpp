@@ -4292,8 +4292,12 @@ void Spell::EffectHealMaxHealth(uint32 /*i*/)
         return;
     if(!unitTarget->isAlive())
         return;
-
+    if (!m_caster)
+       return;
     uint32 heal = m_caster->GetMaxHealth();
+
+    int32 gain = m_caster->DealHeal(unitTarget, heal, m_spellInfo, false);
+    unitTarget->getHostileRefManager().threatAssist(m_caster, float(gain) * 0.5f, m_spellInfo);
 
     m_healing += heal;
 }
