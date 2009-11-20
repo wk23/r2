@@ -697,11 +697,6 @@ void Map::Update(const uint32 &t_diff)
 
 void Map::Remove(Player *player, bool remove)
 {
-    if(remove)
-        player->CleanupsBeforeDelete();
-    else
-        player->RemoveFromWorld();
-
     // this may be called during Map::Update
     // after decrement+unlink, ++m_mapRefIter will continue correctly
     // when the first element of the list is being removed
@@ -734,6 +729,7 @@ void Map::Remove(Player *player, bool remove)
     NGridType *grid = getNGrid(cell.GridX(), cell.GridY());
     assert(grid != NULL);
 
+    player->RemoveFromWorld();
     RemoveFromGrid(player,grid,cell);
 
     SendRemoveTransports(player);
@@ -779,11 +775,7 @@ Map::Remove(T *obj, bool remove)
     if(obj->isActiveObject())
         RemoveFromActive(obj);
 
-    if(remove)
-        obj->CleanupsBeforeDelete();
-    else
-        obj->RemoveFromWorld();
-
+    obj->RemoveFromWorld();
     RemoveFromGrid(obj,grid,cell);
 
     UpdateObjectVisibility(obj,cell,p);
@@ -2004,6 +1996,9 @@ void Map::RemoveAllObjectsInRemoveList()
             Remove((GameObject*)obj,true);
             break;
         case TYPEID_UNIT:
+            // in case triggered sequence some spell can continue casting after prev CleanupsBeforeDelete call
+            // make sure that like sources auras/etc removed before destructor start
+            ((Creature*)obj)->CleanupsBeforeDelete ();
             Remove((Creature*)obj,true);
             break;
         default:
@@ -2594,6 +2589,8 @@ void Map::SendObjectUpdates()
     {
         Object* obj = *i_objectsToClientUpdate.begin();
         i_objectsToClientUpdate.erase(i_objectsToClientUpdate.begin());
+        if (!obj || !obj->IsInWorld())
+            continue;
         obj->BuildUpdateData(update_players);
     }
 
