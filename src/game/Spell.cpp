@@ -2823,11 +2823,10 @@ void Spell::finish(bool ok)
         m_caster->resetAttackTimer(RANGED_ATTACK);*/
 
     // Clear combo at finish state
-    bool needDrop = true;
     if(m_caster->GetTypeId() == TYPEID_PLAYER && NeedsComboPoints(m_spellInfo))
     {
         // Not drop combopoints if negative spell and if any miss on enemy exist
-        //bool needDrop = true;
+        bool needDrop = true;
         if (!IsPositiveSpell(m_spellInfo->Id))
         {
             for(std::list<TargetInfo>::const_iterator ihit= m_UniqueTargetInfo.begin();ihit != m_UniqueTargetInfo.end();++ihit)
@@ -2840,20 +2839,9 @@ void Spell::finish(bool ok)
             }
         }
         if (needDrop)
-        {
-            if (m_caster->HasSpell(14156))
-                if (roll_chance_f(20))
-                   ((Player*)m_caster)->SetFinishComboPoints(true);
-            if (m_caster->HasSpell(14160))
-                if (roll_chance_f(40))
-                   ((Player*)m_caster)->SetFinishComboPoints(true);
-            if (m_caster->HasSpell(14161))
-                if (roll_chance_f(60)) 
-            ((Player*)m_caster)->SetFinishComboPoints(true); 
             ((Player*)m_caster)->ClearComboPoints();
-        }
     }
-    ((Player*)m_caster)->SetFinishComboPoints(false);
+
     // call triggered spell only at successful cast (after clear combo points -> for add some if need)
     if(!m_TriggerSpells.empty())
         CastTriggerSpells();

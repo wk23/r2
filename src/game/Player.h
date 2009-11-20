@@ -1318,8 +1318,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         uint8 GetComboPoints() { return m_comboPoints; }
         const uint64& GetComboTarget() const { return m_comboTarget; }
-        bool GetFinishComboPoints() { return m_comboPoints_finish; }
-        void SetFinishComboPoints(bool state) { m_comboPoints_finish=state; }
 
         void AddComboPoints(Unit* target, int8 count);
         void ClearComboPoints();
@@ -2162,7 +2160,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         uint64 m_comboTarget;
         int8 m_comboPoints;
-        bool m_comboPoints_finish;
 
         QuestStatusMap mQuestStatus;
 
