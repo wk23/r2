@@ -288,6 +288,7 @@ Player::Player (WorldSession *session): Unit(), m_reputationMgr(this)
 
     m_comboTarget = 0;
     m_comboPoints = 0;
+    m_comboPoints_finish = false;
 
     m_usedTalentCount = 0;
 
@@ -17441,7 +17442,7 @@ void Player::SendComboPoints()
 
 void Player::AddComboPoints(Unit* target, int8 count)
 {
-    if(!count)
+    if(!count || m_comboPoints_finish)
         return;
 
     // without combo points lost (duration checked in aura)
@@ -17465,7 +17466,7 @@ void Player::AddComboPoints(Unit* target, int8 count)
 
     if (m_comboPoints > 5) m_comboPoints = 5;
     if (m_comboPoints < 0) m_comboPoints = 0;
-
+    //if(!m_comboPoints_finish)
     SendComboPoints();
 }
 
@@ -17477,14 +17478,28 @@ void Player::ClearComboPoints()
     // without combopoints lost (duration checked in aura)
     RemoveSpellsCausingAura(SPELL_AURA_RETAIN_COMBO_POINTS);
 
+    if(m_comboPoints_finish)
+    {
+    RemoveSpellsCausingAura(SPELL_AURA_RETAIN_COMBO_POINTS);
+    if(Unit* target = ObjectAccessor::GetUnit(*this,m_comboTarget))
+       {
+        m_comboPoints = 0;
+        target->RemoveComboPointHolder(GetGUIDLow());
+        SendComboPoints();
+        target->AddComboPointHolder(GetGUIDLow());
+        m_comboPoints = 1;
+        SendComboPoints();
+        }
+    }
+    else
+    {
     m_comboPoints = 0;
-
-    SendComboPoints();
-
     if(Unit* target = ObjectAccessor::GetUnit(*this,m_comboTarget))
         target->RemoveComboPointHolder(GetGUIDLow());
-
+    SendComboPoints();
     m_comboTarget = 0;
+    }
+    m_comboPoints_finish = false;
 }
 
 void Player::SetGroup(Group *group, int8 subgroup)
