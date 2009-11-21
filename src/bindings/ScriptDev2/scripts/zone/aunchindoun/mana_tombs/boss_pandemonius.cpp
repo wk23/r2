@@ -43,7 +43,7 @@ struct MANGOS_DLL_DECL boss_pandemoniusAI : public ScriptedAI
 {
     boss_pandemoniusAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 

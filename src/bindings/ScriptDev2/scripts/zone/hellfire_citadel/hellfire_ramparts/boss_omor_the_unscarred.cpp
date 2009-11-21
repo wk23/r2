@@ -45,7 +45,7 @@ struct MANGOS_DLL_DECL boss_omor_the_unscarredAI : public Scripted_NoMovementAI
 {
     boss_omor_the_unscarredAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
     {
-        HeroicMode = pCreature->GetMap()->IsHeroic();
+        HeroicMode = pCreature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 

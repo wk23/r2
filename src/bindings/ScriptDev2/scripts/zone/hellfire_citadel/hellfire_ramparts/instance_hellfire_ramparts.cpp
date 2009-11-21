@@ -59,12 +59,12 @@ struct MANGOS_DLL_DECL instance_ramparts : public ScriptedInstance
         {
             case TYPE_VAZRUDEN:
                 if (uiData == DONE && m_uiEncounter[1] == DONE)
-                    DoRespawnGameObject(instance->IsHeroic() ? m_uiChestHGUID : m_uiChestNGUID, HOUR*IN_MILISECONDS);
+                    DoRespawnGameObject(instance->IsRaidOrHeroicDungeon() ? m_uiChestHGUID : m_uiChestNGUID, HOUR*IN_MILISECONDS);
                 m_uiEncounter[0] = uiData;
                 break;
             case TYPE_NAZAN:
                 if (uiData == DONE && m_uiEncounter[0] == DONE)
-                    DoRespawnGameObject(instance->IsHeroic() ? m_uiChestHGUID : m_uiChestNGUID, HOUR*IN_MILISECONDS);
+                    DoRespawnGameObject(instance->IsRaidOrHeroicDungeon() ? m_uiChestHGUID : m_uiChestNGUID, HOUR*IN_MILISECONDS);
                 m_uiEncounter[1] = uiData;
                 break;
         }

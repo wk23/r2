@@ -78,7 +78,7 @@ struct MANGOS_DLL_DECL boss_grand_warlock_nethekurseAI : public ScriptedAI
     boss_grand_warlock_nethekurseAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 

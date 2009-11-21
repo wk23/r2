@@ -42,7 +42,7 @@ struct MANGOS_DLL_DECL boss_watchkeeper_gargolmarAI : public ScriptedAI
 {
     boss_watchkeeper_gargolmarAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 

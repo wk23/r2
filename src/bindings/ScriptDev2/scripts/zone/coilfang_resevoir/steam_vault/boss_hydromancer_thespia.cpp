@@ -46,7 +46,7 @@ struct MANGOS_DLL_DECL boss_thespiaAI : public ScriptedAI
     boss_thespiaAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 
@@ -150,7 +150,7 @@ struct MANGOS_DLL_DECL mob_coilfang_waterelementalAI : public ScriptedAI
 
     void Reset()
     {
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
         WaterBoltVolley_Timer = 3000+rand()%3000;
     }
 

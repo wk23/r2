@@ -58,7 +58,7 @@ struct MANGOS_DLL_DECL boss_grandmaster_vorpilAI : public ScriptedAI
     boss_grandmaster_vorpilAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        HeroicMode = pCreature->GetMap()->IsHeroic();
+        HeroicMode = pCreature->GetMap()->IsRaidOrHeroicDungeon();
         Intro = false;
         Reset();
     }

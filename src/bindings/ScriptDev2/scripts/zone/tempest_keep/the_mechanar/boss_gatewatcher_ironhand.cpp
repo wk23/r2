@@ -43,7 +43,7 @@ struct MANGOS_DLL_DECL boss_gatewatcher_iron_handAI : public ScriptedAI
     boss_gatewatcher_iron_handAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 

@@ -42,7 +42,7 @@ struct MANGOS_DLL_DECL boss_kelesethAI : public ScriptedAI
     boss_kelesethAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        m_bIsHeroic = pCreature->GetMap()->IsHeroic();
+        m_bIsHeroic = pCreature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 

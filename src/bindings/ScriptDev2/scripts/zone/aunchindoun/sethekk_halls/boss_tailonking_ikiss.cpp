@@ -71,7 +71,7 @@ struct MANGOS_DLL_DECL boss_talon_king_ikissAI : public ScriptedAI
 
     void Reset()
     {
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
 
         ArcaneVolley_Timer = 5000;
         Sheep_Timer = 8000;

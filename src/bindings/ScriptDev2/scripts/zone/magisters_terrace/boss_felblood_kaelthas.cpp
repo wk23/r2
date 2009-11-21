@@ -81,7 +81,7 @@ struct MANGOS_DLL_DECL boss_felblood_kaelthasAI : public ScriptedAI
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
         Reset();
-        Heroic = pCreature->GetMap()->IsHeroic();
+        Heroic = pCreature->GetMap()->IsRaidOrHeroicDungeon();
     }
 
     ScriptedInstance* pInstance;
@@ -425,7 +425,7 @@ struct MANGOS_DLL_DECL mob_felkael_flamestrikeAI : public ScriptedAI
     mob_felkael_flamestrikeAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         Reset();
-        Heroic = pCreature->GetMap()->IsHeroic();
+        Heroic = pCreature->GetMap()->IsRaidOrHeroicDungeon();
     }
 
     uint32 FlameStrikeTimer;

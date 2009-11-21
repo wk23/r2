@@ -45,7 +45,7 @@ struct MANGOS_DLL_DECL boss_nethermancer_sepethreaAI : public ScriptedAI
     boss_nethermancer_sepethreaAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 
@@ -167,7 +167,7 @@ struct MANGOS_DLL_DECL mob_ragin_flamesAI : public ScriptedAI
     mob_ragin_flamesAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 

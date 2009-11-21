@@ -70,7 +70,7 @@ struct MANGOS_DLL_DECL boss_telestraAI : public ScriptedAI
     boss_telestraAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_bIsHeroic = pCreature->GetMap()->IsHeroic();
+        m_bIsHeroic = pCreature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 

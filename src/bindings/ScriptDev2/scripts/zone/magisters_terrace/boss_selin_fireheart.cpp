@@ -68,7 +68,7 @@ struct MANGOS_DLL_DECL boss_selin_fireheartAI : public ScriptedAI
             }
         }
         Reset();
-        Heroic = pCreature->GetMap()->IsHeroic();
+        Heroic = pCreature->GetMap()->IsRaidOrHeroicDungeon();
     }
 
     ScriptedInstance* pInstance;

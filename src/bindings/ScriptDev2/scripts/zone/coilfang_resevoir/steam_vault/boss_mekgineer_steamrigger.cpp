@@ -51,7 +51,7 @@ struct MANGOS_DLL_DECL boss_mekgineer_steamriggerAI : public ScriptedAI
     boss_mekgineer_steamriggerAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 
@@ -201,7 +201,7 @@ struct MANGOS_DLL_DECL mob_steamrigger_mechanicAI : public ScriptedAI
     mob_steamrigger_mechanicAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        HeroicMode = m_creature->GetMap()->IsHeroic();
+        HeroicMode = m_creature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 

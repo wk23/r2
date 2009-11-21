@@ -60,7 +60,7 @@ struct MANGOS_DLL_DECL boss_vexallusAI : public ScriptedAI
     boss_vexallusAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        Heroic = pCreature->GetMap()->IsHeroic();
+        Heroic = pCreature->GetMap()->IsRaidOrHeroicDungeon();
         Reset();
     }
 
