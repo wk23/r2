@@ -304,7 +304,7 @@ void WorldSession::DoLootRelease( uint64 lguid )
                     Map *map = go->GetMap();
                     if (map->IsDungeon())
                     {
-                        if (map->IsRaid() || map->IsHeroic())
+                        if (map->IsRaid() || map->IsRaidOrHeroicDungeon())
                         {
                             ((InstanceMap *)map)->PermBindAllPlayers(player);
                         }
