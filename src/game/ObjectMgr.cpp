@@ -951,7 +951,7 @@ void ObjectMgr::LoadCreatures()
         }
         else
         {
-            if(data.spawnMask & ~SPAWNMASK_CONTINENT)
+            if(data.spawnMask & ~SPAWNMASK_REGULAR)
                 sLog.outErrorDb("Table `creature` have creature (GUID: %u) that have wrong spawn mask %u for non-dungeon map (Id: %u).",guid, data.spawnMask, data.mapid );
         }
 
@@ -1127,7 +1127,7 @@ void ObjectMgr::LoadGameobjects()
         }
         else
         {
-            if(data.spawnMask & ~SPAWNMASK_CONTINENT)
+            if(data.spawnMask & ~SPAWNMASK_REGULAR)
                 sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) that have wrong spawn mask %u for non-dungeon map (Id: %u), skip", guid, data.id, data.spawnMask, data.mapid);
         }
 
@@ -2212,8 +2212,15 @@ void ObjectMgr::LoadPlayerInfo()
                     continue;
                 }
 
+                uint32 spell_id = fields[2].GetUInt32();
+                if (!sSpellStore.LookupEntry(spell_id))
+                {
+                    sLog.outErrorDb("Non existing spell %u in `playercreateinfo_spell` table, ignoring.", spell_id);
+                    continue;
+                }
+
                 PlayerInfo* pInfo = &playerInfo[current_race][current_class];
-                pInfo->spell.push_back(fields[2].GetUInt32());
+                pInfo->spell.push_back(spell_id);
 
                 bar.step();
                 ++count;
@@ -2264,8 +2271,15 @@ void ObjectMgr::LoadPlayerInfo()
                     continue;
                 }
 
+                uint8 action_button  = fields[2].GetUInt8();
+                uint32 action = fields[3].GetUInt32();
+                uint8 action_type = fields[4].GetUInt8();
+
+                if (!Player::IsActionButtonDataValid(action_button,action,action_type,NULL))
+                    continue;
+
                 PlayerInfo* pInfo = &playerInfo[current_race][current_class];
-                pInfo->action.push_back(PlayerCreateInfoAction(fields[2].GetUInt8(),fields[3].GetUInt32(),fields[4].GetUInt8()));
+                pInfo->action.push_back(PlayerCreateInfoAction(action_button,action,action_type));
 
                 bar.step();
                 ++count;

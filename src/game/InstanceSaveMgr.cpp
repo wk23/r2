@@ -94,9 +94,9 @@ InstanceSave* InstanceSaveManager::AddInstanceSave(uint32 mapId, uint32 instance
             ScheduleReset(true, resetTime, InstResetEvent(0, mapId, instanceId));
         }
         else
-        if (difficulty == DIFFICULTY_HEROIC)
+        if (difficulty == DUNGEON_DIFFICULTY_HEROIC)
         {
-            resetTime = time(NULL) + 24 * HOUR;
+             resetTime = GetResetTimeFor(mapId);//time(NULL) + 24 * HOUR;
             ScheduleReset(true, resetTime, InstResetEvent(0, mapId, instanceId));
         }
         else
@@ -184,7 +184,7 @@ time_t InstanceSave::GetResetTimeForDB()
 {
     // only save the reset time for normal instances
     const MapEntry *entry = sMapStore.LookupEntry(GetMapId());
-    if(!entry || entry->map_type == MAP_RAID || GetDifficulty() == DIFFICULTY_HEROIC)
+    if(!entry || entry->map_type == MAP_RAID || GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC)
         return 0;
     else
         return GetResetTime();
