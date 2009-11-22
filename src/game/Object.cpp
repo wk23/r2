@@ -1734,8 +1734,10 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float &x, float &y, 
     uint32 localCounter2 = 0;
     
     // select in positions after current nodes (selection one by one)
+    uint32 i = 0;
     while(selector.NextAngle(angle))                        // angle for free pos
     {
+        ++i;
         GetNearPoint2D(x,y,distance2d,absAngle+angle);
         z = GetPositionZ();
         UpdateGroundPositionZ(x,y,z);                       // update to LOS height if available
@@ -1753,6 +1755,8 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float &x, float &y, 
             sLog.outError("WorldObject::GetNearPoint: FIRST WHILE LOOP more then 100 iterations, BREAK (angle = %f, map_id = %u, x = %f, y = %f, z = %f)", angle, GetMapId(), x, y, z);
             break;
         }
+        if (i == 16)
+            break;
     }
 
     // BAD NEWS: not free pos (or used or have LOS problems)
